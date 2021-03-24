@@ -35,7 +35,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
             {
 
                 string cmdName = cmd.GetCommandName();
-                if (cmdName == null)
+                if (String.IsNullOrEmpty(cmdName))
                 {
                     continue;
                 }
