@@ -21,7 +21,7 @@
 				"/consoleloggerparameters:NoSummary"
 			],
 			"type": "process",
-			"dependsOn": "clean",
+			//"dependsOn": "clean",
 			"group": {
 				"kind": "build",
 				"isDefault": true
@@ -59,7 +59,7 @@
 			"type": "func",
 			"dependsOn": "build",
 			"options": {
-				"cwd": "${workspaceFolder}/bin/Debug/netcoreapp3.1"
+				"cwd": "${workspaceFolder}/explainpowershell.analysisservice/bin/Debug/netcoreapp3.1"
 			},
 			"command": "host start",
 			"isBackground": true,

@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
@@ -10,27 +9,32 @@ using Newtonsoft.Json;
 using System.Management.Automation;
 using System.Management.Automation.Language;
 using System.Collections.Generic;
+using System.Net;
+using System.Text;
+using System.Net.Http;
+
+using explainpowershell.models;
 
 namespace ExplainPowershell.SyntaxAnalyzer
 {
     public class SyntaxAnalyzer
     {
         [FunctionName("SyntaxAnalyzer")]
-        public async Task<IActionResult> Run(
+        public async Task<HttpResponseMessage> Run(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequest req,
             ILogger log)
         {
             log.LogInformation("C# HTTP trigger function processed a request.");
 
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            dynamic data = JsonConvert.DeserializeObject(requestBody);
-            string code = data?.code;
+            Code data = JsonConvert.DeserializeObject<Code>(requestBody);
+            string code = data?.PowershellCode;
 
             ScriptBlock sb = ScriptBlock.Create(code);
             var ast = sb.Ast;
 
             IEnumerable<Ast> foundCommandAsts = ast.FindAll(ast => ast is CommandAst, true);
-            List<string> resolvedCmds = new List<string>();
+            List<Command> resolvedCmds = new List<Command>();
             foreach (CommandAst cmd in foundCommandAsts)
             {
 
@@ -44,26 +48,31 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
                 string resolvedCmd = ResolveCmd(cmdName);
 
-                resolvedCmds.Add(resolvedCmd);
+                resolvedCmds.Add(new Command() { CommandName = resolvedCmd });
 
                 log.LogInformation(resolvedCmd);
             }
 
             string ext = ast.Extent.ToString();
-            string responseMessage;
+
             if (string.IsNullOrEmpty(ext))
             {
-                responseMessage = "This HTTP triggered function executed successfully. Pass code in the request body for an AST analysis.";
-            }
-            else
-            {
-                responseMessage = $"Found '{ext}'. This HTTP triggered function executed successfully. Resolved Command Names: ";
-                foreach (var cmd in resolvedCmds)
+                log.LogError("That didn't go as planned");
+                return new HttpResponseMessage(HttpStatusCode.BadRequest) 
                 {
-                    responseMessage += cmd + ", ";
-                }
+                    Content = new StringContent("This HTTP triggered function executed successfully, but there was no powershell code passed to it. Pass code in the request body for an AST analysis.",
+                        Encoding.UTF8,
+                        "application/json")
+                };
             }
-            return new OkObjectResult(responseMessage);
+
+            var json = JsonConvert.SerializeObject(resolvedCmds, Formatting.Indented);
+
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(json, Encoding.UTF8, "application/json")
+            };
+
         }
 
         private string ResolveCmd(string cmdName)

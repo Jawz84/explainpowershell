@@ -21,4 +21,7 @@
       <CopyToPublishDirectory>Never</CopyToPublishDirectory>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\explainpowershell.models\explainpowershell.models.csproj" />
+  </ItemGroup>
 </Project>
