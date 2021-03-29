@@ -1,0 +1,65 @@
+﻿@using System.Text.RegularExpressions
+@using System.ComponentModel.DataAnnotations
+@page "/"
+@inject HttpClient Http
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-16">
+    <MudText Typo="Typo.h3" GutterBottom="true">Explain PowerShell</MudText>
+    <MudText Class="mb-8">Get explanation for Powershell code oneliner</MudText>
+
+
+
+<div style="max-width: 800px;">
+    <MudCard>
+        <MudForm>
+            <MudCardContent>
+                <MudTextField @bind-Value="InputValue" T="string" Label="PowerShell oneliner to analyze" Required="true" RequiredError="Please supply PowerShell code" AutoFocus="true" />
+            </MudCardContent>
+            <MudCardActions>
+                <MudButton ButtonType="ButtonType.Button" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" 
+                OnClick="@OnInitializedAsync">Submit</MudButton>
+            </MudCardActions>
+        </MudForm>
+    </MudCard>
+    <MudExpansionPanels>
+        <MudExpansionPanel Text="@($"Show explanations")" IsExpanded="@hasExplanations">
+            @foreach (var explanation in explanations)
+            {
+                <MudText>@explanation.CommandName</MudText>
+                <MudText>@explanation.Synopsis</MudText>
+            }
+        </MudExpansionPanel>
+    </MudExpansionPanels>
+</div>
+
+</MudContainer>
+
+@code {
+
+    private List<Explanation> explanations {get; set;} = new();
+
+    private bool hasExplanations {
+        get {
+            if (explanations == null) {
+                return false;
+            }
+
+            return explanations.Count > 0;
+        }
+    }
+
+    private string InputValue { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!string.IsNullOrEmpty(InputValue))
+        {
+            var code = new Code() { PowershellCode = InputValue };
+
+            var temp = await Http.PostAsJsonAsync<Code>("http://localhost:7071/api/SyntaxAnalyzer", code);
+
+            explanations = await temp.Content.ReadFromJsonAsync<List<Explanation>>();
+            Console.WriteLine(explanations[0].Synopsis);
+        }
+    }
+}
