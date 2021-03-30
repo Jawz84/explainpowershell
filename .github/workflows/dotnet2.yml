@@ -1,0 +1,56 @@
+name: .NET
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 5.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --no-restore
+    - name: Test
+      run: dotnet test --no-build --verbosity normal
+    - name: App Service Web App Build Action
+      uses: Azure/appservice-build@v2
+      with:
+        # Relative path (within the repository) to the source directory of the project you want to build; if no value is provided for this, the root of the repository ("GITHUB_WORKSPACE" environment variable) will be built.
+        source-directory: # optional
+        # Programming platform used to build the web app; if no value is provided, Oryx will determine the platform to build with. The supported values are "dotnet", "nodejs", "php" and "python".
+        platform: # optional
+        # Version of the programming platform used to build the web app; if no value is provided, Oryx will determine the version needed to build the repository.
+        platform-version: # optional
+        # The directory where the build output has to be put.
+        output-directory: # optional
+    
+    - name: Azure Functions Action
+      uses: Azure/functions-action@v1.3.1
+      with:
+        # Name of the Azure Function App
+        app-name: 
+        # Path to package or folder. *.zip or a folder to deploy
+        package: # optional, default is .
+        # Function app slot to be deploy to
+        slot-name: # optional
+        # Publish profile (*.publishsettings) file contents with web deploy secrets
+        publish-profile: # optional
+        # Automatically look up Java function app artifact from pom.xml (default: 'false'). When this is set to 'true', 'package' should point to the folder of host.json.
+        respect-pom-xml: # optional, default is false
+        # Remove unwanted files defined in .funcignore file (default: 'false'). When this is set to 'true', 'package' should point to the folder of host.json.
+        respect-funcignore: # optional, default is false
+        # Enable build action from Kudu when the package is deployed onto the function app. This will temporarily change the SCM_DO_BUILD_DURING_DEPLOYMENT setting for this deployment. To bypass this and use the existing settings from your function app, please set this to an empty string ''. To enable remote build for your project, please set this and 'enable-oryx-build' both to 'true'. By default, GitHub Action respsect the packages resolved in GitHub workflow, disabling the redundant build action from Kudu endpoint. (default: 'false').
+        scm-do-build-during-deployment: # optional, default is false
+        # Use Oryx Build from Kudu when the package is deployed onto the function app. (Linux functions only). This will temporarily change the ENABLE_ORYX_BUILD setting from this deployment. To bypass this and use the existing settings from your function app, please set this to an empty string ''. To enable remote build for your project, please set this and 'scm-do-build-during-deployment' both to 'true'. By default, GitHub Action respsect the packages resolved in GitHub workflow, disabling the redundant build action from Kudu endpoint. (default: 'false').
+        enable-oryx-build: # optional, default is false
