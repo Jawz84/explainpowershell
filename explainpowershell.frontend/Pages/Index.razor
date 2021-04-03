@@ -38,6 +38,8 @@
 </MudContainer>
 
 @code {
+    //private const string apiUrl = "http://localhost:7071/api/SyntaxAnalyzer";
+    private const string apiUrl = "https://explainpowershellsyntaxanalyzer.azurewebsites.net/api/SyntaxAnalyzer";
 
     private List<Explanation> explanations {get; set;} = new();
 
@@ -51,7 +53,7 @@
         }
     }
 
-    private string InputValue { get; set; } //= "gps | ? name -like '*abc*' ";
+    private string InputValue { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -59,7 +61,7 @@
         {
             var code = new Code() { PowershellCode = InputValue };
 
-            var temp = await Http.PostAsJsonAsync<Code>("http://localhost:7071/api/SyntaxAnalyzer", code);
+            var temp = await Http.PostAsJsonAsync<Code>(apiUrl, code);
 
             explanations = await temp.Content.ReadFromJsonAsync<List<Explanation>>();
             Console.WriteLine(explanations[0].Synopsis);
