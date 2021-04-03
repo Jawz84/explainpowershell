@@ -22,12 +22,11 @@ namespace ExplainPowershell.SyntaxAnalyzer
     {
         private string extent;
         private int offSet = 0;
-        
+
         private static readonly PowerShell powerShell = PowerShell.Create();
-        private CommandInvocationIntrinsics invokeCommand = powerShell.Runspace.SessionStateProxy.InvokeCommand;
         private Dictionary<String, String> AliasToCmdletDictionary;
 
-        public CommandInvocationIntrinsics InvokeCommand { get => invokeCommand; set => invokeCommand = value; }
+        public CommandInvocationIntrinsics InvokeCommand { get => powerShell.Runspace.SessionStateProxy.InvokeCommand; }
 
         [FunctionName("SyntaxAnalyzer")]
         public async Task<HttpResponseMessage> Run(
@@ -48,7 +47,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
             if (string.IsNullOrEmpty(extent))
             {
                 log.LogError("That didn't go as planned");
-                return new HttpResponseMessage(HttpStatusCode.BadRequest) 
+                return new HttpResponseMessage(HttpStatusCode.BadRequest)
                 {
                     Content = new StringContent("This HTTP triggered function executed successfully, but there was no powershell code passed to it. Pass code in the request body for an AST analysis.",
                         Encoding.UTF8,
@@ -61,32 +60,40 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
             foreach (CommandAst cmd in foundCommandAsts)
             {
-                string resolvedCmd = ResolveCmd(cmd.GetCommandName());
-                if (string.IsNullOrEmpty(resolvedCmd))
+                try 
                 {
-                    continue;
+                    string resolvedCmd = ResolveCmd(cmd.GetCommandName());
+                    if (string.IsNullOrEmpty(resolvedCmd))
+                    {
+                        continue;
+                    }
+                    log.LogInformation(resolvedCmd);
+
+                    ExpandAliasesInExtent(cmd, resolvedCmd);
+
+                    var synopsisObj = powerShell
+                        .AddScript($"Get-Help {resolvedCmd} | Select-Object -ExpandProperty Synopsis")
+                        .Invoke();
+                    var synopsis = synopsisObj?.FirstOrDefault()?.ToString() ?? "";
+
+                    log.LogInformation(synopsis);
+
+                    explanations.Add(
+                        new Explanation()
+                        {
+                            OriginalExtent = cmd.Extent.Text,
+                            CommandName = resolvedCmd,
+                            Synopsis = synopsis
+                        });
                 }
-
-                ExpandAliasesInExtent(cmd, resolvedCmd);
-
-                var synopsis = powerShell
-                    .AddScript($"Get-Help {resolvedCmd} | Select-Object -ExpandProperty Synopsis")
-                    .Invoke()
-                    .FirstOrDefault()
-                    .ToString();
-
-                log.LogInformation(resolvedCmd);
-                log.LogInformation(synopsis);
-
-                explanations.Add(
-                    new Explanation() { 
-                        OriginalExtent = cmd.Extent.Text,
-                        CommandName = resolvedCmd,
-                        Synopsis = synopsis
-                    });
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                    Console.WriteLine(e.StackTrace);
+                }
             }
 
-            log.LogInformation("expanded: '{extent}'",  extent);
+            log.LogInformation("expanded: '{extent}'", extent);
 
             var json = JsonConvert.SerializeObject(explanations, Formatting.Indented);
 
@@ -120,7 +127,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 return AliasToCmdletDictionary[cmdName];
             }
 
-            return InvokeCommand.GetCommandName(cmdName,false,false).FirstOrDefault();
+            return InvokeCommand.GetCommandName(cmdName, false, false).FirstOrDefault();
         }
 
         public void InitializeAliasDictionary()
