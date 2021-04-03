@@ -2,14 +2,14 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Run analysis service test",
+            "name": "Run functionApp test",
             "type": "PowerShell",
             "request": "launch",
             "script": "${workspaceFolder}/test.ps1",
             "cwd": "${workspaceFolder}"
         },
         {
-            "name": "Attach to .NET Functions",
+            "name": "debug functionApp",
             "type": "coreclr",
             "request": "attach",
             "processId": "${command:azureFunctions.pickProcess}"
@@ -25,7 +25,8 @@
     "compounds": [
         {
             "name": "debug solution",
-            "configurations": ["Attach to .NET Functions", "debug wasm"]
+            "configurations": ["debug functionApp", "debug wasm"],
+            "outFiles": "SyntaxAnalyzer.cs"
         }
     ]
 }
