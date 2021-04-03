@@ -21,15 +21,18 @@
             </MudCardActions>
         </MudForm>
     </MudCard>
-    <MudExpansionPanels>
-        <MudExpansionPanel Text="@($"Show explanations")" IsExpanded="@hasExplanations">
-            @foreach (var explanation in explanations)
-            {
-                <MudText>@explanation.CommandName</MudText>
-                <MudText>@explanation.Synopsis</MudText>
-            }
-        </MudExpansionPanel>
-    </MudExpansionPanels>
+    <MudTable Items="@explanations" Hover="true" Breakpoint="Breakpoint.Sm">
+        <HeaderContent>
+            <MudTh>Original Extent</MudTh>
+            <MudTh>CommandName</MudTh>
+            <MudTh>Synopsis</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Original Extent">@context.OriginalExtent</MudTd>
+            <MudTd DataLabel="CommandName">@context.CommandName</MudTd>
+            <MudTd DataLabel="Synopsis">@context.Synopsis</MudTd>
+        </RowTemplate>
+    </MudTable>
 </div>
 
 </MudContainer>
@@ -48,7 +51,7 @@
         }
     }
 
-    private string InputValue { get; set; }
+    private string InputValue { get; set; } = "gps | ? name -like '*abc*' ";
 
     protected override async Task OnInitializedAsync()
     {
