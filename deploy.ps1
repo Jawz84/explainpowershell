@@ -5,5 +5,5 @@ dotnet clean -v m &&
     dotnet publish --no-restore &&
     az storage blob upload-batch --destination `$web --account-name storageexplainpowershell --destination-path / --source $source --account-key $key --output none &&
     Push-Location .\explainpowershell.analysisservice && 
-    func azure functionapp publish explainpowershellsyntaxanalyzer --no-build &&
+    func azure functionapp publish explainpowershellsyntaxanalyzer &&
     Pop-Location
