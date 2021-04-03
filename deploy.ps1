@@ -1,5 +1,5 @@
 $key = get-content .\storageaccountkey.user
-$source = .\explainpowershell.frontend\bin\Release\net5.0\publish\wwwroot\
+$source = ".\explainpowershell.frontend\bin\Release\net5.0\publish\wwwroot\"
 dotnet clean -v m &&
     dotnet restore -v m &&
     dotnet publish --no-restore &&
