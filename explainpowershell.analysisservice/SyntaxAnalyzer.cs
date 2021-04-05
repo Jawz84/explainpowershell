@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Text;
 using System.Net.Http;
+using Microsoft.Azure.Cosmos.Table;
 
 using explainpowershell.models;
 using System.Linq;
@@ -20,6 +21,8 @@ namespace ExplainPowershell.SyntaxAnalyzer
 {
     public class SyntaxAnalyzer
     {
+        private const string HelpTableName = "HelpData";
+        private const string PartitionKey = "CommandHelp";
         private string extent;
         private int offSet = 0;
 
@@ -31,6 +34,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
         [FunctionName("SyntaxAnalyzer")]
         public async Task<HttpResponseMessage> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequest req,
+            [Table(HelpTableName)] CloudTable cloudTable,
             ILogger log)
         {
             log.LogInformation("C# HTTP trigger function processed a request.");
@@ -71,10 +75,15 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
                     ExpandAliasesInExtent(cmd, resolvedCmd);
 
-                    var synopsisObj = powerShell
-                        .AddScript($"Get-Help {resolvedCmd} | Select-Object -ExpandProperty Synopsis")
-                        .Invoke();
-                    var synopsis = synopsisObj?.FirstOrDefault()?.ToString() ?? "";
+                    TableQuery<HelpEntity> query = new TableQuery<HelpEntity>().Where(
+                        TableQuery.CombineFilters(
+                            TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, PartitionKey),
+                            TableOperators.And,
+                            TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal, resolvedCmd)));
+
+                    var helpResult = cloudTable.ExecuteQuery(query).FirstOrDefault();
+
+                    var synopsis = helpResult?.Synopsis?.ToString() ?? "";
 
                     log.LogInformation(synopsis);
 
