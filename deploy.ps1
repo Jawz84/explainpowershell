@@ -1,5 +1,7 @@
+trap { Pop-Location}
 $key = get-content .\storageaccountkey.user
-$source = ".\explainpowershell.frontend\bin\Release\net5.0\publish\wwwroot\"
+$source = ".\bin\Release\net5.0\publish\wwwroot\"
+$ErrorActionPreference = 'stop'
 
 Push-Location .\explainpowershell.frontend &&
     dotnet clean -v m &&
