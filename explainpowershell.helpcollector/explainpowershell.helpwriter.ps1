@@ -10,7 +10,7 @@ if ($null -eq ($table = Get-AzStorageTable -Context $storageCtx -Name $tableName
     $table = New-AzStorageTable -Context $storageCtx -Name $tableName
 }
 
-#$commandHelp = .\explainpowershell.helpcollector.ps1
+$commandHelp = .\explainpowershell.helpcollector.ps1
 
 foreach ($help in $commandHelp) {
     $hlp = $help -As [HelpData]

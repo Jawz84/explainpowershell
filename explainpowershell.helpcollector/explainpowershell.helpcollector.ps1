@@ -3,7 +3,14 @@
 # Update-Help -Force -ErrorAction SilentlyContinue
 $cmds = New-Object -TypeName 'System.Collections.Generic.Dictionary[[string],[HelpData]]'
 
-Get-Module 
+$modulesToProcess = Get-Module 
+
+$modulesToProcess += @{
+    Name = "Microsoft.PowerShell.Core"
+    ProjectUri = "https://docs.microsoft.com/en-us/powershell/"
+}
+
+$modulesToProcess
 | Where-Object name -NotLike az* #for testing
 | Sort-Object -Unique -Property Name
 | ForEach-Object {
