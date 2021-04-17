@@ -25,4 +25,4 @@ Push-Location .\explainpowershell.analysisservice &&
     func azure functionapp publish explainpowershellsyntaxanalyzer &&
     Pop-Location
 
-setAppSettings -uri 'http://localhost:7071/api'
+setAppSettings -uri 'http://localhost:7071/api/'
