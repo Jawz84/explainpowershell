@@ -47,9 +47,6 @@
 </MudContainer>
 
 @code {
-    private const string apiUrl = "http://localhost:7071/api/SyntaxAnalyzer";
-    //private const string apiUrl = "https://explainpowershellsyntaxanalyzer.azurewebsites.net/api/SyntaxAnalyzer";
-
     private List<Explanation> explanations {get; set;} = new();
     private AnalysisResult analysisResult {get;set;} = new();
 
@@ -75,7 +72,7 @@
         {
             var code = new Code() { PowershellCode = InputValue };
 
-            var temp = await Http.PostAsJsonAsync<Code>(apiUrl, code);
+            var temp = await Http.PostAsJsonAsync<Code>("SyntaxAnalyzer", code);
 
             analysisResult = await JsonSerializer.DeserializeAsync<AnalysisResult>(temp.Content.ReadAsStream());
             explanations = analysisResult.Explanations;

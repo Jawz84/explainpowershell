@@ -1,7 +1,12 @@
-trap { Pop-Location}
+trap {
+    Pop-Location
+    $env:ASPNETCORE_ENVIRONMENT=$null
+}
+
 $key = get-content .\storageaccountkey.user
 $source = ".\bin\Release\net5.0\publish\wwwroot\"
 $ErrorActionPreference = 'stop'
+$env:ASPNETCORE_ENVIRONMENT="production"
 
 Push-Location .\explainpowershell.frontend &&
     dotnet clean -v m &&
