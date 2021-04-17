@@ -12,6 +12,7 @@
     <PackageReference Include="Microsoft.PowerShell.Commands.Utility" Version="7.0.2" />
     <PackageReference Include="Microsoft.PowerShell.Commands.Management" Version="7.0.2" />
     <PackageReference Include="Microsoft.WSMan.Management" Version="7.0.2" />
+    <PackageReference Include="System.Net.Http.Json" Version="5.0.0" />
   </ItemGroup>
   <ItemGroup>
     <None Update="host.json">

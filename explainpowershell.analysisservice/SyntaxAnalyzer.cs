@@ -9,13 +9,13 @@ using Newtonsoft.Json;
 using System.Management.Automation;
 using System.Management.Automation.Language;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Net.Http;
 using Microsoft.Azure.Cosmos.Table;
 
 using explainpowershell.models;
-using System.Linq;
 
 namespace ExplainPowershell.SyntaxAnalyzer
 {
@@ -39,8 +39,11 @@ namespace ExplainPowershell.SyntaxAnalyzer
         {
             log.LogInformation("C# HTTP trigger function processed a request.");
 
+            var AnalysisResult = new AnalysisResult();
+
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            Code data = JsonConvert.DeserializeObject<Code>(requestBody);
+            var data = JsonConvert.DeserializeObject<Code>(requestBody);
+
             string code = data?.PowershellCode;
 
             ScriptBlock sb = ScriptBlock.Create(code);
@@ -59,52 +62,87 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 };
             }
 
-            IEnumerable<Ast> foundCommandAsts = ast.FindAll(ast => ast is CommandAst, true);
+            IEnumerable<Ast> foundPipelineAsts = ast.FindAll(ast => ast is PipelineAst, true);
             var explanations = new List<Explanation>();
 
-            foreach (CommandAst cmd in foundCommandAsts)
+            foreach (PipelineAst pipeline in foundPipelineAsts)
             {
-                try 
+                foreach (CommandBaseAst element in pipeline.PipelineElements)
                 {
-                    string resolvedCmd = ResolveCmd(cmd.GetCommandName());
-                    if (string.IsNullOrEmpty(resolvedCmd))
+                    try
                     {
-                        continue;
-                    }
-                    log.LogInformation(resolvedCmd);
-
-                    ExpandAliasesInExtent(cmd, resolvedCmd);
-
-                    TableQuery<HelpEntity> query = new TableQuery<HelpEntity>().Where(
-                        TableQuery.CombineFilters(
-                            TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, PartitionKey),
-                            TableOperators.And,
-                            TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal, resolvedCmd)));
-
-                    var helpResult = cloudTable.ExecuteQuery(query).FirstOrDefault();
-
-                    var synopsis = helpResult?.Synopsis?.ToString() ?? "";
-
-                    log.LogInformation(synopsis);
-
-                    explanations.Add(
-                        new Explanation()
+                        if (element is CommandAst)
                         {
-                            OriginalExtent = cmd.Extent.Text,
-                            CommandName = resolvedCmd,
-                            Synopsis = synopsis
-                        });
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.Message);
-                    Console.WriteLine(e.StackTrace);
+                            CommandAst cmd;
+                            cmd = element as CommandAst;
+                            string resolvedCmd = ResolveCmd(cmd.GetCommandName());
+                            if (string.IsNullOrEmpty(resolvedCmd))
+                            {
+                                continue;
+                            }
+                            log.LogInformation(resolvedCmd);
+
+                            ExpandAliasesInExtent(cmd, resolvedCmd);
+                            TableQuery<HelpEntity> query = new TableQuery<HelpEntity>().Where(
+                                TableQuery.CombineFilters(
+                                    TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, PartitionKey),
+                                    TableOperators.And,
+                                    TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal, resolvedCmd)));
+
+                            var helpResult = cloudTable.ExecuteQuery(query).FirstOrDefault();
+
+                            var synopsis = helpResult?.Synopsis?.ToString() ?? "";
+
+                            log.LogInformation(synopsis);
+                            explanations.Add(
+                            new Explanation()
+                            {
+                                OriginalExtent = cmd.Extent.Text,
+                                CommandName = resolvedCmd,
+                                Synopsis = synopsis,
+                                HelpResult = helpResult
+                            });
+                        }
+                        else if (element is CommandExpressionAst)
+                        {
+                            CommandExpressionAst cmdExp;
+                            cmdExp = element as CommandExpressionAst;
+
+                            explanations.Add(
+                            new Explanation()
+                            {
+                                OriginalExtent = cmdExp.Extent.Text
+                            });
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        log.LogWarning(e.Message);
+                        log.LogWarning(e.StackTrace);
+                    }
                 }
             }
 
+            var modules = new List<Module>();
+            foreach (var exp in explanations)
+            {
+                if (!modules.Any(m => m.ModuleName == exp.HelpResult.ModuleName))
+                {
+                    modules.Add(
+                        new Module()
+                        {
+                            ModuleName = exp.HelpResult.ModuleName
+                        });
+                }
+            }
+
+            AnalysisResult.ExpandedCode = extent;
+            AnalysisResult.Explanations = explanations;
+            AnalysisResult.DetectedModules = modules;
+
             log.LogInformation("expanded: '{extent}'", extent);
 
-            var json = JsonConvert.SerializeObject(explanations, Formatting.Indented);
+            var json = System.Text.Json.JsonSerializer.Serialize(AnalysisResult);
 
             return new HttpResponseMessage(HttpStatusCode.OK)
             {
