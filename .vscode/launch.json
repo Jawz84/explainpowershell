@@ -12,7 +12,7 @@
             "name": "debug functionApp",
             "type": "coreclr",
             "request": "attach",
-            "processId": "${command:azureFunctions.pickProcess}"
+            "processId": "${command:azureFunctions.pickProcess}",
         },
         {
             "name": "debug wasm",
@@ -26,7 +26,10 @@
         {
             "name": "debug solution",
             "configurations": ["debug functionApp", "debug wasm"],
-            "outFiles": "SyntaxAnalyzer.cs"
+            "outFiles": [
+                "./explainpowershell.analysisservice/SyntaxAnalyzer.cs",
+                "./explainpowershell.frontend/Pages/Index.razor"
+            ]
         }
     ]
 }
