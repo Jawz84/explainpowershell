@@ -1,12 +1,16 @@
 trap {
     Pop-Location
-    $env:ASPNETCORE_ENVIRONMENT=$null
+    setAppSettings -uri 'http://localhost:7071/api/'
+}
+
+function setAppSettings ($uri) {
+    Set-Content -Path .\explainpowershell.frontend\wwwroot\appsettings.json -Value (@{BaseAddress = $uri} | ConvertTo-Json)
 }
 
 $key = get-content .\storageaccountkey.user
 $source = ".\bin\Release\net5.0\publish\wwwroot\"
 $ErrorActionPreference = 'stop'
-$env:ASPNETCORE_ENVIRONMENT="production"
+setAppSettings -uri 'https://explainpowershellsyntaxanalyzer.azurewebsites.net/api/'
 
 Push-Location .\explainpowershell.frontend &&
     dotnet clean -v m &&
@@ -20,3 +24,5 @@ Push-Location .\explainpowershell.analysisservice &&
     dotnet clean -v m &&
     func azure functionapp publish explainpowershellsyntaxanalyzer &&
     Pop-Location
+
+setAppSettings -uri 'http://localhost:7071/api'
