@@ -7,6 +7,31 @@
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-16">
     <MudText Typo="Typo.h3" GutterBottom="true">Explain PowerShell</MudText>
     <MudText Class="mb-8">Get explanation for Powershell code oneliner</MudText>
+    <MudLink @onclick="OpenPocInfo">[Proof of concept info]</MudLink>
+    <MudOverlay @bind-Visible="pocInfoIsVisible" DarkBackground="true" AutoClose="true">
+        <MudContainer>
+            <MudPaper>
+                <MudItem><MudText>
+                Currently supported modules: <br>
+                <br>
+                CimCmdlets<br>
+                Microsoft.PowerShell.Core<br>
+                Microsoft.PowerShell.LocalAccounts<br>
+                Microsoft.PowerShell.Management<br>
+                Microsoft.PowerShell.Security<br>
+                Microsoft.PowerShell.Utility<br>
+                Microsoft.WSMan.Management<br>
+                PackageManagement *experimental<br>
+                Pester *experimental<br>
+                posh-git *experimental<br>
+                PowerShellEditorServices.Commands *experimental<br>
+                PowerShellEditorServices.VSCode *experimental<br>
+                PowerShellGet *experimental<br>
+                PSReadLine *experimental
+                </MudText></MudItem>
+            </MudPaper>
+        </MudContainer>
+    </MudOverlay>
     <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-16">
         <MudCard>
             <MudForm>
@@ -28,11 +53,13 @@
             <MudTh>Original Extent</MudTh>
             <MudTh>CommandName</MudTh>
             <MudTh>Synopsis</MudTh>
+            <MudTh>Documentation</MudTh>
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="Original Extent">@context.OriginalExtent</MudTd>
             <MudTd DataLabel="CommandName">@context.CommandName</MudTd>
             <MudTd DataLabel="Synopsis">@context.Synopsis</MudTd>
+            <MudIconButton Icon="@Icons.Material.Filled.ContactSupport" Color="Color.Inherit" Link="@context.HelpResult.DocumentationLink" Target="_blank" />
         </RowTemplate>
     </MudTable>
     <MudDivider DividerType="DividerType.Middle" Class="my-6" hidden="@hasNoExplanations"/>
@@ -47,6 +74,7 @@
 </MudContainer>
 
 @code {
+    private bool pocInfoIsVisible;
     private List<Explanation> explanations {get; set;} = new();
     private AnalysisResult analysisResult {get;set;} = new();
 
@@ -78,8 +106,11 @@
             explanations = analysisResult.Explanations;
             modules = analysisResult.DetectedModules;
             expandedCode = analysisResult.ExpandedCode;
-
-            Console.WriteLine(explanations[0].Synopsis);
         }
+    }
+
+    public void OpenPocInfo() {
+        pocInfoIsVisible = true;
+        StateHasChanged();
     }
 }
