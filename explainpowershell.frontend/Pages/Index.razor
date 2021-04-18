@@ -1,4 +1,4 @@
-﻿@using System.Text.RegularExpressions
+@using System.Text.RegularExpressions
 @using System.ComponentModel.DataAnnotations
 @using System.Text.Json;
 @page "/"
@@ -6,47 +6,48 @@
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-16">
     <MudText Typo="Typo.h3" GutterBottom="true">Explain PowerShell</MudText>
-    <MudText Class="mb-8">Get explanation for Powershell code oneliner</MudText>
+    <MudText Class="mb-4">Get explanation for Powershell code oneliner</MudText>
     <MudLink @onclick="OpenPocInfo">[Proof of concept info]</MudLink>
     <MudOverlay @bind-Visible="pocInfoIsVisible" DarkBackground="true" AutoClose="true">
-        <MudContainer>
-            <MudPaper>
-                <MudItem><MudText>
-                Currently supported modules: <br>
-                <br>
-                CimCmdlets<br>
-                Microsoft.PowerShell.Core<br>
-                Microsoft.PowerShell.LocalAccounts<br>
-                Microsoft.PowerShell.Management<br>
-                Microsoft.PowerShell.Security<br>
-                Microsoft.PowerShell.Utility<br>
-                Microsoft.WSMan.Management<br>
-                PackageManagement *experimental<br>
-                Pester *experimental<br>
-                posh-git *experimental<br>
-                PowerShellEditorServices.Commands *experimental<br>
-                PowerShellEditorServices.VSCode *experimental<br>
-                PowerShellGet *experimental<br>
-                PSReadLine *experimental
-                </MudText></MudItem>
-            </MudPaper>
-        </MudContainer>
+        <MudPaper Class="pa-8">
+            <MudText>
+            Currently supported modules: <br>
+            <br>
+            CimCmdlets *experimental<br>
+            Microsoft.PowerShell.Core<br>
+            Microsoft.PowerShell.LocalAccounts<br>
+            Microsoft.PowerShell.Management<br>
+            Microsoft.PowerShell.Security<br>
+            Microsoft.PowerShell.Utility<br>
+            Microsoft.WSMan.Management<br>
+            PackageManagement *experimental<br>
+            Pester *experimental<br>
+            posh-git *experimental<br>
+            PowerShellEditorServices.Commands *experimental<br>
+            PowerShellEditorServices.VSCode *experimental<br>
+            PowerShellGet *experimental<br>
+            PSReadLine *experimental
+            </MudText>
+        </MudPaper>
     </MudOverlay>
-    <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-16">
+    <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-10">
         <MudCard>
             <MudForm>
                 <MudCardContent>
-                    <MudTextField @bind-Value="InputValue" T="string" Label="PowerShell oneliner to analyze" Required="true" RequiredError="Please supply PowerShell code" AutoFocus="true" />
+                    <MudTextField @bind-Value="InputValue" T="string" Label="PowerShell oneliner to analyze" AutoFocus="true" />
                 </MudCardContent>
                 <MudCardActions>
-                    <MudButton ButtonType="ButtonType.Button" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" 
-                    OnClick="@OnInitializedAsync">Submit</MudButton>
+                    @if (waiting)
+                    {
+                        <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Small" Class="ml-auto"/>
+                    }
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="@OnInitializedAsync" Disabled="@waiting" >Submit</MudButton>
                 </MudCardActions>
             </MudForm>
         </MudCard>
     </MudContainer>
     <MudDivider DividerType="DividerType.Middle" Class="my-6" hidden="@hasNoExplanations"/>
-    <MudText>@expandedCode</MudText>
+    <MudText Align="Align.Center">@expandedCode</MudText>
     <MudDivider DividerType="DividerType.Middle" Class="my-6" hidden="@hasNoExplanations"/>
     <MudTable Items="@explanations" Hover="true" Breakpoint="Breakpoint.Sm" hidden="@hasNoExplanations">
         <HeaderContent>
@@ -75,6 +76,8 @@
 
 @code {
     private bool pocInfoIsVisible;
+
+    private bool waiting {get;set;}
     private List<Explanation> explanations {get; set;} = new();
     private AnalysisResult analysisResult {get;set;} = new();
 
@@ -84,9 +87,8 @@
 
     private bool hasNoExplanations {
         get {
-            if (explanations == null) {
+            if (explanations == null) 
                 return true;
-            }
 
             return explanations.Count <= 0;
         }
@@ -96,13 +98,19 @@
 
     protected override async Task OnInitializedAsync()
     {
+        waiting = false;
+
         if (!string.IsNullOrEmpty(InputValue))
         {
+            waiting = true;
             var code = new Code() { PowershellCode = InputValue };
 
             var temp = await Http.PostAsJsonAsync<Code>("SyntaxAnalyzer", code);
 
             analysisResult = await JsonSerializer.DeserializeAsync<AnalysisResult>(temp.Content.ReadAsStream());
+
+            waiting = false;
+
             explanations = analysisResult.Explanations;
             modules = analysisResult.DetectedModules;
             expandedCode = analysisResult.ExpandedCode;
