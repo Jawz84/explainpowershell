@@ -14,11 +14,12 @@ $commandHelp = .\explainpowershell.helpcollector.ps1
 
 foreach ($help in $commandHelp) {
     $hlp = $help -As [HelpData]
-    Add-AzTableRow -Table $table.CloudTable -PartitionKey $partitionKey -RowKey $hlp.CommandName -property @{
+    Add-AzTableRow -Table $table.CloudTable -PartitionKey $partitionKey -RowKey $hlp.CommandName.ToLower() -property @{
+        CommandName       = $hlp.CommandName
         ModuleName        = $hlp.ModuleName
         Synopsis          = $hlp.Synopsis
         Syntax            = $hlp.Syntax
-       # Parameters        = $hlp.Parameters.Name
+        # Parameters        = $hlp.Parameters.Name
         DocumentationLink = $hlp.DocumentationLink
         # RawCmdletHelp_aliases     = $hlp.RawCmdletHelp.Aliases
         # RawCmdletHelp_description = $hlp.RawCmdletHelp.Description
