@@ -75,10 +75,11 @@ namespace ExplainPowershell.SyntaxAnalyzer
                         {
                             CommandAst cmd;
                             cmd = element as CommandAst;
-                            string resolvedCmd = ResolveCmd(cmd.GetCommandName());
+                            string cmdName = cmd.GetCommandName();
+                            string resolvedCmd = ResolveCmd(cmdName);
                             if (string.IsNullOrEmpty(resolvedCmd))
                             {
-                                continue;
+                                resolvedCmd = cmdName;
                             }
                             log.LogInformation(resolvedCmd);
 
@@ -87,7 +88,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
                                 TableQuery.CombineFilters(
                                     TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, PartitionKey),
                                     TableOperators.And,
-                                    TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal, resolvedCmd)));
+                                    TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal, resolvedCmd.ToLower()))); // Azure Table query does not support StringComparer.IgnoreOrdinalCase. RowKey command names are all stored lowercase.
 
                             var helpResult = cloudTable.ExecuteQuery(query).FirstOrDefault();
 
@@ -98,7 +99,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
                             new Explanation()
                             {
                                 OriginalExtent = cmd.Extent.Text,
-                                CommandName = resolvedCmd,
+                                CommandName = helpResult.CommandName ?? resolvedCmd,
                                 Synopsis = synopsis,
                                 HelpResult = helpResult
                             });
@@ -126,6 +127,9 @@ namespace ExplainPowershell.SyntaxAnalyzer
             var modules = new List<Module>();
             foreach (var exp in explanations)
             {
+                if (exp.HelpResult == null) 
+                    continue;
+
                 if (!modules.Any(m => m.ModuleName == exp.HelpResult.ModuleName))
                 {
                     modules.Add(

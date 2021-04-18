@@ -42,12 +42,6 @@ namespace explainpowershell.models
         public string Synopsis { get; set; }
         public string Syntax { get; set; }
         public string ModuleName { get; set; }
-        public string CommandName
-        {
-            get
-            {
-                return this.RowKey;
-            }
-        }
+        public string CommandName {get; set; }
     }
 }
