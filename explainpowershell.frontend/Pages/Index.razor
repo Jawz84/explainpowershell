@@ -1,4 +1,4 @@
-@using System.Text.RegularExpressions
+﻿@using System.Text.RegularExpressions
 @using System.ComponentModel.DataAnnotations
 @using System.Text.Json;
 @page "/"
@@ -60,11 +60,14 @@
             <MudTd DataLabel="Original Extent">@context.OriginalExtent</MudTd>
             <MudTd DataLabel="CommandName">@context.CommandName</MudTd>
             <MudTd DataLabel="Synopsis">@context.Synopsis</MudTd>
-            <MudIconButton Icon="@Icons.Material.Filled.ContactSupport" Color="Color.Inherit" Link="@context.HelpResult.DocumentationLink" Target="_blank" />
+            @if(@context.HelpResult != null) 
+            {
+                <MudIconButton Icon="@Icons.Material.Filled.ContactSupport" Color="Color.Inherit" Link="@context.HelpResult?.DocumentationLink" Target="_blank" />
+            }
         </RowTemplate>
     </MudTable>
-    <MudDivider DividerType="DividerType.Middle" Class="my-6" hidden="@hasNoExplanations"/>
-    <MudTable Items="@modules" Hover="true" Breakpoint="Breakpoint.Sm" hidden="@hasNoExplanations">
+    <MudDivider DividerType="DividerType.Middle" Class="my-6" hidden="@hasNoModules"/>
+    <MudTable Items="@modules" Hover="true" Breakpoint="Breakpoint.Sm" hidden="@hasNoModules">
         <HeaderContent>
             <MudTh>Detected Modules</MudTh>
         </HeaderContent>
@@ -93,7 +96,14 @@
             return explanations.Count <= 0;
         }
     }
+    private bool hasNoModules {
+        get {
+            if (modules == null) 
+                return true;
 
+            return modules.Count <= 0;
+        }
+    }
     private string InputValue { get; set; }
 
     protected override async Task OnInitializedAsync()
