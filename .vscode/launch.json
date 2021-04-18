@@ -29,7 +29,8 @@
             "outFiles": [
                 "./explainpowershell.analysisservice/SyntaxAnalyzer.cs",
                 "./explainpowershell.frontend/Pages/Index.razor"
-            ]
+            ],
+            "preLaunchTask": "startstorageemulator"
         }
     ]
 }

@@ -2,6 +2,15 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
+			"label": "startstorageemulator",
+			"command": "AzureStorageEmulator.exe",
+			"args": [
+				"start"
+			],
+			"type": "process",
+			"problemMatcher":"$msCompile"
+		},
+		{
 			"label": "clean",
 			"command": "dotnet",
 			"args": [
@@ -21,7 +30,6 @@
 				"/consoleloggerparameters:NoSummary"
 			],
 			"type": "process",
-			//"dependsOn": "clean",
 			"group": {
 				"kind": "build",
 				"isDefault": true
