@@ -9,5 +9,12 @@ I would like to create the same thing but for PowerShell.
 
 At this point I have a proof of concept that kind of looks like the screenshot below. 
 
-
 ![screenshot](./explainpowershell_website_screenshot.jpg)
+
+## Azure Resources overview
+
+* C# Azure Function backend API that analyzes PowerShell oneliners.
+* Azure Storage that hosts Blazor Wasm pages as a static website.
+* Azure Storage Table in which all help metadata is for currently supported modules.
+
+![azure resources](./AzViz.png)
