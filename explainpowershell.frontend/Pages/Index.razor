@@ -30,11 +30,13 @@
             </MudText>
         </MudPaper>
     </MudOverlay>
+
     <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-10">
         <MudCard>
             <MudForm>
                 <MudCardContent>
                     <MudTextField @bind-Value="InputValue" T="string" Label="PowerShell oneliner to analyze" AutoFocus="true" />
+                    @if (requestHasError) {<MudAlert class="mt-2" OnClick="@acknowledgeAlert" Severity="Severity.Error">@reasonPhrase</MudAlert>}
                 </MudCardContent>
                 <MudCardActions>
                     @if (waiting)
@@ -46,8 +48,8 @@
             </MudForm>
         </MudCard>
     </MudContainer>
-    <MudDivider DividerType="DividerType.Middle" Class="my-6" hidden="@hasNoExplanations"/>
-    <MudText Align="Align.Center">@expandedCode</MudText>
+    <MudDivider DividerType="DividerType.Middle" Class="my-6" hidden="@hideExpandedCode"/>
+    <MudText Align="Align.Center" hidden="@hideExpandedCode">@expandedCode</MudText>
     <MudDivider DividerType="DividerType.Middle" Class="my-6" hidden="@hasNoExplanations"/>
     <MudTable Items="@explanations" Hover="true" Breakpoint="Breakpoint.Sm" hidden="@hasNoExplanations">
         <HeaderContent>
@@ -79,8 +81,11 @@
 
 @code {
     private bool pocInfoIsVisible;
-
+    private bool requestHasError {get;set;}
+    private string reasonPhrase {get;set;}
     private bool waiting {get;set;}
+
+    private bool hideExpandedCode {get;set;}
     private List<Explanation> explanations {get; set;} = new();
     private AnalysisResult analysisResult {get;set;} = new();
 
@@ -106,25 +111,42 @@
     }
     private string InputValue { get; set; }
 
+    private void acknowledgeAlert() {
+        requestHasError = false;
+        reasonPhrase = "";
+    }
     protected override async Task OnInitializedAsync()
     {
+        hideExpandedCode = true;
+        waiting = false;
+        requestHasError = false;
+        reasonPhrase = string.Empty;
+        explanations = null;
+        modules = null;
+
+        if (string.IsNullOrEmpty(InputValue))
+            return;
+
+        waiting = true;
+        var code = new Code() { PowershellCode = InputValue };
+
+        var temp = await Http.PostAsJsonAsync<Code>("SyntaxAnalyzer", code);
+
+        if (!temp.IsSuccessStatusCode) {
+            requestHasError = true;
+            waiting = false;
+            reasonPhrase = await temp.Content.ReadAsStringAsync();
+            return;
+        }
+
+        analysisResult = await JsonSerializer.DeserializeAsync<AnalysisResult>(temp.Content.ReadAsStream());
+
         waiting = false;
 
-        if (!string.IsNullOrEmpty(InputValue))
-        {
-            waiting = true;
-            var code = new Code() { PowershellCode = InputValue };
-
-            var temp = await Http.PostAsJsonAsync<Code>("SyntaxAnalyzer", code);
-
-            analysisResult = await JsonSerializer.DeserializeAsync<AnalysisResult>(temp.Content.ReadAsStream());
-
-            waiting = false;
-
-            explanations = analysisResult.Explanations;
-            modules = analysisResult.DetectedModules;
-            expandedCode = analysisResult.ExpandedCode;
-        }
+        explanations = analysisResult.Explanations;
+        modules = analysisResult.DetectedModules;
+        expandedCode = analysisResult.ExpandedCode;
+        hideExpandedCode = false;
     }
 
     public void OpenPocInfo() {

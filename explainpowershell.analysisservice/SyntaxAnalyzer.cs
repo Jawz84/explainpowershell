@@ -45,15 +45,33 @@ namespace ExplainPowershell.SyntaxAnalyzer
             var data = JsonConvert.DeserializeObject<Code>(requestBody);
 
             string code = data?.PowershellCode;
+            ScriptBlock sb;
 
-            ScriptBlock sb = ScriptBlock.Create(code);
+            try
+            {
+                sb = ScriptBlock.Create(code);
+            }
+            catch (ParseException e)
+            {
+                var reason = $"{e.Errors[0].Message}";
+                return new HttpResponseMessage(HttpStatusCode.UnprocessableEntity)
+                {
+                    Content = new StringContent(reason), // because reasonPhrase gets overwritten in the current implementation of System.Net.Http.Json on clientside.
+                };
+            }
+            catch (Exception e)
+            {
+                return new HttpResponseMessage(HttpStatusCode.InternalServerError) {
+                    ReasonPhrase = e.Message.Replace("\r\n"," | ")
+                };
+            }
+
             var ast = sb.Ast;
-
             extent = ast.Extent.ToString();
 
             if (string.IsNullOrEmpty(extent))
             {
-                log.LogError("That didn't go as planned");
+                log.LogError("That didn't go as planned, empty extent.");
                 return new HttpResponseMessage(HttpStatusCode.BadRequest)
                 {
                     Content = new StringContent("This HTTP triggered function executed successfully, but there was no powershell code passed to it. Pass code in the request body for an AST analysis.",
