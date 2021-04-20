@@ -25,10 +25,8 @@ namespace ExplainPowershell.SyntaxAnalyzer
         private const string PartitionKey = "CommandHelp";
         private string extent;
         private int offSet = 0;
-
         private static readonly PowerShell powerShell = PowerShell.Create();
         private Dictionary<String, String> AliasToCmdletDictionary;
-
         public CommandInvocationIntrinsics InvokeCommand { get => powerShell.Runspace.SessionStateProxy.InvokeCommand; }
 
         [FunctionName("SyntaxAnalyzer")]
@@ -37,15 +35,15 @@ namespace ExplainPowershell.SyntaxAnalyzer
             [Table(HelpTableName)] CloudTable cloudTable,
             ILogger log)
         {
-            log.LogInformation("C# HTTP trigger function processed a request.");
-
+            ScriptBlock sb;
+            List<Explanation> explanations;
             var AnalysisResult = new AnalysisResult();
+            var modules = new List<Module>();
 
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            var data = JsonConvert.DeserializeObject<Code>(requestBody);
-
-            string code = data?.PowershellCode;
-            ScriptBlock sb;
+            var code = JsonConvert
+                .DeserializeObject<Code>(requestBody)
+                ?.PowershellCode;
 
             try
             {
@@ -53,99 +51,33 @@ namespace ExplainPowershell.SyntaxAnalyzer
             }
             catch (ParseException e)
             {
-                var reason = $"{e.Errors[0].Message}";
-                return new HttpResponseMessage(HttpStatusCode.UnprocessableEntity)
-                {
-                    Content = new StringContent(reason), // because reasonPhrase gets overwritten in the current implementation of System.Net.Http.Json on clientside.
-                };
+                return ResponseHelper(HttpStatusCode.UnprocessableEntity, e.Errors[0].Message);
             }
             catch (Exception e)
             {
-                return new HttpResponseMessage(HttpStatusCode.InternalServerError) {
-                    ReasonPhrase = e.Message.Replace("\r\n"," | ")
-                };
+                return ResponseHelper(HttpStatusCode.InternalServerError, e.Message);
             }
 
             var ast = sb.Ast;
             extent = ast.Extent.ToString();
 
             if (string.IsNullOrEmpty(extent))
+                return ResponseHelper(HttpStatusCode.BadRequest, "Empty request. Pass powershell code in the request body for an AST analysis.");
+
+            var foundPipelineAsts = ast.FindAll(ast => ast is PipelineAst, true);
+
+            try
             {
-                log.LogError("That didn't go as planned, empty extent.");
-                return new HttpResponseMessage(HttpStatusCode.BadRequest)
-                {
-                    Content = new StringContent("This HTTP triggered function executed successfully, but there was no powershell code passed to it. Pass code in the request body for an AST analysis.",
-                        Encoding.UTF8,
-                        "application/json")
-                };
+                explanations = GetExplanations(cloudTable, foundPipelineAsts);
+            }
+            catch (Exception e)
+            {
+                return ResponseHelper(HttpStatusCode.InternalServerError, e.Message);
             }
 
-            IEnumerable<Ast> foundPipelineAsts = ast.FindAll(ast => ast is PipelineAst, true);
-            var explanations = new List<Explanation>();
-
-            foreach (PipelineAst pipeline in foundPipelineAsts)
-            {
-                foreach (CommandBaseAst element in pipeline.PipelineElements)
-                {
-                    try
-                    {
-                        if (element is CommandAst)
-                        {
-                            CommandAst cmd;
-                            cmd = element as CommandAst;
-                            string cmdName = cmd.GetCommandName();
-                            string resolvedCmd = ResolveCmd(cmdName);
-                            if (string.IsNullOrEmpty(resolvedCmd))
-                            {
-                                resolvedCmd = cmdName;
-                            }
-                            log.LogInformation(resolvedCmd);
-
-                            ExpandAliasesInExtent(cmd, resolvedCmd);
-                            TableQuery<HelpEntity> query = new TableQuery<HelpEntity>().Where(
-                                TableQuery.CombineFilters(
-                                    TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, PartitionKey),
-                                    TableOperators.And,
-                                    TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal, resolvedCmd.ToLower()))); // Azure Table query does not support StringComparer.IgnoreOrdinalCase. RowKey command names are all stored lowercase.
-
-                            var helpResult = cloudTable.ExecuteQuery(query).FirstOrDefault();
-
-                            var synopsis = helpResult?.Synopsis?.ToString() ?? "";
-
-                            log.LogInformation(synopsis);
-                            explanations.Add(
-                            new Explanation()
-                            {
-                                OriginalExtent = cmd.Extent.Text,
-                                CommandName = helpResult.CommandName ?? resolvedCmd,
-                                Synopsis = synopsis,
-                                HelpResult = helpResult
-                            });
-                        }
-                        else if (element is CommandExpressionAst)
-                        {
-                            CommandExpressionAst cmdExp;
-                            cmdExp = element as CommandExpressionAst;
-
-                            explanations.Add(
-                            new Explanation()
-                            {
-                                OriginalExtent = cmdExp.Extent.Text
-                            });
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        log.LogWarning(e.Message);
-                        log.LogWarning(e.StackTrace);
-                    }
-                }
-            }
-
-            var modules = new List<Module>();
             foreach (var exp in explanations)
             {
-                if (exp.HelpResult == null) 
+                if (exp.HelpResult == null)
                     continue;
 
                 if (!modules.Any(m => m.ModuleName == exp.HelpResult.ModuleName))
@@ -162,15 +94,74 @@ namespace ExplainPowershell.SyntaxAnalyzer
             AnalysisResult.Explanations = explanations;
             AnalysisResult.DetectedModules = modules;
 
-            log.LogInformation("expanded: '{extent}'", extent);
-
             var json = System.Text.Json.JsonSerializer.Serialize(AnalysisResult);
 
-            return new HttpResponseMessage(HttpStatusCode.OK)
-            {
-                Content = new StringContent(json, Encoding.UTF8, "application/json")
-            };
+            return ResponseHelper(HttpStatusCode.OK, json, "application/json");
+        }
 
+        private List<Explanation> GetExplanations(CloudTable cloudTable, IEnumerable<Ast> foundPipelineAsts)
+        {
+            var explanations = new List<Explanation>();
+
+            foreach (PipelineAst pipeline in foundPipelineAsts)
+            {
+                foreach (CommandBaseAst element in pipeline.PipelineElements)
+                {
+                    if (element is CommandAst)
+                    {
+                        var cmd = element as CommandAst;
+                        string cmdName = cmd.GetCommandName();
+                        string resolvedCmd = ResolveCmd(cmdName);
+                        if (string.IsNullOrEmpty(resolvedCmd))
+                        {
+                            resolvedCmd = cmdName;
+                        }
+
+                        ExpandAliasesInExtent(cmd, resolvedCmd);
+
+                        TableQuery<HelpEntity> query = new TableQuery<HelpEntity>().Where(
+                            TableQuery.CombineFilters(
+                                TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, PartitionKey),
+                                TableOperators.And,
+                                TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal, resolvedCmd.ToLower()))); // Azure Table query does not support StringComparer.IgnoreOrdinalCase. RowKey command names are all stored lowercase.
+
+                        var helpResult = cloudTable.ExecuteQuery(query).FirstOrDefault();
+
+                        var synopsis = helpResult?.Synopsis?.ToString() ?? "";
+
+                        explanations.Add(
+                            new Explanation()
+                            {
+                                OriginalExtent = cmd.Extent.Text,
+                                CommandName = helpResult.CommandName ?? resolvedCmd,
+                                Synopsis = synopsis,
+                                HelpResult = helpResult
+                            });
+                    }
+                    else
+                    {
+                        var cmdExp = element as Ast;
+
+                        explanations.Add(
+                            new Explanation()
+                            {
+                                OriginalExtent = cmdExp.Extent.Text,
+                                CommandName = element.GetType().Name.Replace("Ast","")
+                            }
+                        )
+                    }
+                }
+            }
+
+            return explanations;
+        }
+
+        private HttpResponseMessage ResponseHelper(HttpStatusCode status, string message, string mediaType = "text/plain")
+        {
+            return new HttpResponseMessage(status)
+            {
+                Content = new StringContent(message, Encoding.UTF8, mediaType)
+            };
         }
 
         private void ExpandAliasesInExtent(CommandAst cmd, string resolvedCmd)
