@@ -147,8 +147,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
                             {
                                 OriginalExtent = cmdExp.Extent.Text,
                                 CommandName = element.GetType().Name.Replace("Ast","")
-                            }
-                        )
+                            });
                     }
                 }
             }
