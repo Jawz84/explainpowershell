@@ -117,8 +117,6 @@ namespace ExplainPowershell.SyntaxAnalyzer
                             resolvedCmd = cmdName;
                         }
 
-                        ExpandAliasesInExtent(cmd, resolvedCmd);
-
                         TableQuery<HelpEntity> query = new TableQuery<HelpEntity>().Where(
                             TableQuery.CombineFilters(
                                 TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, PartitionKey),
@@ -126,27 +124,30 @@ namespace ExplainPowershell.SyntaxAnalyzer
                                 TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal, resolvedCmd.ToLower()))); // Azure Table query does not support StringComparer.IgnoreOrdinalCase. RowKey command names are all stored lowercase.
 
                         var helpResult = cloudTable.ExecuteQuery(query).FirstOrDefault();
-
                         var synopsis = helpResult?.Synopsis?.ToString() ?? "";
+
+                        resolvedCmd = helpResult?.CommandName ?? resolvedCmd;
+
+                        ExpandAliasesInExtent(cmd, resolvedCmd);
 
                         explanations.Add(
                             new Explanation()
                             {
                                 OriginalExtent = cmd.Extent.Text,
-                                CommandName = helpResult.CommandName ?? resolvedCmd,
+                                CommandName = resolvedCmd,
                                 Synopsis = synopsis,
                                 HelpResult = helpResult
                             });
                     }
                     else
                     {
-                        var cmdExp = element as Ast;
+                        var e = element as CommandExpressionAst;
 
                         explanations.Add(
                             new Explanation()
                             {
-                                OriginalExtent = cmdExp.Extent.Text,
-                                CommandName = element.GetType().Name.Replace("Ast","")
+                                OriginalExtent = e.Extent.Text,
+                                CommandName = e.Expression.GetType().Name.Replace("ExpressionAst","")
                             });
                     }
                 }
