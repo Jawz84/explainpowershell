@@ -1,4 +1,4 @@
-﻿@using System.Text.RegularExpressions
+@using System.Text.RegularExpressions
 @using System.ComponentModel.DataAnnotations
 @using System.Text.Json;
 @page "/"
@@ -132,7 +132,8 @@
 
         var temp = await Http.PostAsJsonAsync<Code>("SyntaxAnalyzer", code);
 
-        if (!temp.IsSuccessStatusCode) {
+        if (!temp.IsSuccessStatusCode) 
+        {
             requestHasError = true;
             waiting = false;
             reasonPhrase = await temp.Content.ReadAsStringAsync();
@@ -140,6 +141,12 @@
         }
 
         analysisResult = await JsonSerializer.DeserializeAsync<AnalysisResult>(temp.Content.ReadAsStream());
+
+        if (!string.IsNullOrEmpty(analysisResult.ParseErrorMessage))
+        {
+            requestHasError = true;
+            reasonPhrase = analysisResult.ParseErrorMessage;
+        }
 
         waiting = false;
 

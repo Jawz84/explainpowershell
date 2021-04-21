@@ -35,7 +35,6 @@ namespace ExplainPowershell.SyntaxAnalyzer
             [Table(HelpTableName)] CloudTable cloudTable,
             ILogger log)
         {
-            ScriptBlock sb;
             List<Explanation> explanations;
             var AnalysisResult = new AnalysisResult();
             var modules = new List<Module>();
@@ -45,26 +44,16 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 .DeserializeObject<Code>(requestBody)
                 ?.PowershellCode;
 
-            try
-            {
-                sb = ScriptBlock.Create(code);
-            }
-            catch (ParseException e)
-            {
-                return ResponseHelper(HttpStatusCode.UnprocessableEntity, e.Errors[0].Message);
-            }
-            catch (Exception e)
-            {
-                return ResponseHelper(HttpStatusCode.InternalServerError, e.Message);
-            }
+            ScriptBlockAst ast = Parser.ParseInput(code, out Token[] tokens, out ParseError[] parseErrors);
 
-            var ast = sb.Ast;
             extent = ast.Extent.ToString();
 
             if (string.IsNullOrEmpty(extent))
                 return ResponseHelper(HttpStatusCode.BadRequest, "Empty request. Pass powershell code in the request body for an AST analysis.");
 
-            var foundPipelineAsts = ast.FindAll(ast => ast is PipelineAst, true);
+            var filteredTokens = tokens.Where(o => ! o.TokenFlags.HasFlag(TokenFlags.ParseModeInvariant));
+
+            var foundPipelineAsts = ast.FindAll(ast => ast is PipelineBaseAst, true);
 
             try
             {
@@ -93,6 +82,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
             AnalysisResult.ExpandedCode = extent;
             AnalysisResult.Explanations = explanations;
             AnalysisResult.DetectedModules = modules;
+            AnalysisResult.ParseErrorMessage = parseErrors?.FirstOrDefault()?.Message;
 
             var json = System.Text.Json.JsonSerializer.Serialize(AnalysisResult);
 
