@@ -1,4 +1,4 @@
-@using System.Text.RegularExpressions
+﻿@using System.Text.RegularExpressions
 @using System.ComponentModel.DataAnnotations
 @using System.Text.Json;
 @page "/"
@@ -56,25 +56,21 @@
             <MudTh>Original Extent</MudTh>
             <MudTh>CommandName</MudTh>
             <MudTh>Synopsis</MudTh>
-            <MudTh>Documentation</MudTh>
+            <MudTh>ModuleName</MudTh>
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="Original Extent">@context.OriginalExtent</MudTd>
-            <MudTd DataLabel="CommandName">@context.CommandName</MudTd>
+            <MudTd DataLabel="CommandName">
+                @if(@context.HelpResult != null) 
+                {
+                    <MudLink Href="@context.HelpResult?.DocumentationLink" Target="_blank">@context.CommandName</MudLink>
+                }
+                else {
+                    @context.CommandName
+                }
+            </MudTd>
             <MudTd DataLabel="Synopsis">@context.Synopsis</MudTd>
-            @if(@context.HelpResult != null) 
-            {
-                <MudIconButton Icon="@Icons.Material.Filled.ContactSupport" Color="Color.Inherit" Link="@context.HelpResult?.DocumentationLink" Target="_blank" />
-            }
-        </RowTemplate>
-    </MudTable>
-    <MudDivider DividerType="DividerType.Middle" Class="my-6" hidden="@hasNoModules"/>
-    <MudTable Items="@modules" Hover="true" Breakpoint="Breakpoint.Sm" hidden="@hasNoModules">
-        <HeaderContent>
-            <MudTh>Detected Modules</MudTh>
-        </HeaderContent>
-        <RowTemplate>
-            <MudTd DataLabel="Module Name">@context.ModuleName</MudTd>
+            <MudTd DataLabel="Module">@context.HelpResult?.ModuleName</MudTd>
         </RowTemplate>
     </MudTable>
 </MudContainer>
@@ -83,14 +79,10 @@
     private bool requestHasError {get;set;}
     private string reasonPhrase {get;set;}
     private bool waiting {get;set;}
-
     private bool hideExpandedCode {get;set;}
     private List<Explanation> explanations {get; set;} = new();
     private AnalysisResult analysisResult {get;set;} = new();
-
     private string expandedCode {get; set;}
-
-    private List<Module> modules {get; set;}
 
     private bool hasNoExplanations {
         get {
@@ -115,6 +107,7 @@
         requestHasError = false;
         reasonPhrase = "";
     }
+
     protected override async Task OnInitializedAsync()
     {
         hideExpandedCode = true;
@@ -122,7 +115,6 @@
         requestHasError = false;
         reasonPhrase = string.Empty;
         explanations = null;
-        modules = null;
 
         if (string.IsNullOrEmpty(InputValue))
             return;
@@ -151,7 +143,6 @@
         waiting = false;
 
         explanations = analysisResult.Explanations;
-        modules = analysisResult.DetectedModules;
         expandedCode = analysisResult.ExpandedCode;
         hideExpandedCode = false;
     }
