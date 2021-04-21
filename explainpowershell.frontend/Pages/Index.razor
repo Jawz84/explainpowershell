@@ -35,7 +35,7 @@
         <MudCard>
             <MudForm>
                 <MudCardContent>
-                    <MudTextField @bind-Value="InputValue" T="string" Label="PowerShell oneliner to analyze" AutoFocus="true" />
+                    <MudTextField @bind-Value="InputValue" Immediate="true" T="string" Label="PowerShell oneliner to analyze" AutoFocus="true" />
                     @if (requestHasError) {<MudAlert class="mt-2" OnClick="@acknowledgeAlert" Severity="Severity.Error">@reasonPhrase</MudAlert>}
                 </MudCardContent>
                 <MudCardActions>
@@ -80,7 +80,6 @@
 </MudContainer>
 
 @code {
-    private bool pocInfoIsVisible;
     private bool requestHasError {get;set;}
     private string reasonPhrase {get;set;}
     private bool waiting {get;set;}
@@ -101,15 +100,16 @@
             return explanations.Count <= 0;
         }
     }
-    private bool hasNoModules {
-        get {
-            if (modules == null) 
-                return true;
 
-            return modules.Count <= 0;
+    private string InputValue {
+        get {
+            return _inputValue;
+        }
+        set {
+            if (value.Length <= 255)
+                _inputValue = value;
         }
     }
-    private string InputValue { get; set; }
 
     private void acknowledgeAlert() {
         requestHasError = false;
@@ -160,4 +160,7 @@
         pocInfoIsVisible = true;
         StateHasChanged();
     }
+
+    private bool pocInfoIsVisible;
+    private string _inputValue;
 }
