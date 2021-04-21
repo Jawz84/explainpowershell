@@ -1,0 +1,212 @@
+# Condensed overview of Ast object hierarchy
+
+## legenda
+
+- Items starting with a dot '.' are properties
+- Properties have an arrow '->' and then the type they hold
+- Remarks or examples are in square brackets '[]'
+- Elements between round parentheses '()' are deemed out of scope for now
+- Double dots following a type name indicate some form of enumerable like List<> or ReadOnlyDictionary<>.
+
+
+## Ast overview
+
+Ast
+    .Extent -> IScriptExtent
+    .Parent -> Ast
+    AttributeBaseAst
+        .TypeName -> ITypeName
+        AttributeAst
+            .NamedArguments -> NamedAttributeExpressionAst..
+            .PositionalArguments -> ExpressionAst..
+        TypeConstraintAst
+    CatchClauseAst
+        .Body -> StatementBlockAst
+        .CatchTypes -> TypeConstraintAst..
+        .IsCatchAll -> bool
+    CommandElementAst
+        CommandParameterAst
+            .Argument -> ExpressionAst
+            .ParameterName -> string
+        ExpressionAst
+            .StaticType -> Type
+            ArrayExpressionAst
+                .SubExpression -> StatementBlockAst
+            ArrayLiteralAst
+                .Elements -> ExpressionAst..
+            AttributedExpressionAst
+                [like [Parameter()]$PassThru or [ValidateScript({$true})$abc = 42.]
+                .Attribute -> AttributeBaseAst
+                .Child -> ExpressionAst
+                ConvertExpressionAst
+                    [cast expression]
+                    .StaticType -> Type
+                    .Type -> TypeConstraintAst
+            BinaryExpressionAst
+                .Left -> ExpressionAst
+                .Operator -> TokenKind
+                .Right -> ExpressionAst
+            ConstantExpressionAst
+                .Value -> string
+                StringConstantExpressionAst
+                    .StringConstantType -> StringConstantType
+            (ErrorExpressionAst)
+            ExpandableStringExpressionAst
+                .NestedExpressions -> ExpressionAst [always either VariableExpressionAst or SubExpressionAst]
+                .StringConstantType -> StringConstantType
+                .Value -> string
+            HashtableAst
+                .KeyValuePairs -> ReadOnlyCollection<Tuple<ExpressionAst,StatementAst>>
+            IndexExpressionAst
+                .Index, .Target -> ExpressionAst
+            MemberExpressionAst
+                .Expression -> ExpressionAst
+                .Member -> CommandElementAst
+                InvokeMemberExpressionAst
+                    .Arguments -> ExpressionAst..
+                    BaseCtorInvokeMemberExpressionAst
+            ParenExpressionAst
+                .Pipeline -> PipelineBaseAst
+            ScriptBlockExpressionAst
+                .ScriptBlock -> ScriptBlockAst
+            SubExpressionAst
+                .SubExpression -> StatementBlockAst
+            TernaryExpressionAst
+                .Condition, .IfFalse, .IfTrue -> ExpressionAst
+            TypeExpressionAst
+                .TypeName -> ITypeName
+            UnaryExpressionAst
+                .Child -> ExpressionAst
+                .TokenKind -> Token
+            UsingExpressionAst
+                SubExpression -> ExpressionAst
+            VariableExpressionAst
+                .Splatted -> bool
+                .VariablePath -> VariablePath
+    MemberAst
+        .Name -> String
+        FunctionMemberAst
+            .Attributes -> AttributeAst..
+            .Body -> ScriptBlockAst
+            .Name -> string
+            .Parameters -> ParameterAst..
+            .ReturnType -> TypeConstraintAst
+        PropertyMemberAst
+            .Attributes -> AttributeAst..
+            .InitialValue -> ExpressionAst
+            .Name -> string
+            .PropertyType -> TypeConstraintAst
+    NamedAttributeArgumentAst
+        [like [parameter(Mandatory=$true)]]
+        .Argument -> ExpressionAst
+        .ArgumentName -> string
+        .ExpressionOmitted -> bool [parameter(Mandatory)]
+    NamedBlockAst
+        .BlockKind -> Token [begin, end, process, dynamicparam]
+        .Statements -> StatementAst..
+        .Traps -> TrapStatementAst..
+        .Unnamed -> bool
+    ParamBlockAst
+        .Attributes -> AttributeAst..
+        .Parameters -> ParameterAst..
+    ParameterAst
+        .Attributes -> AttributeBaseAst..
+        .DefaultValue -> ExpressionAst
+        .Name -> VariableExpressionAst
+        .StaticType -> Type
+    RedirectionAst
+        .FromStream -> RedirectionStream
+        FileRedirectionAst
+            .Append -> bool
+            .Location -> ExpressionAst
+        MergingRedirectionAst
+            .ToStream -> RedirectionStream
+    ScriptBlockAst
+        .Attributes -> AttributeAst..
+        .BeginBlock, .DynamicParamBlock, .EndBlock, .ProcessBlock -> NamedBlockAst
+        .ParamBlock -> ParamBlockAst
+        .UsingStatements -> UsingStatementAst..
+    StatementAst
+        (BlockStatementAst
+            [workflows]
+            .Body -> StatementBlockAst
+            .Kind -> Token)
+        BreakStatementAst
+            .Label -> ExpressionAst
+        CommandBaseAst
+            .Redirections -> RedirectionAst
+            CommandAst
+                .CommandElements -> CommandElementAst
+            CommandExpressionAst
+                .Expression -> ExpressionAst
+        (ConfigurationDefinitionAst
+            [DSC])
+        ContinueStatementAst
+            .Label -> ExpressionAst
+        DataStatementAst
+            .Body -> StatementBlockAst
+            .CommandsAllowed -> ExpressionAst..
+            .Variable -> string
+        DynamicKeywordStatementAst
+            .CommandElements -> CommandElementAst..
+        ExitStatementAst
+            .Pipeline -> PipelineBaseAst
+        FunctionDefinitionAst
+            .Body -> ScriptBlockAst
+            .Name -> string
+            .Parameters -> ParameterAst..
+        IfStatementAst
+            .Clauses -> ReadOnlyCollection<Tuple<PipelineBaseAst,StatementBlockAst>>
+            .ElseClause -> StatementBlockAst
+        LabeledStatementAst
+            .Label -> string
+            .Condition -> PipelineBaseAst
+            LoopStatementAst
+                DoUntilStatementAst
+                DoWhileStatementAst
+                ForEachStatementAst
+                ForStatementAst
+                WhileStatementAst
+            SwitchStatementAst
+                .Clauses -> ReadOnlyCollection<Tuple<ExpressionAst,StatementBlockAst>>
+                .Condition -> PipelineBaseAst
+                .Default -> StatementBlockAst
+        PipelineBaseAst
+            AssignmentStatementAst
+                .Left -> ExpressionAst
+                .Operator -> TokenKind
+                .Right -> StatementAst
+            ChainableAst
+                PipelineAst
+                    .PipelineElements -> CommandBaseAst
+                PipelineChainAst
+                    .LhsPipelineChain -> ChainableAst
+                    .RhsPipeline -> PipelineAst
+            (ErrorStatementAst
+                .Bodies -> Ast..
+                .Conditions -> Ast..)
+        ReturnStatementAst
+            .Pipeline -> PipelineBaseAst
+        ThrowStatementAst
+            .Pipeline -> PipelineBaseAst
+        TrapStatementAst
+            .TrapType -> TypeConstraintAst
+        TryStatementAst
+            .Body -> StatementBlockAst
+            .CatchClauses -> CatchClauseAst..
+            .Finally -> StatementBlockAst
+        (TypeDefinitionAst
+            [class, enum, interface])
+        UsingStatementAst
+            .Name, .Alias -> StringConstantExpressionAst
+            .ModuleSpecification -> HashtableAst
+    StatementBlockAst
+        .Statements -> StatementAst..
+        .Traps -> TrapStatementAst..
+
+
+## non-Ast types referenced:
+
+StringConstantType [BareWord, DoubleQuoted, DoubleQuotedHereString, SingleQuoted, SingleQuotedHereString]
+
+TokenKind (https://docs.microsoft.com/en-us/dotnet/api/system.management.automation.language.tokenkind)
