@@ -10,7 +10,7 @@ I have a proof of concept running [here](https://storageexplainpowershell.z6.web
 ## Goal
 I envision something like this:
 
-![mock](./mockup.png)
+![mock](./Mockup.png)
 
 ## Azure Resources overview
 
