@@ -7,9 +7,12 @@ Initial idea [published on Twitter](https://twitter.com/Jawz_84/status/127985684
 On ExplainShell.com, you can enter a Linux terminal oneliner, and the site will analyze it, and return snippets from the proper man-pages, in an effort to explain the oneliner. 
 I would like to create the same thing but for PowerShell. 
 
-I have a proof of concept running [here](https://storageexplainpowershell.z6.web.core.windows.net/) that kind of looks like the screenshot below:
+I have a proof of concept running [here](https://storageexplainpowershell.z6.web.core.windows.net/).
 
-![screenshot](./explainpowershell_website_screenshot.jpg)
+## Goal
+I envision something like this:
+
+![mock](.\mockup.png)
 
 ## Azure Resources overview
 
