@@ -38,7 +38,7 @@ namespace explainpowershell.models
 
     public class HelpEntity : TableEntity
     {
-        public string TimeStamp { get; set; }
+        public string Timestamp { get; set; }
         public string DocumentationLink { get; set; }
         public string Synopsis { get; set; }
         public string Syntax { get; set; }
