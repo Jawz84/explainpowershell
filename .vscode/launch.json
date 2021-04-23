@@ -5,7 +5,7 @@
             "name": "Run functionApp test",
             "type": "PowerShell",
             "request": "launch",
-            "script": "${workspaceFolder}/test.ps1",
+            "script": "${workspaceFolder}/Tests/SyntaxAnalyzer.Tests.ps1",
             "cwd": "${workspaceFolder}"
         },
         {
