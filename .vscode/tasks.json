@@ -2,13 +2,30 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
+			"label": "run tests",
+			"group": {
+				"kind": "test",
+				"isDefault": true
+			},
+			"type": "shell",
+			"command": "Invoke-Pester -Path ./Tests -Output Detailed -CI",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": false
+			}
+		},
+		{
 			"label": "startstorageemulator",
 			"command": "AzureStorageEmulator.exe",
 			"args": [
 				"start"
 			],
 			"type": "process",
-			"problemMatcher":"$msCompile"
+			"problemMatcher": "$msCompile"
 		},
 		{
 			"label": "clean",
@@ -50,18 +67,22 @@
 			"problemMatcher": "$msCompile"
 		},
 		{
-			"label": "publish",
-			"command": "dotnet",
-			"args": [
-				"publish",
-				"--configuration",
-				"Release",
-				"/property:GenerateFullPaths=true",
-				"/consoleloggerparameters:NoSummary"
-			],
-			"type": "process",
-			"dependsOn": "clean release",
-			"problemMatcher": "$msCompile"
+			"label": "Deploy solution to Azure",
+			"type": "shell",
+			"command": "./deploy.ps1",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": false
+			},
+			"dependsOn": "run tests",
+			"promptOnClose": true,
+			"problemMatcher": [
+				"$msCompile"
+			]
 		},
 		{
 			"type": "func",
