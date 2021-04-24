@@ -4,20 +4,22 @@ $here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path) -replace '\.Tests\.', '.'
 . "$here\$sut"
 
-function Test-IsPrerequisitesRunning {
-    $tcpClient = New-Object System.Net.Sockets.TcpClient
-    $tcpClient2 = New-Object System.Net.Sockets.TcpClient
-
-    $result = ($tcpClient.ConnectAsync('127.0.0.1', 7071).Wait(100) -and
-               $tcpClient2.ConnectAsync('127.0.0.1', 10002).Wait(100))
-
-    $tcpClient.Dispose()
-    $tcpClient2.Dispose()
-    return $result
-}
-
 Describe "SyntaxAnalyzer" {
     BeforeAll {
+        function Test-IsPrerequisitesRunning {
+            $result = $true
+            $ports = 7071, 10002
+
+            foreach ($port in $ports) {
+                $tcpClient = New-Object System.Net.Sockets.TcpClient
+                $result = $result -and $tcpClient.ConnectAsync('127.0.0.1', $port).Wait(100)
+            }
+
+            $tcpClient.Dispose()
+
+            return $result
+        }
+
         Write-Warning "Checking if function app and storage emulator are running.."
         if (-not (Test-IsPrerequisitesRunning)) {
             Write-Warning "Starting Function App and Azure Storage Emulator.."
