@@ -1,11 +1,9 @@
 using namespace Microsoft.PowerShell.Commands
 
-$here = Split-Path -Parent $MyInvocation.MyCommand.Path
-$sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path) -replace '\.Tests\.', '.'
-. "$here\$sut"
-
 Describe "SyntaxAnalyzer" {
     BeforeAll {
+        . $PSCommandPath.Replace('.Tests.ps1', '.ps1')
+
         function Test-IsPrerequisitesRunning {
             $result = $true
             $ports = 7071, 10002
