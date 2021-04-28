@@ -53,11 +53,11 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
             var filteredTokens = tokens.Where(o => ! o.TokenFlags.HasFlag(TokenFlags.ParseModeInvariant));
 
-            var foundPipelineAsts = ast.FindAll(ast => ast is PipelineBaseAst, true);
+            var foundAsts = ast.FindAll(a => a is NamedBlockAst, true).Select(o => o as NamedBlockAst);
 
             try
             {
-                explanations = GetExplanations(cloudTable, foundPipelineAsts);
+                explanations = GetExplanations(cloudTable, foundAsts);
             }
             catch (Exception e)
             {
@@ -89,29 +89,33 @@ namespace ExplainPowershell.SyntaxAnalyzer
             return ResponseHelper(HttpStatusCode.OK, json, "application/json");
         }
 
-        private List<Explanation> GetExplanations(CloudTable cloudTable, IEnumerable<Ast> foundPipelineAsts)
+        private List<Explanation> GetExplanations(CloudTable cloudTable, IEnumerable<NamedBlockAst> scriptBlockAst)
         {
             var explanations = new List<Explanation>();
+            var statements = scriptBlockAst.SelectMany(o => o.Statements);
 
-            foreach (PipelineAst pipeline in foundPipelineAsts)
+            foreach (StatementAst statement in statements)
             {
-                foreach (CommandBaseAst element in pipeline.PipelineElements)
-                {
-                    if (element is CommandAst)
-                    {
-                        var cmd = element as CommandAst;
-                        string cmdName = cmd.GetCommandName();
-                        string resolvedCmd = ResolveCmd(cmdName);
-                        if (string.IsNullOrEmpty(resolvedCmd))
-                        {
-                            resolvedCmd = cmdName;
-                        }
+                if (statement is PipelineAst) {
+                    var p = statement as PipelineAst;
 
-                        TableQuery<HelpEntity> query = new TableQuery<HelpEntity>().Where(
-                            TableQuery.CombineFilters(
-                                TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, PartitionKey),
-                                TableOperators.And,
-                                TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal, resolvedCmd.ToLower()))); // Azure Table query does not support StringComparer.IgnoreOrdinalCase. RowKey command names are all stored lowercase.
+                    foreach (CommandBaseAst element in p.PipelineElements)
+                    {
+                        if (element is CommandAst)
+                        {
+                            var cmd = element as CommandAst;
+                            string cmdName = cmd.GetCommandName();
+                            string resolvedCmd = ResolveCmd(cmdName);
+                            if (string.IsNullOrEmpty(resolvedCmd))
+                            {
+                                resolvedCmd = cmdName;
+                            }
+
+                            TableQuery<HelpEntity> query = new TableQuery<HelpEntity>().Where(
+                                TableQuery.CombineFilters(
+                                    TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, PartitionKey),
+                                    TableOperators.And,
+                                    TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal, resolvedCmd.ToLower()))); // Azure Table query does not support StringComparer.IgnoreOrdinalCase. RowKey command names are all stored lowercase.
 
                             var helpResult = cloudTable.ExecuteQuery(query).FirstOrDefault();
                             var description = helpResult?.Synopsis?.ToString() ?? "";
@@ -140,6 +144,21 @@ namespace ExplainPowershell.SyntaxAnalyzer
                                     Description = e.Expression.GetType().Name.Replace("ExpressionAst","")
                                 });
                         }
+                    }
+                }
+                else
+                {
+                    // Handle non-pipelineAst
+                    var e = statement as Ast;
+
+                    explanations.Add(
+                        new Explanation()
+                        {
+                            OriginalExtent = e.Extent.Text,
+                            Description = statement.GetType().Name.Replace("Ast","")
+                        });
+                }
+            }
 
             return explanations;
         }
