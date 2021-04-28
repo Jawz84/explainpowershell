@@ -101,49 +101,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
                     foreach (CommandBaseAst element in p.PipelineElements)
                     {
-                        if (element is CommandAst)
-                        {
-                            var cmd = element as CommandAst;
-                            string cmdName = cmd.GetCommandName();
-                            string resolvedCmd = ResolveCmd(cmdName);
-                            if (string.IsNullOrEmpty(resolvedCmd))
-                            {
-                                resolvedCmd = cmdName;
-                            }
-
-                            TableQuery<HelpEntity> query = new TableQuery<HelpEntity>().Where(
-                                TableQuery.CombineFilters(
-                                    TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, PartitionKey),
-                                    TableOperators.And,
-                                    TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal, resolvedCmd.ToLower()))); // Azure Table query does not support StringComparer.IgnoreOrdinalCase. RowKey command names are all stored lowercase.
-
-                            var helpResult = cloudTable.ExecuteQuery(query).FirstOrDefault();
-                            var description = helpResult?.Synopsis?.ToString() ?? "";
-
-                            resolvedCmd = helpResult?.CommandName ?? resolvedCmd;
-
-                            ExpandAliasesInExtent(cmd, resolvedCmd);
-
-                            explanations.Add(
-                                new Explanation()
-                                {
-                                    OriginalExtent = cmd.Extent.Text,
-                                    CommandName = resolvedCmd,
-                                    Description = description,
-                                    HelpResult = helpResult
-                                });
-                        }
-                        else
-                        {
-                            var e = element as CommandExpressionAst;
-
-                            explanations.Add(
-                                new Explanation()
-                                {
-                                    OriginalExtent = e.Extent.Text,
-                                    Description = e.Expression.GetType().Name.Replace("ExpressionAst","")
-                                });
-                        }
+                        CommandBaseAstExplainer(cloudTable, explanations, element);
                     }
                 }
                 else
@@ -161,6 +119,53 @@ namespace ExplainPowershell.SyntaxAnalyzer
             }
 
             return explanations;
+        }
+
+        private void CommandBaseAstExplainer(CloudTable cloudTable, List<Explanation> explanations, CommandBaseAst element)
+        {
+            if (element is CommandAst)
+            {
+                var cmd = element as CommandAst;
+                string cmdName = cmd.GetCommandName();
+                string resolvedCmd = ResolveCmd(cmdName);
+                if (string.IsNullOrEmpty(resolvedCmd))
+                {
+                    resolvedCmd = cmdName;
+                }
+
+                TableQuery<HelpEntity> query = new TableQuery<HelpEntity>().Where(
+                    TableQuery.CombineFilters(
+                        TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, PartitionKey),
+                        TableOperators.And,
+                        TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal, resolvedCmd.ToLower()))); // Azure Table query does not support StringComparer.IgnoreOrdinalCase. RowKey command names are all stored lowercase.
+
+                var helpResult = cloudTable.ExecuteQuery(query).FirstOrDefault();
+                var description = helpResult?.Synopsis?.ToString() ?? "";
+
+                resolvedCmd = helpResult?.CommandName ?? resolvedCmd;
+
+                ExpandAliasesInExtent(cmd, resolvedCmd);
+
+                explanations.Add(
+                    new Explanation()
+                    {
+                        OriginalExtent = cmd.Extent.Text,
+                        CommandName = resolvedCmd,
+                        Description = description,
+                        HelpResult = helpResult
+                    });
+            }
+            else
+            {
+                var e = element as CommandExpressionAst;
+
+                explanations.Add(
+                    new Explanation()
+                    {
+                        OriginalExtent = e.Extent.Text,
+                        Description = e.Expression.GetType().Name.Replace("ExpressionAst", "")
+                    });
+            }
         }
 
         private HttpResponseMessage ResponseHelper(HttpStatusCode status, string message, string mediaType = "text/plain")
