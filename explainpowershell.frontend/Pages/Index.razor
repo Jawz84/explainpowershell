@@ -55,7 +55,7 @@
         <HeaderContent>
             <MudTh>Original Extent</MudTh>
             <MudTh>CommandName</MudTh>
-            <MudTh>Synopsis</MudTh>
+            <MudTh>Description</MudTh>
             <MudTh>ModuleName</MudTh>
         </HeaderContent>
         <RowTemplate>
@@ -69,7 +69,7 @@
                     @context.CommandName
                 }
             </MudTd>
-            <MudTd DataLabel="Synopsis">@context.Synopsis</MudTd>
+            <MudTd DataLabel="Description">@context.Description</MudTd>
             <MudTd DataLabel="Module">@context.HelpResult?.ModuleName</MudTd>
         </RowTemplate>
     </MudTable>

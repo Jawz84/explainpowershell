@@ -32,7 +32,7 @@ namespace explainpowershell.models
     {
         public string OriginalExtent { get; set; }
         public string CommandName { get; set; }
-        public string Synopsis { get; set; }
+        public string Description { get; set; }
         public HelpEntity HelpResult { get; set; }
     }
 

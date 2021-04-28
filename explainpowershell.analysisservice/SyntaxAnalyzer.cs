@@ -113,35 +113,33 @@ namespace ExplainPowershell.SyntaxAnalyzer
                                 TableOperators.And,
                                 TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal, resolvedCmd.ToLower()))); // Azure Table query does not support StringComparer.IgnoreOrdinalCase. RowKey command names are all stored lowercase.
 
-                        var helpResult = cloudTable.ExecuteQuery(query).FirstOrDefault();
-                        var synopsis = helpResult?.Synopsis?.ToString() ?? "";
+                            var helpResult = cloudTable.ExecuteQuery(query).FirstOrDefault();
+                            var description = helpResult?.Synopsis?.ToString() ?? "";
 
-                        resolvedCmd = helpResult?.CommandName ?? resolvedCmd;
+                            resolvedCmd = helpResult?.CommandName ?? resolvedCmd;
 
-                        ExpandAliasesInExtent(cmd, resolvedCmd);
+                            ExpandAliasesInExtent(cmd, resolvedCmd);
 
-                        explanations.Add(
-                            new Explanation()
-                            {
-                                OriginalExtent = cmd.Extent.Text,
-                                CommandName = resolvedCmd,
-                                Synopsis = synopsis,
-                                HelpResult = helpResult
-                            });
-                    }
-                    else
-                    {
-                        var e = element as CommandExpressionAst;
+                            explanations.Add(
+                                new Explanation()
+                                {
+                                    OriginalExtent = cmd.Extent.Text,
+                                    CommandName = resolvedCmd,
+                                    Description = description,
+                                    HelpResult = helpResult
+                                });
+                        }
+                        else
+                        {
+                            var e = element as CommandExpressionAst;
 
-                        explanations.Add(
-                            new Explanation()
-                            {
-                                OriginalExtent = e.Extent.Text,
-                                CommandName = e.Expression.GetType().Name.Replace("ExpressionAst","")
-                            });
-                    }
-                }
-            }
+                            explanations.Add(
+                                new Explanation()
+                                {
+                                    OriginalExtent = e.Extent.Text,
+                                    Description = e.Expression.GetType().Name.Replace("ExpressionAst","")
+                                });
+                        }
 
             return explanations;
         }
