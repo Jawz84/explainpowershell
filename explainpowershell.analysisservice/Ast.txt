@@ -79,7 +79,7 @@ Ast
                 .Child -> ExpressionAst
                 .TokenKind -> Token
             UsingExpressionAst
-                SubExpression -> ExpressionAst
+                .SubExpression -> ExpressionAst
             VariableExpressionAst
                 .Splatted -> bool
                 .VariablePath -> VariablePath
@@ -96,6 +96,8 @@ Ast
             .InitialValue -> ExpressionAst
             .Name -> string
             .PropertyType -> TypeConstraintAst
+
+            
     NamedAttributeArgumentAst
         [like [parameter(Mandatory=$true)]]
         .Argument -> ExpressionAst

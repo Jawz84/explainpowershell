@@ -1,5 +1,40 @@
-$body = @{
-    code="gps * | %{`$_.fullname}"
-} | convertto-json
+# Get an idea of what Ast's occur most often in oneliners, to guide development.
 
-Invoke-RestMethod -Uri "http://localhost:7071/api/SyntaxAnalyzer" -Method Post -Body $body
+$lines = get-content -Path .\oneliners.ps1
+
+$lines.foreach{
+    [System.Management.Automation.Language.Parser]::ParseInput( $_, [ref]$null, [ref]$null) 
+}.FindAll({$true} ,$true) 
+    | % gettype 
+    | group name -NoElement 
+    | sort count -Descending 
+    | ft -a
+
+<#
+
+Count Name
+----- ----
+  282 StringConstantExpressionAst
+  119 CommandAst
+  107 PipelineAst
+   98 CommandParameterAst
+   80 ScriptBlockAst
+   80 NamedBlockAst
+   35 VariableExpressionAst
+   27 CommandExpressionAst
+   21 MemberExpressionAst
+   16 BinaryExpressionAst
+   12 ParenExpressionAst
+   11 ConstantExpressionAst
+   11 ArrayLiteralAst
+    9 ScriptBlockExpressionAst
+    6 StatementBlockAst
+    4 InvokeMemberExpressionAst
+    3 IfStatementAst
+    2 UnaryExpressionAst
+    2 HashtableAst
+    2 AssignmentStatementAst
+    1 SubExpressionAst
+    1 TypeExpressionAst
+
+#>
