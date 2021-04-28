@@ -12,8 +12,9 @@
             "name": "Run functionApp test",
             "type": "PowerShell",
             "request": "launch",
-            "script": "${workspaceFolder}/Tests/SyntaxAnalyzer.Tests.ps1",
-            "cwd": "${workspaceFolder}"
+            "script": "${workspaceFolder}/Tests/launch.ps1",
+            "cwd": "${workspaceFolder}",
+            "internalConsoleOptions": "openOnSessionStart"
         },
         {
             "name": "debug functionApp",

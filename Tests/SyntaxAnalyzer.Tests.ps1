@@ -52,6 +52,17 @@ Describe "SyntaxAnalyzer" {
         $content.ExpandedCode | Should -BeExactly 'Get-Process | Select-Object name | Where-Object name -like dotnet'
     }
 
+    $testCase = (Get-Content .\oneliners.ps1).split("`n") | ForEach-Object {
+        [psobject]@{
+            PowerShellCode = $_
+        }
+    }
+
+    It "Can handle all kinds of different oneliners without freaking out: <PowerShellCode>" -ForEach $testCase {
+            $result = SyntaxAnalyzer -PowerShellCode $PowerShellCode
+            $result.StatusCode | Should -Be 200
+    }
+
     AfterAll {
         Get-Job | Stop-Job -PassThru | Remove-Job -Force
     }
