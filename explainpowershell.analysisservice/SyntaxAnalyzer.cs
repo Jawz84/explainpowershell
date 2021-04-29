@@ -243,7 +243,8 @@ namespace ExplainPowershell.SyntaxAnalyzer
                     explanation.Description = $"A {prefix}variable {standard}{suffix}";
                     break;
                 case BinaryExpressionAst binary:
-                    
+                    explanation.Description = $"Operator {binary.Operator}";
+                    explanation.OriginalExtent = binary.Extent.Text;
                     ExpressionExplainer(binary.Left);
                     ExpressionExplainer(binary.Right);
                     break;

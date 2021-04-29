@@ -21,6 +21,7 @@
             "type": "coreclr",
             "request": "attach",
             "processId": "${command:azureFunctions.pickProcess}",
+            "internalConsoleOptions": "neverOpen"
         },
         {
             "name": "debug wasm",
