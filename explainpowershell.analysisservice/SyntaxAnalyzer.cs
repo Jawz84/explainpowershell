@@ -24,18 +24,20 @@ namespace ExplainPowershell.SyntaxAnalyzer
         private const string HelpTableName = "HelpData";
         private const string PartitionKey = "CommandHelp";
         private string extent;
+        private readonly List<Explanation> explanations = new List<Explanation>();
+        private CloudTable cloudTable;
         private int offSet = 0;
         private static readonly PowerShell powerShell = PowerShell.Create();
         private Dictionary<String, String> AliasToCmdletDictionary;
-        public CommandInvocationIntrinsics InvokeCommand { get => powerShell.Runspace.SessionStateProxy.InvokeCommand; }
+        private CommandInvocationIntrinsics InvokeCommand { get => powerShell.Runspace.SessionStateProxy.InvokeCommand; }
 
         [FunctionName("SyntaxAnalyzer")]
         public async Task<HttpResponseMessage> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequest req,
-            [Table(HelpTableName)] CloudTable cloudTable,
+            [Table(HelpTableName)] CloudTable cloudTbl,
             ILogger log)
         {
-            List<Explanation> explanations;
+            cloudTable = cloudTbl;
             var AnalysisResult = new AnalysisResult();
             var modules = new List<Module>();
 
@@ -57,7 +59,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
             try
             {
-                explanations = GetExplanations(cloudTable, foundAsts);
+                GetExplanations(foundAsts);
             }
             catch (Exception e)
             {
@@ -89,39 +91,33 @@ namespace ExplainPowershell.SyntaxAnalyzer
             return ResponseHelper(HttpStatusCode.OK, json, "application/json");
         }
 
-        private List<Explanation> GetExplanations(CloudTable cloudTable, IEnumerable<NamedBlockAst> scriptBlockAst)
+        private void GetExplanations(IEnumerable<NamedBlockAst> scriptBlockAst)
         {
-            var explanations = new List<Explanation>();
             var statements = scriptBlockAst.SelectMany(o => o.Statements);
 
             foreach (StatementAst statement in statements)
             {
-                if (statement is PipelineAst) {
-                    var p = statement as PipelineAst;
-
-                    foreach (CommandBaseAst element in p.PipelineElements)
-                    {
-                        CommandBaseAstExplainer(cloudTable, explanations, element);
-                    }
-                }
-                else
+                switch (statement)
                 {
-                    // Handle non-pipelineAst
-                    var e = statement as Ast;
-
-                    explanations.Add(
-                        new Explanation()
+                    case PipelineAst p:
+                        foreach (CommandBaseAst element in p.PipelineElements)
                         {
-                            OriginalExtent = e.Extent.Text,
-                            Description = statement.GetType().Name.Replace("Ast","")
-                        });
+                            CommandBaseAstExplainer(element);
+                        }
+                        break;
+                    case Ast e:
+                        explanations.Add(
+                            new Explanation()
+                            {
+                                OriginalExtent = e.Extent.Text,
+                                Description = statement.GetType().Name.Replace("Ast","")
+                            });
+                        break;
                 }
             }
-
-            return explanations;
         }
 
-        private void CommandBaseAstExplainer(CloudTable cloudTable, List<Explanation> explanations, CommandBaseAst element)
+        private void CommandBaseAstExplainer(CommandBaseAst element)
         {
             if (element is CommandAst)
             {
@@ -144,13 +140,40 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
                 resolvedCmd = helpResult?.CommandName ?? resolvedCmd;
 
+                var bindResult = StaticParameterBinder.BindCommand(cmd);
+
+                StringBuilder boundParameters = new StringBuilder();
+                foreach (var p in bindResult.BoundParameters.Values) 
+                {
+                    if (p.Parameter != null) 
+                    {
+                        boundParameters
+                            .Append(" -")
+                            .Append(p.Parameter.Name);
+
+                        if (!p.Parameter.SwitchParameter) {
+                            boundParameters
+                                .Append(' ')
+                                .Append(p.Value.Extent.Text);
+                            CommandElementExplainer(p.Value);
+                        }
+                    }
+                    else
+                    {
+                        boundParameters
+                            .Append(' ')
+                            .Append(p.Value.Extent.Text);
+                        CommandElementExplainer(p.Value);
+                    }
+                }
+
                 ExpandAliasesInExtent(cmd, resolvedCmd);
 
                 explanations.Add(
                     new Explanation()
                     {
                         OriginalExtent = cmd.Extent.Text,
-                        CommandName = resolvedCmd,
+                        CommandName = resolvedCmd + boundParameters.ToString(),
                         Description = description,
                         HelpResult = helpResult
                     });
@@ -163,9 +186,122 @@ namespace ExplainPowershell.SyntaxAnalyzer
                     new Explanation()
                     {
                         OriginalExtent = e.Extent.Text,
-                        Description = e.Expression.GetType().Name.Replace("ExpressionAst", "")
+                        Description = e.Expression.GetType().Name.Replace("ExpressionAst", "").Replace("Ast", "")
                     });
             }
+        }
+
+        private void CommandElementExplainer(CommandElementAst value)
+        {
+            switch (value) {
+                case CommandParameterAst param:
+                    ExpressionExplainer(param.Argument);
+                    break;
+                case ExpressionAst expr:
+                    ExpressionExplainer(expr);
+                    break;
+            }
+        }
+
+        private void ExpressionExplainer(ExpressionAst argument)
+        {
+            var explanation = new Explanation();
+            switch (argument) {
+                case VariableExpressionAst var:
+                    var prefix = "";
+                    var suffix = "";
+                    var varName = var.VariablePath.UserPath;
+                    var standard = $"named '{varName}'";
+
+                    if (var.Splatted)
+                        prefix = "<a href=\"https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_splatting\">splatted</a> ";
+                    if (var.VariablePath.IsPrivate)
+                        prefix = $"private ";
+
+                    if (!var.VariablePath.IsUnscopedVariable)
+                    {
+                        var split = var
+                            .VariablePath
+                            .UserPath
+                            .Split(':');
+
+                        var identifier = split.FirstOrDefault();
+                        varName = split.LastOrDefault();
+                        standard = $"named '{varName}'";
+
+                        if (var.VariablePath.IsGlobal | var.VariablePath.IsScript)
+                            suffix = $" in '{identifier}' <a href=\"https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_scopes\">scope</a> ";
+
+                        if (var.VariablePath.IsDriveQualified)
+                        {
+                            standard = $"pointing to item '{varName}'";
+                            suffix = $" on <a href=\"https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_providers\">PSDrive</a> '{identifier}'";
+                        }
+                    }
+
+                    explanation.OriginalExtent = $"${var.VariablePath}";
+                    explanation.Description = $"A {prefix}variable {standard}{suffix}";
+                    break;
+                case BinaryExpressionAst binary:
+                    
+                    ExpressionExplainer(binary.Left);
+                    ExpressionExplainer(binary.Right);
+                    break;
+            }
+            if (!string.IsNullOrEmpty(explanation.Description)) 
+                explanations.Add(explanation);
+            /*
+            ArrayExpressionAst
+                .SubExpression -> StatementBlockAst
+            ArrayLiteralAst
+                .Elements -> ExpressionAst..
+            AttributedExpressionAst
+                [like [Parameter()]$PassThru or [ValidateScript({$true})$abc = 42.]
+                .Attribute -> AttributeBaseAst
+                .Child -> ExpressionAst
+                ConvertExpressionAst
+                    [cast expression]
+                    .StaticType -> Type
+                    .Type -> TypeConstraintAst
+            BinaryExpressionAst
+                .Left -> ExpressionAst
+                .Operator -> TokenKind
+                .Right -> ExpressionAst
+            ConstantExpressionAst
+                .Value -> string
+                StringConstantExpressionAst
+                    .StringConstantType -> StringConstantType
+            (ErrorExpressionAst)
+            ExpandableStringExpressionAst
+                .NestedExpressions -> ExpressionAst [always either VariableExpressionAst or SubExpressionAst]
+                .StringConstantType -> StringConstantType
+                .Value -> string
+            HashtableAst
+                .KeyValuePairs -> ReadOnlyCollection<Tuple<ExpressionAst,StatementAst>>
+            IndexExpressionAst
+                .Index, .Target -> ExpressionAst
+            MemberExpressionAst
+                .Expression -> ExpressionAst
+                .Member -> CommandElementAst
+                InvokeMemberExpressionAst
+                    .Arguments -> ExpressionAst..
+                    BaseCtorInvokeMemberExpressionAst
+            ParenExpressionAst
+                .Pipeline -> PipelineBaseAst
+            ScriptBlockExpressionAst
+                .ScriptBlock -> ScriptBlockAst
+            SubExpressionAst
+                .SubExpression -> StatementBlockAst
+            TernaryExpressionAst
+                .Condition, .IfFalse, .IfTrue -> ExpressionAst
+            TypeExpressionAst
+                .TypeName -> ITypeName
+            UnaryExpressionAst
+                .Child -> ExpressionAst
+                .TokenKind -> Token
+            UsingExpressionAst
+                .SubExpression -> ExpressionAst
+            */
         }
 
         private HttpResponseMessage ResponseHelper(HttpStatusCode status, string message, string mediaType = "text/plain")
