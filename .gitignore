@@ -4,6 +4,10 @@
 # Azure Functions localsettings file
 local.settings.json
 
+# Test artifacts
+testResults.xml
+coverage.xml
+
 # User-specific files
 *.suo
 *.user
