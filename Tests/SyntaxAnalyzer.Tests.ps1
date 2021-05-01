@@ -66,7 +66,8 @@ Describe "SyntaxAnalyzer" {
         [BasicHtmlWebResponseObject]$result = SyntaxAnalyzer -PowerShellCode $code
         $content = $result.Content | ConvertFrom-Json
         $content.Explanations[0].Description | Should -BeExactly "A variable named 'abc'"
-        $content.Explanations[1].Description | Should -BeExactly "A variable pointing to item 'path' on <a href=`"https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_providers`">PSDrive</a> 'env'"
+        $content.Explanations[1].Description | Should -BeExactly "An environment variable named 'path' (on PSDrive 'env:')"
+        $content.Explanations[2].Description | Should -BeExactly "A <a href=`"https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_splatting`">splatted</a> variable named 'splatted'"
     }
 
     $testCase = (Get-Content .\oneliners.ps1).split("`n") | ForEach-Object {
