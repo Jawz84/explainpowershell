@@ -38,7 +38,7 @@ Describe "SyntaxAnalyzer" {
         Write-Warning "OK - Function App and Azure Storage Emulator running"
     }
 
-    It "Converts aliase to full command name" {
+    It "Converts alias to full command name" {
         $code = 'gci'
         [BasicHtmlWebResponseObject]$result = SyntaxAnalyzer -PowerShellCode $code
         $content = $result.Content | ConvertFrom-Json
@@ -50,6 +50,23 @@ Describe "SyntaxAnalyzer" {
         [BasicHtmlWebResponseObject]$result = SyntaxAnalyzer -PowerShellCode $code
         $content = $result.Content | ConvertFrom-Json
         $content.ExpandedCode | Should -BeExactly 'Get-Process | Select-Object name | Where-Object name -like dotnet'
+    }
+
+    It "Notifies user about detected syntax errors, while still explaining as much as possible" {
+        $code = 'gps | ? {$_.id'
+        [BasicHtmlWebResponseObject]$result = SyntaxAnalyzer -PowerShellCode $code
+        $content = $result.Content | ConvertFrom-Json
+        $result.StatusCode | Should -Be 200
+        $content.ParseErrorMessage | Should -BeExactly "Missing closing '}' in statement block or type definition."
+        $content.ExpandedCode | Should -BeExactly 'Get-Process | Where-Object {$_.id'
+    }
+
+    It "Explains variables, even complex ones" {
+        $code = '$abc | $env:path | @splatted | $script:myVar'
+        [BasicHtmlWebResponseObject]$result = SyntaxAnalyzer -PowerShellCode $code
+        $content = $result.Content | ConvertFrom-Json
+        $content.Explanations[0].Description | Should -BeExactly "A variable named 'abc'"
+        $content.Explanations[1].Description | Should -BeExactly "A variable pointing to item 'path' on <a href=`"https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_providers`">PSDrive</a> 'env'"
     }
 
     $testCase = (Get-Content .\oneliners.ps1).split("`n") | ForEach-Object {
