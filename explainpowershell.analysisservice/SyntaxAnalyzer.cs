@@ -24,6 +24,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
         private const string HelpTableName = "HelpData";
         private const string PartitionKey = "CommandHelp";
         private string extent;
+        private ILogger Log;
         private readonly List<Explanation> explanations = new List<Explanation>();
         private CloudTable cloudTable;
         private int offSet = 0;
@@ -38,6 +39,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
             ILogger log)
         {
             cloudTable = cloudTbl;
+            Log = log;
             var AnalysisResult = new AnalysisResult();
             var modules = new List<Module>();
 
@@ -55,18 +57,29 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
             var filteredTokens = tokens.Where(o => !o.TokenFlags.HasFlag(TokenFlags.ParseModeInvariant));
 
-            var foundAsts = ast.FindAll(a => a is NamedBlockAst, true).Select(o => o as NamedBlockAst);
+            var foundAsts = ast.FindAll(a => a is ScriptBlockAst, true).Select(o => o as ScriptBlockAst);
 
             try
             {
                 foreach (var a in foundAsts)
                 {
-                    AstExplainer(a);
+                    foreach (var u in a.UsingStatements)
+                        AstExplainer(u);
+
+                    foreach (var att in a.Attributes)
+                        AstExplainer(att);
+
+                    AstExplainer(a.ParamBlock);
+                    AstExplainer(a.BeginBlock);
+                    AstExplainer(a.DynamicParamBlock);
+                    AstExplainer(a.ProcessBlock);
+                    AstExplainer(a.EndBlock);
                 }
             }
             catch (Exception e)
             {
-                return ResponseHelper(HttpStatusCode.InternalServerError, e.Message);
+                log.LogError(e, "error");
+                return ResponseHelper(HttpStatusCode.InternalServerError, "Oops, someting went wrong internally. Please file an issue with the PowerShell code you submitted when this occurred.");
             }
 
             foreach (var exp in explanations)
@@ -98,27 +111,34 @@ namespace ExplainPowershell.SyntaxAnalyzer
         {
             switch (ast)
             {
-                // case PipelineAst p:
-                //     foreach (CommandBaseAst element in p.PipelineElements)
-                //     {
-                //         AstExplainer(ast);
-                //     }
-                //     break;
-                // case CommandBaseAst cmd:
-                //     CommandBaseExplainer(cmd);
-                //     break;
-                // case ExpressionAst expr:
-                //     ExpressionExplainer(expr);
-                //     break;
-                // case StatementAst stmt:
-                //     StatementExplainer(stmt);
-                //     break;
+                case AttributeBaseAst attributeBase:
+                    switch (attributeBase) 
+                    {
+                        case AttributeAst attribute:
+                            // todo: NamedAttributeExpressionAst;
+                            foreach (var args in attribute.PositionalArguments)
+                                ExpressionExplainer(args);
+                            // todo add Attribute explanation 
+                            break;
+                        case TypeConstraintAst typeConstraint:
+                            // todo add TypeConstraintAst explanation
+                            break;
+                            default:
+                                AstExplainer(attributeBase);
+                                Log.LogWarning($"unhandled ast: {attributeBase.GetType()}, extent {extent}");
+                                break;
+                    }
+                    break;
                 case NamedBlockAst namedBlock:
                     foreach (var stmt in namedBlock.Statements)
-                    {
                         StatementExplainer(stmt);
-                    }
-                    // traps
+                    // todo: traps
+                    break;
+                case ParamBlockAst paramBlock:
+                    foreach (var a in paramBlock.Attributes)
+                        AstExplainer(a);
+                    foreach (var p in paramBlock.Parameters)
+                        ParameterExplainer(p);
                     break;
                 case Ast e:
                     explanations.Add(
@@ -131,6 +151,12 @@ namespace ExplainPowershell.SyntaxAnalyzer
             }
         }
 
+        private void ParameterExplainer(ParameterAst p)
+        {
+            //todo write implementation;
+            AstExplainer(p);
+        }
+
         private void StatementExplainer(StatementAst stmt)
         {
             switch (stmt)
@@ -140,6 +166,36 @@ namespace ExplainPowershell.SyntaxAnalyzer
                     break;
                 case PipelineBaseAst pipelineBase:
                     PipelineBaseExplainer(pipelineBase);
+                    break;
+                case IfStatementAst ifStatement:
+                    var expl = new Explanation()
+                    {
+                        OriginalExtent = ifStatement.Extent.Text,
+                        Description = "if-statement, run statement lists based on the results of one or more conditional tests",
+                        CommandName = "if-statement",
+                        HelpResult = HelpTableQuery("if")
+                    };
+                    // todo: write code to add about_... articles to help db, remove stuff below:
+                    if (expl.HelpResult == null)
+                        expl.HelpResult = new HelpEntity();
+                    expl.HelpResult.DocumentationLink = "https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_if";
+                    explanations.Add(expl);
+
+                    foreach (var clause in ifStatement.Clauses)
+                    {
+                        var (pipelineBase, StatementBlock) = clause;
+                        PipelineBaseExplainer(pipelineBase);
+                        foreach (var statement in StatementBlock.Statements)
+                            StatementExplainer(statement);
+                        // todo: traps
+                    }
+                    if (ifStatement.ElseClause != null)
+                        foreach (var statement in ifStatement.ElseClause.Statements)
+                            StatementExplainer(statement);
+                    break;
+                default:
+                    AstExplainer(stmt);
+                    Log.LogWarning($"unhandled ast: {stmt.GetType()}, extent {extent}");
                     break;
             }
 
@@ -228,32 +284,35 @@ namespace ExplainPowershell.SyntaxAnalyzer
                     switch (chainable)
                     {
                         case PipelineAst pipeline:
-                            CommandBaseExplainer(pipeline.PipelineElements);
+                            foreach (var elem in pipeline.PipelineElements)
+                                CommandBaseExplainer(elem);
                             break;
                         case PipelineChainAst pipelineChain:
                             PipelineBaseExplainer(pipelineChain.LhsPipelineChain);
-                            CommandBaseExplainer(pipelineChain.RhsPipeline.PipelineElements);
+                            foreach (var elem in pipelineChain.RhsPipeline.PipelineElements)
+                                CommandBaseExplainer(elem);
+                            break;
+                        default:
+                            AstExplainer(pipelineBase);
+                            Log.LogWarning($"unhandled ast: {pipelineBase.GetType()}, extent {extent}");
                             break;
                     }
                     break;
                 case AssignmentStatementAst assignmentStatement:
+                    var operatorExplanation = Helpers.TokenExplainer(assignmentStatement.Operator);
                     explanations.Add(
                         new Explanation()
                         {
-                            Description = $"Operator {assignmentStatement.Operator}",
+                            Description = $"{operatorExplanation} Assigns a value to '{assignmentStatement.Left.Extent.Text}'.",
                             OriginalExtent = assignmentStatement.Extent.Text
                         });
                     ExpressionExplainer(assignmentStatement.Left);
                     StatementExplainer(assignmentStatement.Right);
                     break;
-            }
-        }
-
-        private void CommandBaseExplainer(IEnumerable<CommandBaseAst> elements)
-        {
-            foreach (var element in elements)
-            {
-                CommandBaseExplainer(element);
+                default:
+                    AstExplainer(pipelineBase);
+                    Log.LogWarning($"unhandled ast: {pipelineBase.GetType()}, extent {extent}");
+                    break;
             }
         }
 
@@ -270,18 +329,14 @@ namespace ExplainPowershell.SyntaxAnalyzer
                         resolvedCmd = cmdName;
                     }
 
-                    TableQuery<HelpEntity> query = new TableQuery<HelpEntity>().Where(
-                        TableQuery.CombineFilters(
-                            TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, PartitionKey),
-                            TableOperators.And,
-                            TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal, resolvedCmd.ToLower()))); // Azure Table query does not support StringComparer.IgnoreOrdinalCase. RowKey command names are all stored lowercase.
-
-                    var helpResult = cloudTable.ExecuteQuery(query).FirstOrDefault();
+                    HelpEntity helpResult = HelpTableQuery(resolvedCmd);
                     var description = helpResult?.Synopsis?.ToString() ?? "";
 
                     resolvedCmd = helpResult?.CommandName ?? resolvedCmd;
 
-                    var bindResult = StaticParameterBinder.BindCommand(cmd);
+                    // TODO: Create something better for this. BindCommand only binds commands that are loaded, and it's slow.
+                    // I've set it to not resolve, because that speeds things up, and a lot of the times it won't matter.
+                    var bindResult = StaticParameterBinder.BindCommand(cmd, false);
 
                     StringBuilder boundParameters = new StringBuilder();
                     foreach (var p in bindResult.BoundParameters.Values)
@@ -323,9 +378,12 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 case CommandExpressionAst element:
                         ExpressionExplainer(element.Expression);
                     break;
+                default:
+                            AstExplainer(commandBase);
+                            Log.LogWarning($"unhandled ast: {commandBase.GetType()}, extent {extent}");
+                            break;
             }
         }
-
 
         private void CommandElementExplainer(CommandElementAst value)
         {
@@ -337,11 +395,18 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 case ExpressionAst expr:
                     ExpressionExplainer(expr);
                     break;
+                default:
+                    AstExplainer(value);
+                    Log.LogWarning($"unhandled ast: {value.GetType()}, extent {extent}");
+                    break;
             }
         }
 
         private void ExpressionExplainer(ExpressionAst argument)
         {
+            if (argument == null)
+                return;
+
             var explanation = new Explanation();
             switch (argument)
             {
@@ -391,11 +456,19 @@ namespace ExplainPowershell.SyntaxAnalyzer
                     explanation.Description = $"A{prefix}variable {standard}{suffix}";
                     break;
                 case BinaryExpressionAst binary:
-                    suffix = Helpers.TokenExplainer(binary.Operator);
-                    explanation.Description = $"Operator {binary.Operator}. {suffix} See <a href=\"https://docs.microsoft.com/en-us/dotnet/api/system.management.automation.language.tokenkind\">documentation</a>.";
+                    explanation.Description = Helpers.TokenExplainer(binary.Operator);
                     explanation.OriginalExtent = binary.Extent.Text;
                     ExpressionExplainer(binary.Left);
                     ExpressionExplainer(binary.Right);
+                    break;
+                case UnaryExpressionAst unaryExpression:
+                    explanation.Description = Helpers.TokenExplainer(unaryExpression.TokenKind);
+                    explanation.OriginalExtent = unaryExpression.Extent.Text;
+                    ExpressionExplainer(unaryExpression.Child);
+                    break;
+                default:
+                    AstExplainer(argument);
+                    Log.LogWarning($"unhandled ast: {argument.GetType()}, extent {extent}");
                     break;
             }
             if (!string.IsNullOrEmpty(explanation.Description))
@@ -452,6 +525,19 @@ namespace ExplainPowershell.SyntaxAnalyzer
             UsingExpressionAst
                 .SubExpression -> ExpressionAst
             */
+        }
+
+        private HelpEntity HelpTableQuery(string resolvedCmd)
+        {
+            TableQuery<HelpEntity> query = new TableQuery<HelpEntity>()
+                .Where(
+                    TableQuery.CombineFilters(
+                        TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, PartitionKey),
+                        TableOperators.And,
+                        TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal, resolvedCmd.ToLower()))); // Azure Table query does not support StringComparer.IgnoreOrdinalCase. RowKey command names are all stored lowercase.
+
+            var helpResult = cloudTable.ExecuteQuery(query).FirstOrDefault();
+            return helpResult;
         }
 
         private HttpResponseMessage ResponseHelper(HttpStatusCode status, string message, string mediaType = "text/plain")
