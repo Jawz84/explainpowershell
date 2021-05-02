@@ -414,11 +414,20 @@ namespace ExplainPowershell.SyntaxAnalyzer
                     var varName = var.VariablePath.UserPath;
                     var standard = $"named '{varName}'";
 
-                    if (varName == "_" | string.Equals(varName, "PSItem", StringComparison.OrdinalIgnoreCase))
-                        suffix = ", a built-in variable that holds the current element from the objects being passed in from the pipeline. See <a href=\"https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_automatic_variables\">Get-Help about_automatic_variables</a>).";
+                    if (varName == "_" | string.Equals(varName, "PSItem", StringComparison.OrdinalIgnoreCase)) 
+                    {
+                        suffix = ", a built-in variable that holds the current element from the objects being passed in from the pipeline.";
+                        explanation.CommandName = "Pipeline iterator variable";
+                        explanation.HelpResult = HelpTableQuery("about_automatic_variables");
+                    }
 
                     if (var.Splatted)
-                        prefix = " <a href=\"https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_splatting\">splatted</a> ";
+                    {
+                        prefix = " splatted ";
+                        explanation.CommandName = "Splatted variable";
+                        explanation.HelpResult = HelpTableQuery("about_splatting");
+                    }
+
                     if (var.VariablePath.IsPrivate)
                         prefix = $" private ";
 
@@ -434,7 +443,12 @@ namespace ExplainPowershell.SyntaxAnalyzer
                         standard = $"named '{varName}'";
 
                         if (var.VariablePath.IsGlobal | var.VariablePath.IsScript)
-                            suffix = $" in '{identifier}' <a href=\"https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_scopes\">scope</a> ";
+                        {
+                            suffix = $" in '{identifier}' scope ";
+                            explanation.CommandName = "Scoped variable";
+                            explanation.HelpResult = HelpTableQuery("about_scopes");
+                        }
+
 
                         if (var.VariablePath.IsDriveQualified)
                         {
@@ -442,11 +456,15 @@ namespace ExplainPowershell.SyntaxAnalyzer
                             {
                                 prefix = "n environment ";
                                 suffix = " (on PSDrive 'env:')";
+                                explanation.CommandName = "Environment variable";
+                                explanation.HelpResult = HelpTableQuery("about_Environment_Variables");
                             }
                             else
                             {
                                 standard = $"pointing to item '{varName}'";
-                                suffix = $" on <a href=\"https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_providers\">PSDrive</a> '{identifier}:'";
+                                suffix = $" on PSDrive '{identifier}:'";
+                                explanation.CommandName = "PSDrive (Providers)";
+                                explanation.HelpResult = HelpTableQuery("about_Providers");
                             }
                         }
                     }
@@ -480,18 +498,22 @@ namespace ExplainPowershell.SyntaxAnalyzer
                                     explanation.Description = "Multiline here-string in which variables will not be expanded.";
                                     break;
                                 case StringConstantType.DoubleQuoted:
-                                    if (hasDollarSign) {
+                                    if (hasDollarSign)
+                                    {
                                         explanation.Description = "String in which variables will be expanded.";
                                     }
-                                    else {
+                                    else
+                                    {
                                         explanation.Description = "String in which variables would be expanded.";
                                     }
                                     break;
                                 case StringConstantType.DoubleQuotedHereString:
-                                    if (hasDollarSign) {
+                                    if (hasDollarSign)
+                                    {
                                         explanation.Description = "Multiline here-string in which variables will be expanded.";
                                     }
-                                    else {
+                                    else
+                                    {
                                         explanation.Description = "Multiline here-string in which variables would be expanded.";
                                     }
                                     break;
@@ -511,7 +533,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
                             {
                                 explanation.Description = $"Binary number (value: {constantExpression.SafeGetValue()})";
                             }
-                            else if (numberString.StartsWith("0x", true, null)) 
+                            else if (numberString.StartsWith("0x", true, null))
                             {
                                 explanation.Description = $"Hexadecimal number (value: {constantExpression.SafeGetValue()})";
                             }
@@ -527,7 +549,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
                     }
                     break;
                 // case ExpandableStringExpressionAst expandableStringExpression:
-                    
+
                 //     .NestedExpressions -> ExpressionAst [always either VariableExpressionAst or SubExpressionAst]
                 // .StringConstantType -> StringConstantType
                 // .Value -> string
