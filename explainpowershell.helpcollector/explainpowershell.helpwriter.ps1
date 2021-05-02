@@ -15,12 +15,12 @@ $commandHelp = .\explainpowershell.helpcollector.ps1
 foreach ($help in $commandHelp) {
     $hlp = $help -As [HelpData]
     Add-AzTableRow -Table $table.CloudTable -PartitionKey $partitionKey -RowKey $hlp.CommandName.ToLower() -property @{
-        CommandName       = $hlp.CommandName
-        ModuleName        = $hlp.ModuleName
-        Synopsis          = $hlp.Synopsis
-        Syntax            = $hlp.Syntax
+        CommandName       = "$($hlp.CommandName)"
+        ModuleName        = "$($hlp.ModuleName)"
+        Synopsis          = "$($hlp.Synopsis)"
+        Syntax            = "$($hlp.Syntax)"
         # Parameters        = $hlp.Parameters.Name
-        DocumentationLink = $hlp.DocumentationLink
+        DocumentationLink = "$($hlp.DocumentationLink)"
         # RawCmdletHelp_aliases     = $hlp.RawCmdletHelp.Aliases
         # RawCmdletHelp_description = $hlp.RawCmdletHelp.Description
         # RawCmdletHelp_InputTypes = $hlp.RawCmdletHelp.InputTypes.Name
@@ -29,5 +29,5 @@ foreach ($help in $commandHelp) {
     } | Out-Null
 }
 
-Read-Host "press enter to delete table $tableName"
-Remove-AzStorageTable -Name $tableName -Context $storageCtx
+# Read-Host "press enter to delete table $tableName"
+# Remove-AzStorageTable -Name $tableName -Context $storageCtx

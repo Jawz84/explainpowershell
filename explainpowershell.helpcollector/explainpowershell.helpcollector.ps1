@@ -1,3 +1,5 @@
+using namespace Microsoft.PowerShell.Commands
+
 . .\classes.ps1
 
 # Update-Help -Force -ErrorAction SilentlyContinue
@@ -11,7 +13,6 @@ $modulesToProcess += @{
 }
 
 $modulesToProcess
-| Where-Object name -NotLike az* #for testing
 | Sort-Object -Unique -Property Name
 | ForEach-Object {
     $moduleProjectUri = $_.ProjectUri
@@ -94,3 +95,51 @@ foreach ($cmd in $cmds.Keys) {
 }
 
 $cmds[$($cmds.Keys)] 
+
+
+# about_.. articles
+
+$aboutArticles = Get-Help About_*
+# filter only Microsoft built-in ones
+$abouts = $aboutArticles | Where-Object {-not $_.synopsis} 
+
+foreach ($about in $abouts) {
+    $baseUrl = 'https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/'
+    [BasicHtmlWebResponseObject]$result = $null
+    try {
+        $result = Invoke-WebRequest -Uri ($baseUrl + $about.name) -ErrorAction SilentlyContinue
+    }
+    catch {
+        try {
+            $baseUrl = $baseUrl.replace("microsoft.powershell.core/about","Microsoft.PowerShell.Security/About")
+            $result = Invoke-WebRequest -ErrorAction SilentlyContinue -Uri ($baseUrl + $about.name)
+        }
+        catch {
+            $baseUrl = $baseUrl.replace("Microsoft.PowerShell.Security/About","microsoft.wsman.management/about")
+            $result = Invoke-WebRequest -ErrorAction SilentlyContinue -Uri ($baseUrl + $about.name)
+        }
+    }
+
+    $selectedContext = $about.ToString().Split("`n") 
+        | Select-String "short description" -Context 5
+
+    if ($selectedContext) {
+        $synopsis = (
+            (
+                    $selectedContext.Context.PostContext.Split("`n")
+                    | Where-Object {-not [string]::IsNullOrWhiteSpace($_) }
+            ) -join ' '
+        ).Replace("`r", '').Replace("`n", '')
+
+        $hasLongSubscription = $synopsis.IndexOf("long description", [stringcomparison]::OrdinalIgnoreCase)
+        if ($hasLongSubscription -gt 0) {
+            $synopsis = $synopsis.Substring(0, $hasLongSubscription)
+        }
+    }
+
+    [HelpData]@{
+        CommandName = $about.name
+        DocumentationLink = if ($null -ne $result) {$baseUrl + $about.name}
+        Synopsis = $synopsis
+    }
+}
