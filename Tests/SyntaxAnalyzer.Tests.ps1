@@ -61,6 +61,15 @@ Describe "SyntaxAnalyzer" {
         $content.ExpandedCode | Should -BeExactly 'Get-Process | Where-Object {$_.id'
     }
 
+    It "works with if statements" {
+        $code = 'if ($abc -eq 123) {gci -name}'
+        [BasicHtmlWebResponseObject]$result = SyntaxAnalyzer -PowerShellCode $code
+        $content = $result.Content | ConvertFrom-Json
+        $result.StatusCode | Should -Be 200
+        $content.ExpandedCode | Should -BeExactly 'if ($abc -eq 123) {Get-ChildItem -name}'
+        #$content.ParseErrorMessage | Should -BeExactly ""
+    }
+
     It "Explains variables, even complex ones" {
         $code = '$abc | $env:path | @splatted | $script:myVar'
         [BasicHtmlWebResponseObject]$result = SyntaxAnalyzer -PowerShellCode $code
