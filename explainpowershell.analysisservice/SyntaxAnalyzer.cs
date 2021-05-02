@@ -1,19 +1,20 @@
-using System;
-using System.IO;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Language;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Text;
 using System.Net.Http;
-using Microsoft.Azure.Cosmos.Table;
+using System.Text;
+using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 
 using explainpowershell.models;
 
@@ -112,7 +113,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
             switch (ast)
             {
                 case AttributeBaseAst attributeBase:
-                    switch (attributeBase) 
+                    switch (attributeBase)
                     {
                         case AttributeAst attribute:
                             // todo: NamedAttributeExpressionAst;
@@ -123,10 +124,10 @@ namespace ExplainPowershell.SyntaxAnalyzer
                         case TypeConstraintAst typeConstraint:
                             // todo add TypeConstraintAst explanation
                             break;
-                            default:
-                                AstExplainer(attributeBase);
-                                Log.LogWarning($"unhandled ast: {attributeBase.GetType()}, extent {extent}");
-                                break;
+                        default:
+                            AstExplainer(attributeBase);
+                            Log.LogWarning($"unhandled ast: {attributeBase.GetType()}, extent {extent}");
+                            break;
                     }
                     break;
                 case NamedBlockAst namedBlock:
@@ -173,12 +174,9 @@ namespace ExplainPowershell.SyntaxAnalyzer
                         OriginalExtent = ifStatement.Extent.Text,
                         Description = "if-statement, run statement lists based on the results of one or more conditional tests",
                         CommandName = "if-statement",
-                        HelpResult = HelpTableQuery("if")
+                        HelpResult = HelpTableQuery("about_if")
                     };
-                    // todo: write code to add about_... articles to help db, remove stuff below:
-                    if (expl.HelpResult == null)
-                        expl.HelpResult = new HelpEntity();
-                    expl.HelpResult.DocumentationLink = "https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_if";
+
                     explanations.Add(expl);
 
                     foreach (var clause in ifStatement.Clauses)
@@ -318,7 +316,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         private void CommandBaseExplainer(CommandBaseAst commandBase)
         {
-            switch (commandBase) 
+            switch (commandBase)
             {
                 case CommandAst element:
                     var cmd = element as CommandAst;
@@ -376,12 +374,12 @@ namespace ExplainPowershell.SyntaxAnalyzer
                         });
                     break;
                 case CommandExpressionAst element:
-                        ExpressionExplainer(element.Expression);
+                    ExpressionExplainer(element.Expression);
                     break;
                 default:
-                            AstExplainer(commandBase);
-                            Log.LogWarning($"unhandled ast: {commandBase.GetType()}, extent {extent}");
-                            break;
+                    AstExplainer(commandBase);
+                    Log.LogWarning($"unhandled ast: {commandBase.GetType()}, extent {extent}");
+                    break;
             }
         }
 
@@ -445,7 +443,8 @@ namespace ExplainPowershell.SyntaxAnalyzer
                                 prefix = "n environment ";
                                 suffix = " (on PSDrive 'env:')";
                             }
-                            else {
+                            else
+                            {
                                 standard = $"pointing to item '{varName}'";
                                 suffix = $" on <a href=\"https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_providers\">PSDrive</a> '{identifier}:'";
                             }
@@ -466,6 +465,72 @@ namespace ExplainPowershell.SyntaxAnalyzer
                     explanation.OriginalExtent = unaryExpression.Extent.Text;
                     ExpressionExplainer(unaryExpression.Child);
                     break;
+                case ConstantExpressionAst constantExpression:
+                    explanation.OriginalExtent = constantExpression.Extent.Text;
+                    switch (constantExpression)
+                    {
+                        case StringConstantExpressionAst stringConstantExpression:
+                            var hasDollarSign = stringConstantExpression.Value.IndexOf('$') >= 0;
+                            switch (stringConstantExpression.StringConstantType)
+                            {
+                                case StringConstantType.SingleQuoted:
+                                    explanation.Description = "String in which variables will not be expanded.";
+                                    break;
+                                case StringConstantType.SingleQuotedHereString:
+                                    explanation.Description = "Multiline here-string in which variables will not be expanded.";
+                                    break;
+                                case StringConstantType.DoubleQuoted:
+                                    if (hasDollarSign) {
+                                        explanation.Description = "String in which variables will be expanded.";
+                                    }
+                                    else {
+                                        explanation.Description = "String in which variables would be expanded.";
+                                    }
+                                    break;
+                                case StringConstantType.DoubleQuotedHereString:
+                                    if (hasDollarSign) {
+                                        explanation.Description = "Multiline here-string in which variables will be expanded.";
+                                    }
+                                    else {
+                                        explanation.Description = "Multiline here-string in which variables would be expanded.";
+                                    }
+                                    break;
+                                case StringConstantType.BareWord:
+                                    explanation.Description = "String without quotation.";
+                                    break;
+                            }
+                            explanation.CommandName = stringConstantExpression.StringConstantType.ToString();
+                            explanation.HelpResult = HelpTableQuery("about_quoting_rules");
+                            break;
+                        default:
+                            explanation.CommandName = "Numeric literal";
+                            explanation.HelpResult = HelpTableQuery("about_Numeric_Literals");
+                            var numberString = constantExpression.Extent.Text.ToString();
+                            var rg = new Regex(@"[a-zA-Z]");
+                            if (numberString.StartsWith("0b", true, null))
+                            {
+                                explanation.Description = $"Binary number (value: {constantExpression.SafeGetValue()})";
+                            }
+                            else if (numberString.StartsWith("0x", true, null)) 
+                            {
+                                explanation.Description = $"Hexadecimal number (value: {constantExpression.SafeGetValue()})";
+                            }
+                            else if (rg.IsMatch(constantExpression.Extent.Text))
+                            {
+                                explanation.Description = $"Number (value: {constantExpression.SafeGetValue()})";
+                            }
+                            else
+                            {
+                                explanation.Description = "Number";
+                            }
+                            break;
+                    }
+                    break;
+                // case ExpandableStringExpressionAst expandableStringExpression:
+                    
+                //     .NestedExpressions -> ExpressionAst [always either VariableExpressionAst or SubExpressionAst]
+                // .StringConstantType -> StringConstantType
+                // .Value -> string
                 default:
                     AstExplainer(argument);
                     Log.LogWarning($"unhandled ast: {argument.GetType()}, extent {extent}");
@@ -486,14 +551,6 @@ namespace ExplainPowershell.SyntaxAnalyzer
                     [cast expression]
                     .StaticType -> Type
                     .Type -> TypeConstraintAst
-            BinaryExpressionAst
-                .Left -> ExpressionAst
-                .Operator -> TokenKind
-                .Right -> ExpressionAst
-            ConstantExpressionAst
-                .Value -> string
-                StringConstantExpressionAst
-                    .StringConstantType -> StringConstantType
             (ErrorExpressionAst)
             ExpandableStringExpressionAst
                 .NestedExpressions -> ExpressionAst [always either VariableExpressionAst or SubExpressionAst]
@@ -519,9 +576,6 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 .Condition, .IfFalse, .IfTrue -> ExpressionAst
             TypeExpressionAst
                 .TypeName -> ITypeName
-            UnaryExpressionAst
-                .Child -> ExpressionAst
-                .TokenKind -> Token
             UsingExpressionAst
                 .SubExpression -> ExpressionAst
             */

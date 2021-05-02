@@ -79,6 +79,16 @@ Describe "SyntaxAnalyzer" {
         $content.Explanations[2].Description | Should -BeExactly "A <a href=`"https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_splatting`">splatted</a> variable named 'splatted'"
     }
 
+    It "Explains numeric constants" {
+        $code = 0b0110; 0xAB234F; 12e-3;
+        [BasicHtmlWebResponseObject]$result = SyntaxAnalyzer -PowerShellCode $code
+        $content = $result.Content | ConvertFrom-Json
+        $content.Explanations[0].Description | Should -BeExactly "Binary number (value: 6)"
+        $content.Explanations[1].Description | Should -BeExactly "Hexadecimal number (value: 11215695)"
+        $content.Explanations[2].Description | Should -BeExactly "Number (value: 0,012)"
+        $content.Explanations[2].HelpResult.DocumentationLink | Should -BeExactly "https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Numeric_Literals"
+    }
+
     $testCase = (Get-Content .\oneliners.ps1).split("`n") | ForEach-Object {
         [psobject]@{
             PowerShellCode = $_

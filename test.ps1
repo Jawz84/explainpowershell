@@ -14,27 +14,36 @@ $lines.foreach{
 
 Count Name
 ----- ----
-  282 StringConstantExpressionAst
-  119 CommandAst
-  107 PipelineAst
-   98 CommandParameterAst
-   80 ScriptBlockAst
-   80 NamedBlockAst
-   35 VariableExpressionAst
-   27 CommandExpressionAst
+~~ 282 StringConstantExpressionAst ~~
+~~ 119 CommandAst ~~
+~~ 107 PipelineAst ~~
+~~ 98 CommandParameterAst ~~
+~~ 80 ScriptBlockAst ~~
+~~ 80 NamedBlockAst ~~
+~~ 35 VariableExpressionAst ~~
+~~ 27 CommandExpressionAst ~~
+~~ 16 BinaryExpressionAst ~~
+~~ 11 ConstantExpressionAst ~~
+~~ 3 IfStatementAst ~~
+~~ 2 UnaryExpressionAst ~~
+~~ 2 AssignmentStatementAst ~~
+
    21 MemberExpressionAst
-   16 BinaryExpressionAst
    12 ParenExpressionAst
-   11 ConstantExpressionAst
    11 ArrayLiteralAst
     9 ScriptBlockExpressionAst
     6 StatementBlockAst
     4 InvokeMemberExpressionAst
-    3 IfStatementAst
-    2 UnaryExpressionAst
     2 HashtableAst
-    2 AssignmentStatementAst
     1 SubExpressionAst
     1 TypeExpressionAst
+
+    MemberExpressionAst
+    ParenExpressionAst
+    ArrayLiteralAst
+    ScriptBlockExpressionAst
+    InvokeMemberExpressionAst
+    HashtableAst
+    SubExpressionAst
 
 #>
