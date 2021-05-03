@@ -560,6 +560,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
                             explanation.HelpResult = HelpTableQuery("about_Numeric_Literals");
                             var numberString = constantExpression.Extent.Text.ToString();
                             var rg = new Regex(@"[a-zA-Z]");
+
                             if (numberString.StartsWith("0b", true, null))
                             {
                                 explanation.Description = $"Binary number (value: {constantExpression.SafeGetValue()})";
@@ -579,11 +580,68 @@ namespace ExplainPowershell.SyntaxAnalyzer
                             break;
                     }
                     break;
-                // case ExpandableStringExpressionAst expandableStringExpression:
+                case ExpandableStringExpressionAst expandableStringExpression:
+                    explanation.OriginalExtent = expandableStringExpression.Extent.Text;
+                    explanation.CommandName = expandableStringExpression.StringConstantType.ToString();
+                    explanation.HelpResult = HelpTableQuery("about_quoting_rules");
 
-                //     .NestedExpressions -> ExpressionAst [always either VariableExpressionAst or SubExpressionAst]
-                // .StringConstantType -> StringConstantType
-                // .Value -> string
+                    var items = new StringBuilder();
+                    items.AppendJoin(", ", expandableStringExpression.NestedExpressions.Select(n => n.Extent.Text));
+                    explanation.Description = $"String with expandable elements: {items}";
+
+                    foreach (var exp in expandableStringExpression.NestedExpressions)
+                        ExpressionExplainer(exp);
+
+                    break;
+                case MemberExpressionAst memberExpression:
+                    explanation.OriginalExtent = memberExpression.Extent.Text;
+
+                    switch (memberExpression)
+                    {
+                        case InvokeMemberExpressionAst invokeMemberExpression:
+                            var args = "";
+                            var argsText = " without arguments";
+                            var objectOrClass = "object"; 
+                            var stat = "";
+
+                            if (invokeMemberExpression.Arguments != null)
+                                args = string.Join(", ", invokeMemberExpression.Arguments.Select(args => args.Extent.Text));
+
+                            if (invokeMemberExpression.Static){
+                                objectOrClass = "class";
+                                stat = "static ";
+                            }
+
+                            if (args != "")
+                                argsText = $", with arguments '{args}'";
+
+                            explanation.Description = $"Invoke the {stat}method '{invokeMemberExpression.Member}' on {objectOrClass} '{invokeMemberExpression.Expression}'{argsText}.";
+                            explanation.CommandName = "Method";
+                            explanation.HelpResult = HelpTableQuery("about_Methods");
+
+                            if (invokeMemberExpression.Arguments != null)
+                                foreach (var a in invokeMemberExpression.Arguments)
+                                    ExpressionExplainer(a);
+
+                            // ignoring sub class: BaseCtorInvokeMemberExpressionAst
+                            break;
+                        default:
+                            explanation.Description = $"Access the property '{memberExpression.Member}' on object '{memberExpression.Expression}'";
+                            explanation.CommandName = "Property";
+                            explanation.HelpResult = HelpTableQuery("about_Properties");
+                            break;
+                    }
+                    ExpressionExplainer(memberExpression.Expression);
+                    if ((memberExpression.Member as StringConstantExpressionAst).StringConstantType != StringConstantType.BareWord)
+                        CommandElementExplainer(memberExpression.Member);
+                    break;
+                case ParenExpressionAst parenExpression:
+                    PipelineBaseExplainer(parenExpression.Pipeline);
+                    break;
+                case SubExpressionAst subExpression:
+                    foreach (var s in subExpression.SubExpression.Statements)
+                        StatementExplainer(s);
+                    break;
                 default:
                     AstExplainer(argument);
                     Log.LogWarning($"unhandled ast: {argument.GetType()}, extent {extent}");
@@ -604,27 +662,13 @@ namespace ExplainPowershell.SyntaxAnalyzer
                     [cast expression]
                     .StaticType -> Type
                     .Type -> TypeConstraintAst
-            (ErrorExpressionAst)
-            ExpandableStringExpressionAst
-                .NestedExpressions -> ExpressionAst [always either VariableExpressionAst or SubExpressionAst]
-                .StringConstantType -> StringConstantType
-                .Value -> string
             HashtableAst
                 .KeyValuePairs -> ReadOnlyCollection<Tuple<ExpressionAst,StatementAst>>
             IndexExpressionAst
                 .Index, .Target -> ExpressionAst
-            MemberExpressionAst
-                .Expression -> ExpressionAst
-                .Member -> CommandElementAst
-                InvokeMemberExpressionAst
-                    .Arguments -> ExpressionAst..
-                    BaseCtorInvokeMemberExpressionAst
-            ParenExpressionAst
-                .Pipeline -> PipelineBaseAst
             ScriptBlockExpressionAst
                 .ScriptBlock -> ScriptBlockAst
-            SubExpressionAst
-                .SubExpression -> StatementBlockAst
+
             TernaryExpressionAst
                 .Condition, .IfFalse, .IfTrue -> ExpressionAst
             TypeExpressionAst
