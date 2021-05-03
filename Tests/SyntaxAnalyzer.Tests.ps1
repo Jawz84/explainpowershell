@@ -77,7 +77,6 @@ Describe "SyntaxAnalyzer" {
         $content = $result.Content | ConvertFrom-Json
         $result.StatusCode | Should -Be 200
         $content.ExpandedCode | Should -BeExactly 'if ($abc -eq 123) {Get-ChildItem -name}'
-        #$content.ParseErrorMessage | Should -BeExactly ""
     }
 
     It "Explains variables, even complex ones" {
@@ -86,7 +85,7 @@ Describe "SyntaxAnalyzer" {
         $content = $result.Content | ConvertFrom-Json
         $content.Explanations[0].Description | Should -BeExactly "A variable named 'abc'"
         $content.Explanations[1].Description | Should -BeExactly "An environment variable named 'path' (on PSDrive 'env:')"
-        $content.Explanations[2].Description | Should -BeExactly "A <a href=`"https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_splatting`">splatted</a> variable named 'splatted'"
+        $content.Explanations[2].Description | Should -BeExactly "A splatted variable named 'splatted'"
     }
 
     $testCase = (Get-Content .\oneliners.ps1).split("`n") | ForEach-Object {
