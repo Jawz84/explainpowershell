@@ -28,9 +28,9 @@ Count Name
 ~~ 2 UnaryExpressionAst ~~
 ~~ 2 AssignmentStatementAst ~~
 
-   21 MemberExpressionAst
-   12 ParenExpressionAst
-   11 ArrayLiteralAst
+~~21 MemberExpressionAst ~~
+~~12 ParenExpressionAst ~~
+  11 ArrayLiteralAst
     9 ScriptBlockExpressionAst
     6 StatementBlockAst
     4 InvokeMemberExpressionAst
@@ -38,7 +38,6 @@ Count Name
     1 SubExpressionAst
     1 TypeExpressionAst
 
-    MemberExpressionAst
     ParenExpressionAst
     ArrayLiteralAst
     ScriptBlockExpressionAst

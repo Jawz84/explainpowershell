@@ -414,6 +414,37 @@ namespace ExplainPowershell.SyntaxAnalyzer
                     var varName = var.VariablePath.UserPath;
                     var standard = $"named '{varName}'";
 
+                    explanation.CommandName = "Variable";
+                    explanation.HelpResult = HelpTableQuery("about_variables");
+
+                    if (HasSpecialVars(varName))
+                    {
+                        if (string.Equals(varName, SpecialVars.PSDefaultParameterValues, StringComparison.OrdinalIgnoreCase))
+                        {
+                            suffix = ", a special variable to set parameter default values.";
+                            explanation.CommandName = "PSDefaultParameterValues"; 
+                            explanation.HelpResult = HelpTableQuery("about_Parameters_Default_Values");
+                        }
+                        else if (SpecialVars.AutomaticVariables.Contains(varName, StringComparer.OrdinalIgnoreCase)) 
+                        {
+                            suffix = ", an automatic variable.";
+                            explanation.CommandName = "Automatic variable";
+                            explanation.HelpResult = HelpTableQuery("about_automatic_variables");
+                        } 
+                        else if (SpecialVars.PreferenceVariables.Contains(varName, StringComparer.OrdinalIgnoreCase))
+                        {
+                            suffix = ", a preference variable.";
+                            explanation.CommandName = "Preference variable";
+                            explanation.HelpResult = HelpTableQuery("about_Preference_variables");
+                        }
+                        else
+                        {
+                            suffix = ", a special variable.";
+                            explanation.CommandName = "Special variable";
+                            explanation.HelpResult = HelpTableQuery("about_automatic_variables");
+                        }
+                    }
+
                     if (varName == "_" | string.Equals(varName, "PSItem", StringComparison.OrdinalIgnoreCase)) 
                     {
                         suffix = ", a built-in variable that holds the current element from the objects being passed in from the pipeline.";
@@ -601,6 +632,15 @@ namespace ExplainPowershell.SyntaxAnalyzer
             UsingExpressionAst
                 .SubExpression -> ExpressionAst
             */
+        }
+
+        private bool HasSpecialVars(string varName)
+        {
+            if (SpecialVars.InitializedVariables.Contains(varName, StringComparer.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+            return false;
         }
 
         private HelpEntity HelpTableQuery(string resolvedCmd)
