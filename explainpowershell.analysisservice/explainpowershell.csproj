@@ -26,4 +26,7 @@
   <ItemGroup>
     <ProjectReference Include="..\explainpowershell.models\explainpowershell.models.csproj" />
   </ItemGroup>
+  <Target Name="RunFunctions">
+    <Exec Command="func host start" />
+  </Target>
 </Project>
