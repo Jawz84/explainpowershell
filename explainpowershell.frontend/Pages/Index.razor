@@ -58,6 +58,8 @@
             <MudTh>CommandName</MudTh>
             <MudTh>Description</MudTh>
             <MudTh>ModuleName</MudTh>
+            <MudTh>Id</MudTh>
+            <MudTh>ParentId</MudTh>
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="Original Extent">@context.OriginalExtent</MudTd>
@@ -72,6 +74,8 @@
             </MudTd>
             <MudTd DataLabel="Description">@context.Description</MudTd>
             <MudTd DataLabel="Module">@context.HelpResult?.ModuleName</MudTd>
+            <MudTd DataLabel="Id">@context.Id</MudTd>
+            <MudTd DataLabel="ParentId">@context.ParentId</MudTd>
         </RowTemplate>
     </MudTable>
 </MudContainer>
@@ -123,7 +127,16 @@
         waiting = true;
         var code = new Code() { PowershellCode = InputValue };
 
-        var temp = await Http.PostAsJsonAsync<Code>("SyntaxAnalyzer", code);
+        HttpResponseMessage temp;
+        try {
+            temp = await Http.PostAsJsonAsync<Code>("SyntaxAnalyzer", code);
+        }
+        catch {
+            requestHasError = true;
+            waiting = false;
+            reasonPhrase = "oops!";
+            return;
+        }
 
         if (!temp.IsSuccessStatusCode) 
         {
@@ -144,9 +157,21 @@
         waiting = false;
 
         explanations = analysisResult.Explanations;
+        var explanationTree = explanations.GenerateTree(expl => expl.Id, expl => expl.ParentId);
         expandedCode = analysisResult.ExpandedCode;
         hideExpandedCode = false;
+
+        Test(explanationTree);
     }
+
+    static void Test(IEnumerable<TreeItem<Explanation>> categories, int deep = 0)
+        {
+            foreach (var c in categories)
+            {
+                Console.WriteLine(new string(' ', 2*deep) + c.Item.CommandName + " - " + c.Item.ParentId);
+                Test(c.Children, deep + 1);
+            }
+        }
 
     public void OpenPocInfo() {
         pocInfoIsVisible = true;

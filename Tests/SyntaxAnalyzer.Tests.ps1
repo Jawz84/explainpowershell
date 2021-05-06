@@ -35,69 +35,78 @@ Describe "SyntaxAnalyzer" {
             } until (Test-IsPrerequisitesRunning)
         }
 
-        Write-Warning "OK - Function App and Azure Storage Emulator running"
+        Write-Warning "OK - Function App and Azure Storage Emulator running" 
     }
 
-    It "Explains numeric constants" {
-        $code = "0b0110; 0xAB234F; 12e-3";
+    It "Calculates Id and ParentId for Explanations" {
+        $code = "if (`$abc -eq 123) {}";
         [BasicHtmlWebResponseObject]$result = SyntaxAnalyzer -PowerShellCode $code
         $content = $result.Content | ConvertFrom-Json
-        $content.Explanations[0].Description | Should -BeExactly "Binary number (value: 6)"
-        $content.Explanations[1].Description | Should -BeExactly "Hexadecimal number (value: 11215695)"
-        $content.Explanations[2].Description | Should -BeExactly "Number (value: 0,012)"
-        $content.Explanations[2].HelpResult.DocumentationLink | Should -BeExactly "https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Numeric_Literals"
+        $content.Explanations[0].Id | Should -Not -BeNullOrEmpty
+        $content.Explanations[0].ParentId | Should -Be 'root'
+        $content.Explanations[1].ParentId | Should -Be $content.Explanations[0].Id
     }
 
-    It "Converts alias to full command name" {
-        $code = 'gci'
-        [BasicHtmlWebResponseObject]$result = SyntaxAnalyzer -PowerShellCode $code
-        $content = $result.Content | ConvertFrom-Json
-        $content.ExpandedCode | Should -BeExactly 'Get-ChildItem'
-    }
+    # It "Explains numeric constants" {
+    #     $code = "0b0110; 0xAB234F; 12e-3";
+    #     [BasicHtmlWebResponseObject]$result = SyntaxAnalyzer -PowerShellCode $code
+    #     $content = $result.Content | ConvertFrom-Json
+    #     $content.Explanations[0].Description | Should -BeExactly "Binary number (value: 6)"
+    #     $content.Explanations[1].Description | Should -BeExactly "Hexadecimal number (value: 11215695)"
+    #     $content.Explanations[2].Description | Should -BeExactly "Number (value: 0,012)"
+    #     $content.Explanations[2].HelpResult.DocumentationLink | Should -BeExactly "https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Numeric_Literals"
+    # }
 
-    It "Converts multiple aliases to full command names" {
-        $code = 'gps | select name | ? name -like dotnet'
-        [BasicHtmlWebResponseObject]$result = SyntaxAnalyzer -PowerShellCode $code
-        $content = $result.Content | ConvertFrom-Json
-        $content.ExpandedCode | Should -BeExactly 'Get-Process | Select-Object name | Where-Object name -like dotnet'
-    }
+    # It "Converts alias to full command name" {
+    #     $code = 'gci'
+    #     [BasicHtmlWebResponseObject]$result = SyntaxAnalyzer -PowerShellCode $code
+    #     $content = $result.Content | ConvertFrom-Json
+    #     $content.ExpandedCode | Should -BeExactly 'Get-ChildItem'
+    # }
 
-    It "Notifies user about detected syntax errors, while still explaining as much as possible" {
-        $code = 'gps | ? {$_.id'
-        [BasicHtmlWebResponseObject]$result = SyntaxAnalyzer -PowerShellCode $code
-        $content = $result.Content | ConvertFrom-Json
-        $result.StatusCode | Should -Be 200
-        $content.ParseErrorMessage | Should -BeExactly "Missing closing '}' in statement block or type definition."
-        $content.ExpandedCode | Should -BeExactly 'Get-Process | Where-Object {$_.id'
-    }
+    # It "Converts multiple aliases to full command names" {
+    #     $code = 'gps | select name | ? name -like dotnet'
+    #     [BasicHtmlWebResponseObject]$result = SyntaxAnalyzer -PowerShellCode $code
+    #     $content = $result.Content | ConvertFrom-Json
+    #     $content.ExpandedCode | Should -BeExactly 'Get-Process | Select-Object name | Where-Object name -like dotnet'
+    # }
 
-    It "works with if statements" {
-        $code = 'if ($abc -eq 123) {gci -name}'
-        [BasicHtmlWebResponseObject]$result = SyntaxAnalyzer -PowerShellCode $code
-        $content = $result.Content | ConvertFrom-Json
-        $result.StatusCode | Should -Be 200
-        $content.ExpandedCode | Should -BeExactly 'if ($abc -eq 123) {Get-ChildItem -name}'
-    }
+    # It "Notifies user about detected syntax errors, while still explaining as much as possible" {
+    #     $code = 'gps | ? {$_.id'
+    #     [BasicHtmlWebResponseObject]$result = SyntaxAnalyzer -PowerShellCode $code
+    #     $content = $result.Content | ConvertFrom-Json
+    #     $result.StatusCode | Should -Be 200
+    #     $content.ParseErrorMessage | Should -BeExactly "Missing closing '}' in statement block or type definition."
+    #     $content.ExpandedCode | Should -BeExactly 'Get-Process | Where-Object {$_.id'
+    # }
 
-    It "Explains variables, even complex ones" {
-        $code = '$abc | $env:path | @splatted | $script:myVar'
-        [BasicHtmlWebResponseObject]$result = SyntaxAnalyzer -PowerShellCode $code
-        $content = $result.Content | ConvertFrom-Json
-        $content.Explanations[0].Description | Should -BeExactly "A variable named 'abc'"
-        $content.Explanations[1].Description | Should -BeExactly "An environment variable named 'path' (on PSDrive 'env:')"
-        $content.Explanations[2].Description | Should -BeExactly "A splatted variable named 'splatted'"
-    }
+    # It "works with if statements" {
+    #     $code = 'if ($abc -eq 123) {gci -name}'
+    #     [BasicHtmlWebResponseObject]$result = SyntaxAnalyzer -PowerShellCode $code
+    #     $content = $result.Content | ConvertFrom-Json
+    #     $result.StatusCode | Should -Be 200
+    #     $content.ExpandedCode | Should -BeExactly 'if ($abc -eq 123) {Get-ChildItem -name}'
+    # }
 
-    $testCase = (Get-Content .\oneliners.ps1).split("`n") | ForEach-Object {
-        [psobject]@{
-            PowerShellCode = $_
-        }
-    }
+    # It "Explains variables, even complex ones" {
+    #     $code = '$abc | $env:path | @splatted | $script:myVar'
+    #     [BasicHtmlWebResponseObject]$result = SyntaxAnalyzer -PowerShellCode $code
+    #     $content = $result.Content | ConvertFrom-Json
+    #     $content.Explanations[0].Description | Should -BeExactly "A variable named 'abc'"
+    #     $content.Explanations[1].Description | Should -BeExactly "An environment variable named 'path' (on PSDrive 'env:')"
+    #     $content.Explanations[2].Description | Should -BeExactly "A splatted variable named 'splatted'"
+    # }
 
-    It "Can handle all kinds of different oneliners without freaking out: <PowerShellCode>" -ForEach $testCase {
-            $result = SyntaxAnalyzer -PowerShellCode $PowerShellCode
-            $result.StatusCode | Should -Be 200
-    }
+    # $testCase = (Get-Content .\oneliners.ps1).split("`n") | ForEach-Object {
+    #     [psobject]@{
+    #         PowerShellCode = $_
+    #     }
+    # }
+
+    # It "Can handle all kinds of different oneliners without freaking out: <PowerShellCode>" -ForEach $testCase {
+    #         $result = SyntaxAnalyzer -PowerShellCode $PowerShellCode
+    #         $result.StatusCode | Should -Be 200
+    # }
 
     AfterAll {
         Get-Job | Stop-Job -PassThru | Remove-Job -Force

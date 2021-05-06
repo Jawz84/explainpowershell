@@ -34,6 +34,8 @@ namespace explainpowershell.models
         public string CommandName { get; set; }
         public string Description { get; set; }
         public HelpEntity HelpResult { get; set; }
+        public string Id {get; set;}
+        public string ParentId {get; set;}
     }
 
     public class HelpEntity : TableEntity

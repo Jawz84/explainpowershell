@@ -6,6 +6,7 @@ using System.Management.Automation.Language;
 using System.Text;
 using System.Text.RegularExpressions;
 using explainpowershell.models;
+using explainpowershell.SyntaxAnalyzer.ExtensionMethods;
 using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.Logging;
 
@@ -130,9 +131,8 @@ namespace ExplainPowershell.SyntaxAnalyzer
             explanations.Add(
                 new Explanation()
                 {
-                    OriginalExtent = ast.Extent.Text,
                     CommandName = splitAstType
-                });
+                }.AddDefaults(ast, explanations));
 
             log.LogWarning($"Unhandled ast: {splitAstType}");
         }
@@ -155,9 +155,8 @@ namespace ExplainPowershell.SyntaxAnalyzer
             explanations.Add(
                 new Explanation()
                 {
-                    Description = $"{operatorExplanation} Assigns a value to '{assignmentStatementAst.Left.Extent.Text}'.",
-                    OriginalExtent = assignmentStatementAst.Extent.Text
-                });
+                    Description = $"{operatorExplanation} Assigns a value to '{assignmentStatementAst.Left.Extent.Text}'."
+                }.AddDefaults(assignmentStatementAst, explanations));
 
             return base.VisitAssignmentStatement(assignmentStatementAst);
         }
@@ -180,8 +179,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 new Explanation()
                 {
                     Description = Helpers.TokenExplainer(binaryExpressionAst.Operator),
-                    OriginalExtent = binaryExpressionAst.Extent.Text
-                });
+                }.AddDefaults(binaryExpressionAst, explanations));
 
             return AstVisitAction.Continue;
         }
@@ -251,11 +249,10 @@ namespace ExplainPowershell.SyntaxAnalyzer
             explanations.Add(
                 new Explanation()
                 {
-                    OriginalExtent = commandAst.Extent.Text,
-                    CommandName = resolvedCmd, // + boundParameters.ToString(),
+                    CommandName = resolvedCmd,
                     Description = description,
                     HelpResult = helpResult
-                });
+                }.AddDefaults(commandAst, explanations));
 
             return AstVisitAction.Continue;
         }
@@ -276,9 +273,8 @@ namespace ExplainPowershell.SyntaxAnalyzer
         {
             var explanation = new Explanation
             {
-                CommandName = "Numeric literal",
-                OriginalExtent = constantExpressionAst.Extent.Text
-            };
+                CommandName = "Numeric literal"
+            }.AddDefaults(constantExpressionAst, explanations);
 
             var numberString = constantExpressionAst.Extent.Text.ToString();
             var rg = new Regex(@"[a-zA-Z]");
@@ -363,10 +359,9 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 new Explanation()
                 {
                     Description = $"String with expandable elements: {items}",
-                    OriginalExtent = expandableStringExpressionAst.Extent.Text,
                     CommandName = expandableStringExpressionAst.StringConstantType.ToString(),
                     HelpResult = HelpTableQuery("about_quoting_rules")
-                });
+                }.AddDefaults(expandableStringExpressionAst, explanations));
 
             return AstVisitAction.Continue;
         }
@@ -406,11 +401,10 @@ namespace ExplainPowershell.SyntaxAnalyzer
             explanations.Add(
                 new Explanation()
                 {
-                    OriginalExtent = ifStmtAst.Extent.Text,
                     Description = "if-statement, run statement lists based on the results of one or more conditional tests",
                     CommandName = "if-statement",
                     HelpResult = HelpTableQuery("about_if")
-                });
+                }.AddDefaults(ifStmtAst, explanations));
 
             return AstVisitAction.Continue;
         }
@@ -443,11 +437,10 @@ namespace ExplainPowershell.SyntaxAnalyzer
             explanations.Add(
                 new Explanation
                 {
-                    OriginalExtent = methodCallAst.Extent.Text,
                     Description = $"Invoke the {stat}method '{methodCallAst.Member}' on {objectOrClass} '{methodCallAst.Expression}'{argsText}.",
                     CommandName = "Method",
                     HelpResult = HelpTableQuery("about_Methods")
-                });
+                }.AddDefaults(methodCallAst, explanations));
 
             return AstVisitAction.Continue;
         }
@@ -457,11 +450,10 @@ namespace ExplainPowershell.SyntaxAnalyzer
             explanations.Add(
                 new Explanation
                 {
-                    OriginalExtent = memberExpressionAst.Extent.Text,
                     Description = $"Access the property '{memberExpressionAst.Member}' on object '{memberExpressionAst.Expression}'",
                     CommandName = "Property",
                     HelpResult = HelpTableQuery("about_Properties")
-                });
+                }.AddDefaults(memberExpressionAst, explanations));
 
             return AstVisitAction.Continue;
         }
@@ -536,10 +528,9 @@ namespace ExplainPowershell.SyntaxAnalyzer
         {
             var explanation = new Explanation
             {
-                OriginalExtent = stringConstantExpressionAst.Extent.Text,
                 CommandName = stringConstantExpressionAst.StringConstantType.ToString(),
                 HelpResult = HelpTableQuery("about_quoting_rules")
-            };
+            }.AddDefaults(stringConstantExpressionAst, explanations);
 
             var hasDollarSign = stringConstantExpressionAst.Value.IndexOf('$') >= 0;
             switch (stringConstantExpressionAst.StringConstantType)
@@ -628,8 +619,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 Description = Helpers.TokenExplainer(unaryExpressionAst.TokenKind),
                 CommandName = "Unary operator",
                 HelpResult = HelpTableQuery("about_operators"),
-                OriginalExtent = unaryExpressionAst.Extent.Text
-            });
+            }.AddDefaults(unaryExpressionAst, explanations));
 
             return AstVisitAction.Continue;
         }
@@ -646,8 +636,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
             {
                 CommandName = "Variable",
                 HelpResult = HelpTableQuery("about_variables"),
-                OriginalExtent = variableExpressionAst.Extent.Text
-            };
+            }.AddDefaults(variableExpressionAst, explanations);
 
             var prefix = " ";
             var suffix = "";
