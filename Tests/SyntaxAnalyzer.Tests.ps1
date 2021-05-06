@@ -43,7 +43,7 @@ Describe "SyntaxAnalyzer" {
         [BasicHtmlWebResponseObject]$result = SyntaxAnalyzer -PowerShellCode $code
         $content = $result.Content | ConvertFrom-Json
         $content.Explanations[0].Id | Should -Not -BeNullOrEmpty
-        $content.Explanations[0].ParentId | Should -Be 'root'
+        $content.Explanations[0].ParentId | Should -BeNullOrEmpty
         $content.Explanations[1].ParentId | Should -Be $content.Explanations[0].Id
     }
 
