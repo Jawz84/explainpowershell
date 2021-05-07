@@ -52,32 +52,28 @@
     <MudDivider DividerType="DividerType.Middle" Class="my-6" hidden="@hideExpandedCode"/>
     <MudText Align="Align.Center" hidden="@hideExpandedCode">@expandedCode</MudText>
     <MudDivider DividerType="DividerType.Middle" Class="my-6" hidden="@hasNoExplanations"/>
-    <MudTable Items="@explanations" Hover="true" Breakpoint="Breakpoint.Sm" hidden="@hasNoExplanations">
-        <HeaderContent>
-            <MudTh>Original Extent</MudTh>
-            <MudTh>CommandName</MudTh>
-            <MudTh>Description</MudTh>
-            <MudTh>ModuleName</MudTh>
-            <MudTh>Id</MudTh>
-            <MudTh>ParentId</MudTh>
-        </HeaderContent>
-        <RowTemplate>
-            <MudTd DataLabel="Original Extent">@context.OriginalExtent</MudTd>
-            <MudTd DataLabel="CommandName">
-                @if(@context.HelpResult != null) 
-                {
-                    <MudLink Href="@context.HelpResult?.DocumentationLink" Target="_blank">@context.CommandName</MudLink>
-                }
-                else {
-                    @context.CommandName
-                }
-            </MudTd>
-            <MudTd DataLabel="Description">@context.Description</MudTd>
-            <MudTd DataLabel="Module">@context.HelpResult?.ModuleName</MudTd>
-            <MudTd DataLabel="Id">@context.Id</MudTd>
-            <MudTd DataLabel="ParentId">@context.ParentId</MudTd>
-        </RowTemplate>
-    </MudTable>
+    <MudTreeView Items="TreeItems">
+        <ItemTemplate>
+            <MudTreeViewItem @bind-Expanded="@context.IsExpanded" Items="@context.Children">
+                <Content>
+                    <MudTreeViewItemToggleButton @bind-Expanded="@context.IsExpanded" Visible="@context.HasChildren" /> 
+                    <MudCard Class="pa-4">
+                        <MudText Typo="Typo.h6" >@context.Item.OriginalExtent</MudText>
+                        <MudText><b>CommandName: </b> @if(@context.Item.HelpResult != null) 
+                            {
+                                <MudLink Href="@context.Item.HelpResult?.DocumentationLink" Target="_blank">@context.Item.CommandName</MudLink>
+                            }
+                            else {
+                                @context.Item.CommandName
+                            }
+                        </MudText>
+                        <MudText><b>Description:</b> @context.Item.Description</MudText>
+                        <MudText><b>Module:</b> @context.Item.HelpResult?.ModuleName</MudText>
+                    </MudCard>
+                </Content>
+            </MudTreeViewItem>
+        </ItemTemplate>
+    </MudTreeView>
 </MudContainer>
 
 @code {
@@ -88,7 +84,9 @@
     private List<Explanation> explanations {get; set;} = new();
     private AnalysisResult analysisResult {get;set;} = new();
     private string expandedCode {get; set;}
-
+    private TreeItem<Explanation> ActivatedValue { get; set; }
+    private HashSet<TreeItem<Explanation>> SelectedValues { get; set; }
+    private HashSet<TreeItem<Explanation>> TreeItems { get; set; } = new HashSet<TreeItem<Explanation>>();
     private bool hasNoExplanations {
         get {
             if (explanations == null) 
@@ -97,7 +95,6 @@
             return explanations.Count <= 0;
         }
     }
-
     private string InputValue {
         get {
             return _inputValue;
@@ -157,21 +154,10 @@
         waiting = false;
 
         explanations = analysisResult.Explanations;
-        var explanationTree = explanations.GenerateTree(expl => expl.Id, expl => expl.ParentId);
+        TreeItems = explanations.GenerateTree(expl => expl.Id, expl => expl.ParentId);
         expandedCode = analysisResult.ExpandedCode;
         hideExpandedCode = false;
-
-        Test(explanationTree);
     }
-
-    static void Test(IEnumerable<TreeItem<Explanation>> categories, int deep = 0)
-        {
-            foreach (var c in categories)
-            {
-                Console.WriteLine(new string(' ', 2*deep) + c.Item.CommandName + " - " + c.Item.ParentId);
-                Test(c.Children, deep + 1);
-            }
-        }
 
     public void OpenPocInfo() {
         pocInfoIsVisible = true;
@@ -179,5 +165,5 @@
     }
 
     private bool pocInfoIsVisible;
-    private string _inputValue;
+    private string _inputValue = "if (123 -eq $abc) {gci -name}";
 }

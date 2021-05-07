@@ -7,7 +7,14 @@ namespace explainpowershell.frontend
     public class TreeItem<T>
     {
         public T Item { get; set; }
-        public IEnumerable<TreeItem<T>> Children { get; set; }
+        public HashSet<TreeItem<T>> Children { get; set; }
+
+        public bool IsExpanded {get; set;} = true;
+        public bool HasChildren {
+            get {
+                return Children.Count > 0;
+            }
+        }
     }
 
     internal static class GenericTree
@@ -25,20 +32,22 @@ namespace explainpowershell.frontend
         /// <param name="root_id">Root element id</param>
         /// 
         /// <returns>Tree of items</returns>
-        public static IEnumerable<TreeItem<T>> GenerateTree<T, K>(
+        public static HashSet<TreeItem<T>> GenerateTree<T, K>(
             this IEnumerable<T> collection,
             Func<T, K> id_selector,
             Func<T, K> parent_id_selector,
             K root_id = default(K))
         {
+            var hashset = new HashSet<TreeItem<T>>();
             foreach (var c in collection.Where(c => EqualityComparer<K>.Default.Equals(parent_id_selector(c), root_id)))
             {
-                yield return new TreeItem<T>
+                hashset.Add(new TreeItem<T>
                 {
                     Item = c,
                     Children = collection.GenerateTree(id_selector, parent_id_selector, id_selector(c))
-                };
+                });
             }
+            return hashset;
         }
     }
 }
