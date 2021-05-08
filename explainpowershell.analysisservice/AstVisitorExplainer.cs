@@ -155,10 +155,12 @@ namespace ExplainPowershell.SyntaxAnalyzer
             explanations.Add(
                 new Explanation()
                 {
+                    CommandName = $"Assignment operator '{assignmentStatementAst.Operator.Text()}'",
+                    HelpResult = HelpTableQuery("about_assignment_operators"),
                     Description = $"{operatorExplanation} Assigns a value to '{assignmentStatementAst.Left.Extent.Text}'."
                 }.AddDefaults(assignmentStatementAst, explanations));
 
-            return base.VisitAssignmentStatement(assignmentStatementAst);
+            return AstVisitAction.Continue;
         }
 
         public override AstVisitAction VisitAttribute(AttributeAst attributeAst)
@@ -178,6 +180,8 @@ namespace ExplainPowershell.SyntaxAnalyzer
             explanations.Add(
                 new Explanation()
                 {
+                    CommandName = $"Operator",
+                    HelpResult = HelpTableQuery("about_operators"),
                     Description = Helpers.TokenExplainer(binaryExpressionAst.Operator),
                 }.AddDefaults(binaryExpressionAst, explanations));
 
@@ -198,8 +202,20 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitCatchClause(CatchClauseAst catchClauseAst)
         {
-            AstExplainer(catchClauseAst);
-            return base.VisitCatchClause(catchClauseAst);
+            var exceptionText = "";
+            if (! catchClauseAst.IsCatchAll) {
+                exceptionText = $"of type '{string.Join("', '", catchClauseAst.CatchTypes.Select(c => c.TypeName.Name))}' ";
+            }
+
+            explanations.Add(
+                new Explanation()
+                {
+                    CommandName = $"Catch block, belongs to Try statement",
+                    HelpResult = HelpTableQuery("about_try_catch_finally"),
+                    Description = $"Executed when an exception {exceptionText}is thrown in the Try {{}} block.",
+                }.AddDefaults(catchClauseAst, explanations));
+
+            return AstVisitAction.Continue;
         }
 
         public override AstVisitAction VisitCommand(CommandAst commandAst)
@@ -265,7 +281,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitCommandParameter(CommandParameterAst commandParameterAst)
         {
-            //AstExplainer(commandParameterAst);
+            AstExplainer(commandParameterAst);
             return base.VisitCommandParameter(commandParameterAst);
         }
 
@@ -496,8 +512,18 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitPipeline(PipelineAst pipelineAst)
         {
-            //AstExplainer(pipelineAst);
-            return base.VisitPipeline(pipelineAst);
+            _ = Parser.ParseInput(pipelineAst.Extent.Text, out Token[] tokensInPipeline, out _);
+            if (tokensInPipeline.Any(t => t.Kind == TokenKind.Pipe))
+            {
+                explanations.Add(new Explanation()
+                {
+                    Description = Helpers.TokenExplainer(TokenKind.Pipe) + $" Takes each element that results from the left hand side code, and passes it to the right hand side one by one.",
+                    CommandName = "Pipeline",
+                    HelpResult = HelpTableQuery("about_pipelines"),
+                }.AddDefaults(pipelineAst, explanations));
+                explanations.Last().OriginalExtent = "'|'"; 
+            }
+            return AstVisitAction.Continue;
         }
 
         public override AstVisitAction VisitReturnStatement(ReturnStatementAst returnStatementAst)
@@ -520,6 +546,21 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitStatementBlock(StatementBlockAst statementBlockAst)
         {
+            if (statementBlockAst.Parent is TryStatementAst & 
+                // Ugly hack. Finally block is undistinguisable from the Try block, except for textual position.
+                statementBlockAst.Extent.StartColumnNumber > statementBlockAst.Parent.Extent.StartColumnNumber + 5 )
+            {
+                explanations.Add(new Explanation()
+                {
+                    CommandName = "Finally block, belongs to Try statement",
+                    HelpResult = HelpTableQuery("about_try_catch_finally"),
+                    Description = "The Finally block is always run after the Try block, regardless of Exceptions. Intended for cleanup actions that should always be run.",
+                }.AddDefaults(statementBlockAst, explanations));
+                explanations.Last().OriginalExtent = "Finally " + explanations.Last().OriginalExtent;
+
+            return AstVisitAction.Continue;
+            }
+            
             //AstExplainer(statementBlockAst);
             return base.VisitStatementBlock(statementBlockAst);
         }
@@ -572,7 +613,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitSubExpression(SubExpressionAst subExpressionAst)
         {
-            //AstExplainer(subExpressionAst);
+            AstExplainer(subExpressionAst);
             return base.VisitSubExpression(subExpressionAst);
         }
 
@@ -596,19 +637,27 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitTryStatement(TryStatementAst tryStatementAst)
         {
-            AstExplainer(tryStatementAst);
-            return base.VisitTryStatement(tryStatementAst);
+            explanations.Add(new Explanation()
+            {
+                CommandName = "Try statement",
+                HelpResult = HelpTableQuery("about_try_catch_finally"),
+                Description = "If an exception is thrown in a Try block, it can be handled in a Catch block, and/or a cleanup can be done in a Finally block.",
+            }.AddDefaults(tryStatementAst, explanations));
+
+            return AstVisitAction.Continue;
         }
 
         public override AstVisitAction VisitTypeConstraint(TypeConstraintAst typeConstraintAst)
         {
-            AstExplainer(typeConstraintAst);
+            if(!(typeConstraintAst.Parent is CatchClauseAst))
+                AstExplainer(typeConstraintAst);
+
             return base.VisitTypeConstraint(typeConstraintAst);
         }
 
         public override AstVisitAction VisitTypeExpression(TypeExpressionAst typeExpressionAst)
         {
-            AstExplainer(typeExpressionAst);
+            // AstExplainer(typeExpressionAst);
             return base.VisitTypeExpression(typeExpressionAst);
         }
 
@@ -735,6 +784,15 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitWhileStatement(WhileStatementAst whileStatementAst)
         {
+            explanations.Add(new Explanation()
+            {
+                Description = $"While '{whileStatementAst.Condition.Extent.Text}' evaluates to true, execute the code in the block {{}}.",
+                CommandName = "While loop",
+                HelpResult = HelpTableQuery("about_while"),
+            }.AddDefaults(whileStatementAst, explanations));
+
+            return AstVisitAction.Continue;
+        }
 
         public override AstVisitAction VisitBaseCtorInvokeMemberExpression(BaseCtorInvokeMemberExpressionAst baseCtorInvokeMemberExpressionAst)
         {
