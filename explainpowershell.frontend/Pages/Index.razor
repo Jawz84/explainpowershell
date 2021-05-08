@@ -60,7 +60,7 @@
                         <MudTreeViewItemToggleButton @bind-Expanded="@context.IsExpanded" Visible="@context.HasChildren" /> 
                         <MudCard Class="mb-2 px-3 py-2" Elevation="2" >
                             <MudText Typo="Typo.h6" >@context.Item.OriginalExtent</MudText>
-                            <MudText><b>CommandName: </b> @if(@context.Item.HelpResult != null) 
+                            <MudText>@if(@context.Item.HelpResult != null) 
                                 {
                                     <MudLink Href="@context.Item.HelpResult?.DocumentationLink" Target="_blank">@context.Item.CommandName</MudLink>
                                 }
@@ -68,8 +68,10 @@
                                     @context.Item.CommandName
                                 }
                             </MudText>
-                            <MudText><b>Description:</b> @context.Item.Description</MudText>
-                            <MudText><b>Module:</b> @context.Item.HelpResult?.ModuleName</MudText>
+                            <MudText>@context.Item.Description</MudText>
+                            @if(! string.IsNullOrEmpty(@context.Item.HelpResult?.ModuleName)) {
+                                <MudText><b>Module:</b> @context.Item.HelpResult?.ModuleName</MudText>
+                            }
                         </MudCard>
                     </Content>
                 </MudTreeViewItem>
