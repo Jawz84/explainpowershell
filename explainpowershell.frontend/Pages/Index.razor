@@ -33,7 +33,7 @@
     </MudOverlay>
 
     <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-10">
-        <MudCard>
+        <MudCard Elevation="2">
             <MudForm>
                 <MudCardContent>
                     <MudTextField @bind-Value="InputValue" Immediate="true" T="string" Label="PowerShell oneliner to analyze" AutoFocus="true" />
@@ -52,28 +52,30 @@
     <MudDivider DividerType="DividerType.Middle" Class="my-6" hidden="@hideExpandedCode"/>
     <MudText Align="Align.Center" hidden="@hideExpandedCode">@expandedCode</MudText>
     <MudDivider DividerType="DividerType.Middle" Class="my-6" hidden="@hasNoExplanations"/>
-    <MudTreeView Items="TreeItems">
-        <ItemTemplate>
-            <MudTreeViewItem @bind-Expanded="@context.IsExpanded" Items="@context.Children">
-                <Content>
-                    <MudTreeViewItemToggleButton @bind-Expanded="@context.IsExpanded" Visible="@context.HasChildren" /> 
-                    <MudCard Class="pa-4">
-                        <MudText Typo="Typo.h6" >@context.Item.OriginalExtent</MudText>
-                        <MudText><b>CommandName: </b> @if(@context.Item.HelpResult != null) 
-                            {
-                                <MudLink Href="@context.Item.HelpResult?.DocumentationLink" Target="_blank">@context.Item.CommandName</MudLink>
-                            }
-                            else {
-                                @context.Item.CommandName
-                            }
-                        </MudText>
-                        <MudText><b>Description:</b> @context.Item.Description</MudText>
-                        <MudText><b>Module:</b> @context.Item.HelpResult?.ModuleName</MudText>
-                    </MudCard>
-                </Content>
-            </MudTreeViewItem>
-        </ItemTemplate>
-    </MudTreeView>
+    <MudContainer MaxWidth="MaxWidth.Medium">
+        <MudTreeView Items="TreeItems">
+            <ItemTemplate>
+                <MudTreeViewItem @bind-Expanded="@context.IsExpanded" Items="@context.Children" >
+                    <Content>
+                        <MudTreeViewItemToggleButton @bind-Expanded="@context.IsExpanded" Visible="@context.HasChildren" /> 
+                        <MudCard Class="mb-2 px-3 py-2" Elevation="2" >
+                            <MudText Typo="Typo.h6" >@context.Item.OriginalExtent</MudText>
+                            <MudText><b>CommandName: </b> @if(@context.Item.HelpResult != null) 
+                                {
+                                    <MudLink Href="@context.Item.HelpResult?.DocumentationLink" Target="_blank">@context.Item.CommandName</MudLink>
+                                }
+                                else {
+                                    @context.Item.CommandName
+                                }
+                            </MudText>
+                            <MudText><b>Description:</b> @context.Item.Description</MudText>
+                            <MudText><b>Module:</b> @context.Item.HelpResult?.ModuleName</MudText>
+                        </MudCard>
+                    </Content>
+                </MudTreeViewItem>
+            </ItemTemplate>
+        </MudTreeView>
+    </MudContainer>
 </MudContainer>
 
 @code {
@@ -81,18 +83,11 @@
     private string reasonPhrase {get;set;}
     private bool waiting {get;set;}
     private bool hideExpandedCode {get;set;}
-    private List<Explanation> explanations {get; set;} = new();
-    private AnalysisResult analysisResult {get;set;} = new();
     private string expandedCode {get; set;}
-    private TreeItem<Explanation> ActivatedValue { get; set; }
-    private HashSet<TreeItem<Explanation>> SelectedValues { get; set; }
     private HashSet<TreeItem<Explanation>> TreeItems { get; set; } = new HashSet<TreeItem<Explanation>>();
     private bool hasNoExplanations {
         get {
-            if (explanations == null) 
-                return true;
-
-            return explanations.Count <= 0;
+            return TreeItems.Count <= 0;
         }
     }
     private string InputValue {
@@ -116,7 +111,6 @@
         waiting = false;
         requestHasError = false;
         reasonPhrase = string.Empty;
-        explanations = null;
 
         if (string.IsNullOrEmpty(InputValue))
             return;
@@ -143,7 +137,7 @@
             return;
         }
 
-        analysisResult = await JsonSerializer.DeserializeAsync<AnalysisResult>(temp.Content.ReadAsStream());
+        var analysisResult = await JsonSerializer.DeserializeAsync<AnalysisResult>(temp.Content.ReadAsStream());
 
         if (!string.IsNullOrEmpty(analysisResult.ParseErrorMessage))
         {
@@ -152,11 +146,10 @@
         }
 
         waiting = false;
-
-        explanations = analysisResult.Explanations;
-        TreeItems = explanations.GenerateTree(expl => expl.Id, expl => expl.ParentId);
-        expandedCode = analysisResult.ExpandedCode;
         hideExpandedCode = false;
+
+        TreeItems = analysisResult.Explanations.GenerateTree(expl => expl.Id, expl => expl.ParentId);
+        expandedCode = analysisResult.ExpandedCode;
     }
 
     public void OpenPocInfo() {
