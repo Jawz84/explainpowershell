@@ -735,8 +735,59 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitWhileStatement(WhileStatementAst whileStatementAst)
         {
-            AstExplainer(whileStatementAst);
-            return base.VisitWhileStatement(whileStatementAst);
+
+        public override AstVisitAction VisitBaseCtorInvokeMemberExpression(BaseCtorInvokeMemberExpressionAst baseCtorInvokeMemberExpressionAst)
+        {
+            AstExplainer(baseCtorInvokeMemberExpressionAst);
+            return base.VisitBaseCtorInvokeMemberExpression(baseCtorInvokeMemberExpressionAst);
+        }
+
+        public override AstVisitAction VisitConfigurationDefinition(ConfigurationDefinitionAst configurationDefinitionAst)
+        {
+            AstExplainer(configurationDefinitionAst);
+            return base.VisitConfigurationDefinition(configurationDefinitionAst);
+        }
+
+        public override AstVisitAction VisitDynamicKeywordStatement(DynamicKeywordStatementAst dynamicKeywordStatementAst)
+        {
+            AstExplainer(dynamicKeywordStatementAst);
+            return base.VisitDynamicKeywordStatement(dynamicKeywordStatementAst);
+        }
+
+        public override AstVisitAction VisitFunctionMember(FunctionMemberAst functionMemberAst)
+        {
+            AstExplainer(functionMemberAst);
+            return base.VisitFunctionMember(functionMemberAst);
+        }
+
+        public override AstVisitAction VisitPipelineChain(PipelineChainAst statementChain)
+        {
+            AstExplainer(statementChain);
+            return base.VisitPipelineChain(statementChain);
+        }
+
+        public override AstVisitAction VisitPropertyMember(PropertyMemberAst propertyMemberAst)
+        {
+            AstExplainer(propertyMemberAst);
+            return base.VisitPropertyMember(propertyMemberAst);
+        }
+
+        public override AstVisitAction VisitTernaryExpression(TernaryExpressionAst ternaryExpressionAst)
+        {
+            AstExplainer(ternaryExpressionAst);
+            return base.VisitTernaryExpression(ternaryExpressionAst);
+        }
+
+        public override AstVisitAction VisitTypeDefinition(TypeDefinitionAst typeDefinitionAst)
+        {
+            AstExplainer(typeDefinitionAst);
+            return base.VisitTypeDefinition(typeDefinitionAst);
+        }
+
+        public override AstVisitAction VisitUsingStatement(UsingStatementAst usingStatementAst)
+        {
+            AstExplainer(usingStatementAst);
+            return base.VisitUsingStatement(usingStatementAst);
         }
     }
 
