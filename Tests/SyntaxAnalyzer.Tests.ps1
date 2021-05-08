@@ -38,6 +38,28 @@ Describe "SyntaxAnalyzer" {
         Write-Warning "OK - Function App and Azure Storage Emulator running" 
     }
 
+    It "Explains the While statement" {
+        $code = 'while ($abc -lt 29) {$abc++}' 
+        [BasicHtmlWebResponseObject]$result = SyntaxAnalyzer -PowerShellCode $code
+        $content = $result.Content | ConvertFrom-Json
+        $content.Explanations.Description.Count | Should -BeExactly 5 
+   
+    }
+
+    It "In the explanation, should correctly show a splatted variable with an @ sign at the beginning" {
+        $code = 'gci @splat' 
+        [BasicHtmlWebResponseObject]$result = SyntaxAnalyzer -PowerShellCode $code
+        $content = $result.Content | ConvertFrom-Json
+        $content.Explanations[1].OriginalExtent | Should -BeExactly '@splat' 
+    }
+
+    It "Explains Try catch finally" {
+        $code = 'try {gci -name} catch [ArgumentNullException], [ArgumentException]  {"blah"} catch {"foo"} finally {remove-variable a}'
+        [BasicHtmlWebResponseObject]$result = SyntaxAnalyzer -PowerShellCode $code
+        $content = $result.Content | ConvertFrom-Json
+        $content.Explanations.Count | Should -BeExactly 9
+    }
+
     It "Calculates Id and ParentId for Explanations" {
         $code = "if (`$abc -eq 123) {}";
         [BasicHtmlWebResponseObject]$result = SyntaxAnalyzer -PowerShellCode $code
@@ -89,7 +111,7 @@ Describe "SyntaxAnalyzer" {
     }
 
     It "Explains variables, even complex ones" {
-        $code = '$abc | $env:path | @splatted | $script:myVar'
+        $code = '$abc ; $env:path ; @splatted ; $script:myVar'
         [BasicHtmlWebResponseObject]$result = SyntaxAnalyzer -PowerShellCode $code
         $content = $result.Content | ConvertFrom-Json
         $content.Explanations[0].Description | Should -BeExactly "A variable named 'abc'"
@@ -97,7 +119,7 @@ Describe "SyntaxAnalyzer" {
         $content.Explanations[2].Description | Should -BeExactly "A splatted variable named 'splatted'"
     }
 
-    $testCase = (Get-Content .\oneliners.ps1).split("`n") | ForEach-Object {
+    $testCase = (Get-Content $PSScriptRoot\..\oneliners.ps1).split("`n") | ForEach-Object {
         [psobject]@{
             PowerShellCode = $_
         }
