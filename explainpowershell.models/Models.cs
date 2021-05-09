@@ -20,7 +20,7 @@ namespace explainpowershell.models
         public string ExpandedCode { get; set; }
         public List<Explanation> Explanations { get; set; } = new List<Explanation>();
         public List<Module> DetectedModules { get; set; } = new List<Module>();
-        public string ParseErrorMessage {get;set;}
+        public string ParseErrorMessage { get; set; }
     }
 
     public class Module
@@ -34,8 +34,8 @@ namespace explainpowershell.models
         public string CommandName { get; set; }
         public string Description { get; set; }
         public HelpEntity HelpResult { get; set; }
-        public string Id {get; set;}
-        public string ParentId {get; set;}
+        public string Id { get; set; }
+        public string ParentId { get; set; }
     }
 
     public class HelpEntity : TableEntity
@@ -44,6 +44,14 @@ namespace explainpowershell.models
         public string Synopsis { get; set; }
         public string Syntax { get; set; }
         public string ModuleName { get; set; }
-        public string CommandName {get; set; }
+        public string CommandName { get; set; }
+    }
+
+    public class HelpMetaData
+    {
+        public int NumberOfCommands { get; set; }
+        public int NumberOfAboutArticles { get; set; }
+        public int NumberOfModules { get; set; }
+        public IEnumerable<string> ModuleNames { get; set; }
     }
 }
