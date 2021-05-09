@@ -1,10 +1,22 @@
+[CmdletBinding()]
+param(
+    [Switch]$IsProduction
+)
+
 . .\classes.ps1
 
-$storageAccountName = 'storageexplainpowershell'
 $tableName = 'HelpData'
-$sasToken = (Get-Content .\sastoken.user).trim()
 $partitionKey = 'CommandHelp'
-$storageCtx = New-AzStorageContext -StorageAccountName $storageAccountName -SasToken $sasToken
+
+if ($IsProduction) {
+    $storageAccountName = 'storageexplainpowershell'
+    $sasToken = (Get-Content .\sastoken.user).trim()
+    $storageCtx = New-AzStorageContext -StorageAccountName $storageAccountName -SasToken $sasToken
+}
+else {
+    $azuriteLocalConnectionString = 'AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;DefaultEndpointsProtocol=http;BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;QueueEndpoint=http://127.0.0.1:10001/devstoreaccount1;TableEndpoint=http://127.0.0.1:10002/devstoreaccount1;'
+    $storageCtx = New-AzStorageContext -ConnectionString $azuriteLocalConnectionString
+}
 
 if ($null -eq ($table = Get-AzStorageTable -Context $storageCtx -Name $tableName -ErrorAction SilentlyContinue)) {
     $table = New-AzStorageTable -Context $storageCtx -Name $tableName
