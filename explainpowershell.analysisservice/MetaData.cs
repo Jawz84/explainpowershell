@@ -28,7 +28,7 @@ namespace explainpowershell.analysisservice
             TableQuery<HelpEntity> query = new TableQuery<HelpEntity>()
                 .Select(new string[] { "CommandName", "ModuleName" });
 
-            var tableQueryResult = cloudTable.ExecuteQuery(query);
+            var tableQueryResult = await cloudTable.ExecuteQuerySegmentedAsync(query, null);
 
             var numAbout = tableQueryResult
                 .Where(r => r
