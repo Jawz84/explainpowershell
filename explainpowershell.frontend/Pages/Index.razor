@@ -4,9 +4,17 @@
 @page "/"
 @inject HttpClient Http
 
+<MudHidden IsHidden="@hasMetaData">
+    <MudGrid Justify="Justify.FlexEnd">
+        <MudItem>
+            <MudText Typo="Typo.caption" >Warming up backend.. </MudText>
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Small" Class="ml-auto"/>
+        </MudItem>
+    </MudGrid>
+</MudHidden>
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-16">
     <MudText Typo="Typo.h3" GutterBottom="true">Explain PowerShell</MudText>
-    <MudText Class="mb-4">Get explanation for Powershell code oneliner</MudText>
+    <MudText Class="mb-4">Get explanation for PowerShell code oneliner</MudText>
     <MudLink @onclick="OpenPocInfo">[Proof of concept info]</MudLink>
     <MudOverlay @bind-Visible="pocInfoIsVisible" DarkBackground="true" AutoClose="true">
         <MudPaper Class="pa-8">
@@ -27,7 +35,9 @@
             PowerShellEditorServices.Commands<br>
             PowerShellEditorServices.VSCode<br>
             PowerShellGet<br>
-            PSReadLine
+            PSReadLine<br>
+            <br>
+            All language elements have basic support, quite a few now have detailed explanations.
             </MudText>
         </MudPaper>
     </MudOverlay>
@@ -88,6 +98,7 @@
 
 @code {
     private bool requestHasError {get;set;}
+    private bool hasMetaData {get;set;}
     private string reasonPhrase {get;set;}
     private bool waiting {get;set;}
     private bool hideExpandedCode {get;set;}
@@ -117,7 +128,18 @@
     protected override async Task OnInitializedAsync()
     {
         _ = DoSearch();
-        metaData = await Http.GetFromJsonAsync<HelpMetaData>("MetaData");
+
+        try {
+            metaData = await Http.GetFromJsonAsync<HelpMetaData>("MetaData");
+            hasMetaData = true;
+            StateHasChanged();
+        }
+        catch {
+            requestHasError = true;
+            waiting = false;
+            reasonPhrase = "oops!";
+            return;
+        }
     }
 
     private async Task DoSearch()
