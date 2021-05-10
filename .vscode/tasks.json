@@ -20,9 +20,9 @@
 		},
 		{
 			"label": "startstorageemulator",
-			"command": "AzureStorageEmulator.exe",
+			"command": "docker",
 			"args": [
-				"start"
+				"run", "-p", "10002:10002", "-v", "/azurite:/data", "mcr.microsoft.com/azure-storage/azurite"
 			],
 			"type": "process",
 			"problemMatcher": "$msCompile"
