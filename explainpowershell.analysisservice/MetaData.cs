@@ -17,7 +17,6 @@ namespace explainpowershell.analysisservice
     public static class MetaData
     {
         private const string HelpTableName = "HelpData";
-        private const string PartitionKey = "CommandHelp";
 
         [FunctionName("MetaData")]
         public static async Task<IActionResult> Run(
