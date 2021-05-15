@@ -17,8 +17,6 @@ RUN USERNAME=vscode \
     && export DEBIAN_FRONTEND=noninteractive \
     && apt-get -y install --no-install-recommends apt-utils dialog 2>&1 \ 
     && apt-get -y install git openssh-client less unzip iproute2 procps curl apt-transport-https gnupg2 lsb-release \ 
-    && groupadd --gid $USER_GID $USERNAME \ 
-    && useradd -s /bin/bash --uid $USER_UID --gid $USER_GID -m $USERNAME \ 
     && apt-get install -y sudo \ 
     && echo $USERNAME ALL=\(root\) NOPASSWD:ALL >/etc/sudoers.d/$USERNAME \ 
     && chmod 0440 /etc/sudoers.d/$USERNAME \ 
@@ -35,7 +33,7 @@ RUN USERNAME=vscode \
     && apt-get clean -y \ 
     && rm -rf /var/lib/apt/lists/*
 
-# RUN && export DEBIAN_FRONTEND=noninteractive \
+# RUN export DEBIAN_FRONTEND=noninteractive \
 #     && dotnet_sdk_version=3.1.408 \
 #     && curl -SL --output dotnet.tar.gz https://dotnetcli.azureedge.net/dotnet/Sdk/$dotnet_sdk_version/dotnet-sdk-$dotnet_sdk_version-linux-x64.tar.gz \
 #     && dotnet_sha512='5e2c378addf337c1b7e44583718672e0791235150630f0b613353c8597342dcaae3b7c412b17d5e6d93d87b5708a6ca2dc16ff6e6c5a2101b224d24e6a5c4e7a' \
@@ -45,8 +43,12 @@ RUN USERNAME=vscode \
 #     && rm dotnet.tar.gz
 
 RUN export DEBIAN_FRONTEND=noninteractive \
-    && wget https://packages.microsoft.com/config/debian/9/packages-microsoft-prod.deb -O packages-microsoft-prod.deb \
-    && dpkg -i packages-microsoft-prod.deb \
+    && wget -O - https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.asc.gpg \
+    && mv microsoft.asc.gpg /etc/apt/trusted.gpg.d/ \
+    && wget https://packages.microsoft.com/config/debian/9/prod.list \
+    && mv prod.list /etc/apt/sources.list.d/microsoft-prod.list \
+    && chown root:root /etc/apt/trusted.gpg.d/microsoft.asc.gpg \
+    && chown root:root /etc/apt/sources.list.d/microsoft-prod.list \
     && apt-get update \
     && apt-get install -y apt-transport-https \
     && apt-get update \

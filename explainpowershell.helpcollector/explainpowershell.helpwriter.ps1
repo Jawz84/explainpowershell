@@ -78,7 +78,7 @@ foreach ($help in $commandHelp | Where-Object -Property CommandName -eq 'Add-AzA
         } | Out-Null
     }
     catch [MethodInvocationException]{
-        Write-Warning "Entry $($help.CommandName) already present in database, skipping."
+        Write-Information "Entry $($help.CommandName) already present in database, skipping."
     }
     catch {
         $_
