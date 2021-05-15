@@ -27,7 +27,7 @@ class RawHelpData {
 Class HelpData {
     [string] $ModuleName
     [string] $CommandName
-    [CommandInfo] $RawCommandInfo
+    #[CommandInfo] $RawCommandInfo
     [string] $Synopsis
     [string] $Syntax
     [string[]] $Parameters

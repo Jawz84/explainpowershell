@@ -8,34 +8,41 @@ Describe "SyntaxAnalyzer" {
             $result = $true
             $ports = 7071, 10002
 
-            foreach ($port in $ports) {
-                $tcpClient = New-Object System.Net.Sockets.TcpClient
-                $result = $result -and $tcpClient.ConnectAsync('127.0.0.1', $port).Wait(100)
+            try {
+                foreach ($port in $ports) {
+                    $tcpClient = New-Object System.Net.Sockets.TcpClient
+                    $result = $result -and $tcpClient.ConnectAsync('127.0.0.1', $port).Wait(100)
+                }
             }
-
-            $tcpClient.Dispose()
+            catch {
+                return $false
+            }
+            finally {
+                $tcpClient.Dispose()
+            }
 
             return $result
         }
 
-        Write-Warning "Checking if function app and storage emulator are running.."
+        Write-Warning "Checking if function app and Azurite are running.."
         if (-not (Test-IsPrerequisitesRunning)) {
-            Write-Warning "Starting Function App and Azure Storage Emulator.."
-            Start-Job {
-                AzureStorageEmulator.exe start
-            }
+            try {
+                Write-Warning "Starting Function App.."
+                Start-ThreadJob -ArgumentList $PSScriptRoot {
+                    Push-Location "$($args[0])/../explainpowershell.analysisservice/"
+                    func host start
+                }
 
-            Start-Job {
-                Push-Location .\explainpowershell.analysisservice\
-                func host start .\explainpowershell.analysisservice
+                do {
+                    Start-Sleep -Seconds 2
+                } until (Test-IsPrerequisitesRunning)
             }
+            catch {
 
-            do {
-                Start-Sleep -Seconds 2
-            } until (Test-IsPrerequisitesRunning)
+            }
         }
 
-        Write-Warning "OK - Function App and Azure Storage Emulator running" 
+        Write-Warning "OK - Function App and Azurite running" 
     }
 
     It "Explains the While statement" {
@@ -43,7 +50,6 @@ Describe "SyntaxAnalyzer" {
         [BasicHtmlWebResponseObject]$result = SyntaxAnalyzer -PowerShellCode $code
         $content = $result.Content | ConvertFrom-Json
         $content.Explanations.Description.Count | Should -BeExactly 5 
-   
     }
 
     It "In the explanation, should correctly show a splatted variable with an @ sign at the beginning" {
@@ -119,7 +125,7 @@ Describe "SyntaxAnalyzer" {
         $content.Explanations[2].Description | Should -BeExactly "A splatted variable named 'splatted'"
     }
 
-    $testCase = (Get-Content $PSScriptRoot\..\oneliners.ps1).split("`n") | ForEach-Object {
+    $testCase = (Get-Content $PSScriptRoot\oneliners.ps1).split("`n") | ForEach-Object {
         [psobject]@{
             PowerShellCode = $_
         }

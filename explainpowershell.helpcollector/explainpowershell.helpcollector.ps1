@@ -2,31 +2,36 @@ using namespace Microsoft.PowerShell.Commands
 
 . .\classes.ps1
 
-# Update-Help -Force -ErrorAction SilentlyContinue
 $cmds = New-Object -TypeName 'System.Collections.Generic.Dictionary[[string],[HelpData]]'
 
-$modulesToProcess = Get-Module 
+$modulesToProcess = Get-Module -ListAvailable
 
 $modulesToProcess += @{
     Name = "Microsoft.PowerShell.Core"
     ProjectUri = "https://docs.microsoft.com/en-us/powershell/"
 }
 
+Write-Host -ForegroundColor Green "Get raw command info for commands in all installed modules.."
 $modulesToProcess
 | Sort-Object -Unique -Property Name
 | ForEach-Object {
     $moduleProjectUri = $_.ProjectUri
     Get-Command -Module $_.name | ForEach-Object {
-        $cmds.Add(
-            $_.Name,
-            [HelpData]@{
-                ModuleName        = $_.ModuleName
-                CommandName       = $_.Name
-                RawCommandInfo    = $_
-                Syntax            = (Get-Command $_.Name -Syntax).trim()
-                DocumentationLink = $moduleProjectUri
-            }
-        )
+        try {
+            $cmds.Add(
+                $_.Name,
+                [HelpData]@{
+                    ModuleName        = $_.ModuleName
+                    CommandName       = $_.Name
+                    #RawCommandInfo    = $_
+                    Syntax            = (Get-Command $_.Name -Syntax).trim()
+                    DocumentationLink = $moduleProjectUri
+                }
+            )
+        }
+        catch {
+            # suppress duplicate key errors
+        }
     }
 } 
 
@@ -44,6 +49,7 @@ function Get-SynopsisFromUri ($uri) {
     }
 }
 
+Write-Host -ForegroundColor Green "Get help info for all detected commands, get synopis from internet if needed.."
 foreach ($cmd in $cmds.Keys) {
     $help = Get-Help $cmd
     $relatedLinks = $help.relatedLinks.navigationLink.where{ $_.uri -match '^http' }.uri
@@ -92,54 +98,6 @@ foreach ($cmd in $cmds.Keys) {
         Synopsis     = $help.synopsis.trim()
         Syntax       = $help.syntax
     }
-}
 
-$cmds[$($cmds.Keys)] 
-
-
-# about_.. articles
-
-$aboutArticles = Get-Help About_*
-# filter only Microsoft built-in ones
-$abouts = $aboutArticles | Where-Object {-not $_.synopsis} 
-
-foreach ($about in $abouts) {
-    $baseUrl = 'https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/'
-    [BasicHtmlWebResponseObject]$result = $null
-    try {
-        $result = Invoke-WebRequest -Uri ($baseUrl + $about.name) -ErrorAction SilentlyContinue
-    }
-    catch {
-        try {
-            $baseUrl = $baseUrl.replace("microsoft.powershell.core/about","Microsoft.PowerShell.Security/About")
-            $result = Invoke-WebRequest -ErrorAction SilentlyContinue -Uri ($baseUrl + $about.name)
-        }
-        catch {
-            $baseUrl = $baseUrl.replace("Microsoft.PowerShell.Security/About","microsoft.wsman.management/about")
-            $result = Invoke-WebRequest -ErrorAction SilentlyContinue -Uri ($baseUrl + $about.name)
-        }
-    }
-
-    $selectedContext = $about.ToString().Split("`n") 
-        | Select-String "short description" -Context 5
-
-    if ($selectedContext) {
-        $synopsis = (
-            (
-                    $selectedContext.Context.PostContext.Split("`n")
-                    | Where-Object {-not [string]::IsNullOrWhiteSpace($_) }
-            ) -join ' '
-        ).Replace("`r", '').Replace("`n", '')
-
-        $hasLongSubscription = $synopsis.IndexOf("long description", [stringcomparison]::OrdinalIgnoreCase)
-        if ($hasLongSubscription -gt 0) {
-            $synopsis = $synopsis.Substring(0, $hasLongSubscription)
-        }
-    }
-
-    [HelpData]@{
-        CommandName = $about.name
-        DocumentationLink = if ($null -ne $result) {$baseUrl + $about.name}
-        Synopsis = $synopsis
-    }
+    $cmds[$cmd]
 }
