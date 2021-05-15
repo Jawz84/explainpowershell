@@ -22,6 +22,5 @@ Write-Host -ForegroundColor Green "Fill local database with help data.."
 Write-Host -ForegroundColor Green "Install Pester test framework.."
 Install-Module Pester -Force
 
-if ((Read-Host "Would you like to run tests, to check if everything works? [Y/n]") -like "y") {
-    & $PSScriptRoot/../Tests/launch.ps1
-}
+Write-host -ForegroundColor Green "Running tests to see if everything works"
+& $PSScriptRoot/Tests/launch.ps1
