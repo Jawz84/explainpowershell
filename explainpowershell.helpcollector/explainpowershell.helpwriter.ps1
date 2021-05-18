@@ -58,7 +58,7 @@ $commandHelp += Get-Content $PSScriptRoot\about$helpDataCacheFilename -Raw | Con
 
 Write-Host -ForegroundColor Green "Adding help data to $(if ($IsProduction) {'Azure Storage Tables production'} else {'local Azurite developement'}) table.."
 $i = 0
-foreach ($help in $commandHelp | Where-Object -Property CommandName -eq 'Add-AzADGroupMember') {
+foreach ($help in $commandHelp) {
     Write-Progress -Activity "Adding helpdata to table.." -Status "Added: $i of $($commandHelp.Count)" -PercentComplete (($i / $commandHelp.Count)  * 100)
     $i++
 

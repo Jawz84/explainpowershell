@@ -45,6 +45,23 @@ Describe "SyntaxAnalyzer" {
         Write-Warning "OK - Function App and Azurite running" 
     }
 
+    It "Has help data in database" {
+        $tableName = 'HelpData'
+        $partitionKey = 'CommandHelp'
+
+        $azuriteLocalConnectionString = 'AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;DefaultEndpointsProtocol=http;TableEndpoint=http://127.0.0.1:10002/devstoreaccount1;'
+        $storageCtx = New-AzStorageContext -ConnectionString $azuriteLocalConnectionString
+        $table = Get-AzStorageTable -Context $storageCtx -Name $tableName
+        $gciData = Get-AzTableRow -Table $table.CloudTable -partitionKey $partitionKey -RowKey "get-childitem" 
+
+        $gciData.CommandName | Should -BeExactly 'Get-ChildItem'
+        $gciData.DocumentationLink | Should -match 'get-childitem'
+        $gciData.ModuleName | Should -BeExactly 'Microsoft.PowerShell.Management'
+        $gciData.Syntax | Should -Not -BeNullOrEmpty 
+        $gciData.Synopsis | Should -BeExactly 'Gets the items and child items in one or more specified locations.'
+
+    }
+
     It "Explains the While statement" {
         $code = 'while ($abc -lt 29) {$abc++}' 
         [BasicHtmlWebResponseObject]$result = SyntaxAnalyzer -PowerShellCode $code
@@ -75,14 +92,22 @@ Describe "SyntaxAnalyzer" {
         $content.Explanations[1].ParentId | Should -Be $content.Explanations[0].Id
     }
 
+    It "Gets help article links for known commands and About_.. articles" {
+        $code = "if (`$abc -eq 123) {Get-ChildItem}";
+        [BasicHtmlWebResponseObject]$result = SyntaxAnalyzer -PowerShellCode $code
+        $content = $result.Content | ConvertFrom-Json
+        $content.Explanations[0].HelpResult.DocumentationLink | Should -Match "about_If"
+        $content.Explanations[3].HelpResult.DocumentationLink | Should -Match "get-childitem"
+    }
+
     It "Explains numeric constants" {
         $code = "0b0110; 0xAB234F; 12e-3";
         [BasicHtmlWebResponseObject]$result = SyntaxAnalyzer -PowerShellCode $code
         $content = $result.Content | ConvertFrom-Json
         $content.Explanations[0].Description | Should -BeExactly "Binary number (value: 6)"
         $content.Explanations[1].Description | Should -BeExactly "Hexadecimal number (value: 11215695)"
-        $content.Explanations[2].Description | Should -BeExactly "Number (value: 0,012)"
-        $content.Explanations[2].HelpResult.DocumentationLink | Should -BeExactly "https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Numeric_Literals"
+        $content.Explanations[2].Description | Should -BeLikeExactly "Number (value: 0?012)"
+        $content.Explanations[2].HelpResult.DocumentationLink | Should -Match "about_Numeric_Literals"
     }
 
     It "Converts alias to full command name" {
