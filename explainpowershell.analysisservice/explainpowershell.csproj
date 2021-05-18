@@ -7,11 +7,6 @@
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.Storage" Version="4.0.4" />
     <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="3.0.11" />
     <PackageReference Include="System.Management.Automation" Version="7.0.2" />
-    <PackageReference Include="Microsoft.PowerShell.Commands.Diagnostics" Version="7.0.2" />
-    <PackageReference Include="Microsoft.PowerShell.ConsoleHost" Version="7.0.2" />
-    <PackageReference Include="Microsoft.PowerShell.Commands.Utility" Version="7.0.2" />
-    <PackageReference Include="Microsoft.PowerShell.Commands.Management" Version="7.0.2" />
-    <PackageReference Include="Microsoft.WSMan.Management" Version="7.0.2" />
     <PackageReference Include="System.Net.Http.Json" Version="5.0.0" />
   </ItemGroup>
   <ItemGroup>

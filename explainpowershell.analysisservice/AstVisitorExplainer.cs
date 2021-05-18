@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Management.Automation;
 using System.Management.Automation.Language;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -16,9 +15,6 @@ namespace ExplainPowershell.SyntaxAnalyzer
     {
         private const string PartitionKey = "CommandHelp";
         private readonly List<Explanation> explanations = new List<Explanation>();
-        private static readonly PowerShell powerShell = PowerShell.Create();
-        private Dictionary<string, string> AliasToCmdletDictionary;
-        private CommandInvocationIntrinsics InvokeCommand { get => powerShell.Runspace.SessionStateProxy.InvokeCommand; }
         private string extent;
         private int offSet = 0;
         private readonly CloudTable helpTable;
@@ -90,33 +86,6 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 .Insert(start, resolvedCmd);
 
             offSet = offSet + resolvedCmd.Length - length;
-        }
-
-        private string ResolveCmd(string cmdName)
-        {
-            if (AliasToCmdletDictionary == null)
-            {
-                InitializeAliasDictionary();
-            }
-
-            if (AliasToCmdletDictionary.ContainsKey(cmdName))
-            {
-                return AliasToCmdletDictionary[cmdName];
-            }
-
-            return InvokeCommand.GetCommandName(cmdName, false, false).FirstOrDefault();
-        }
-
-        public void InitializeAliasDictionary()
-        {
-            AliasToCmdletDictionary = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
-
-            IEnumerable<CommandInfo> aliases = InvokeCommand.GetCommands("*", CommandTypes.Alias, true);
-
-            foreach (AliasInfo aliasInfo in aliases)
-            {
-                AliasToCmdletDictionary.Add(aliasInfo.Name, aliasInfo.Definition);
-            }
         }
 
         public static string SplitCamelCase(string input)
@@ -221,7 +190,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
         public override AstVisitAction VisitCommand(CommandAst commandAst)
         {
             string cmdName = commandAst.GetCommandName();
-            string resolvedCmd = ResolveCmd(cmdName);
+            string resolvedCmd = Helpers.ResolveAlias(cmdName) ?? cmdName;
             if (string.IsNullOrEmpty(resolvedCmd))
             {
                 resolvedCmd = cmdName;
