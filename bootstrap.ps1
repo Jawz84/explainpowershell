@@ -11,9 +11,11 @@ if ($IsLinux && $env:DOTNET_RUNNING_IN_CONTAINER) {
 Write-Host -ForegroundColor Green "Downloading all C# dependencies (dotnet restore).."
 dotnet restore
 
-$modules = 'Pester', 'Az', 'AzTable'
-Write-Host -ForegroundColor Green "Install PowerShell modules ($($modules -join ', ')).."
-Install-Module -Name $modules -Force
+if (((Get-ChildItem '/home/vscode/.local/share/powershell/Modules' -Name ) -match "Az.Accounts|AzTable|Pester" ).count -ne 3) {
+    $modules = 'Pester', 'Az', 'AzTable'
+    Write-Host -ForegroundColor Green "Install PowerShell modules ($($modules -join ', ')).."
+    Install-Module -Name $modules -Force
+}
 
 Write-Host -ForegroundColor Green "Fill local database with help data.."
 & $PSScriptRoot\explainpowershell.helpcollector\explainpowershell.helpwriter.ps1
