@@ -1,15 +1,19 @@
 {
     "version": "0.2.0",
+    "compounds": [
+        {
+            "name": "debug solution",
+            "configurations": ["debug functionApp", "debug wasm"],
+            "outFiles": [
+                "./explainpowershell.analysisservice/SyntaxAnalyzer.cs",
+                "./explainpowershell.frontend/Pages/Index.razor"
+            ],
+            //"preLaunchTask": "startstorageemulator"
+        }
+    ],
     "configurations": [
         {
-            "name": "PowerShell Launch Current File",
-            "type": "PowerShell",
-            "request": "launch",
-            "script": "${file}",
-            "cwd": "${file}"
-        },
-        {
-            "name": "Run functionApp test",
+            "name": "Test functionApp",
             "type": "PowerShell",
             "request": "launch",
             "script": "${workspaceFolder}/Tests/launch.ps1",
@@ -29,17 +33,13 @@
             "request": "launch",
             "cwd": "${workspaceFolder}/explainpowershell.frontend/",
             "browser": "edge"
-        }
-    ],
-    "compounds": [
+        },
         {
-            "name": "debug solution",
-            "configurations": ["debug functionApp", "debug wasm"],
-            "outFiles": [
-                "./explainpowershell.analysisservice/SyntaxAnalyzer.cs",
-                "./explainpowershell.frontend/Pages/Index.razor"
-            ],
-            //"preLaunchTask": "startstorageemulator"
-        }
+            "name": "PowerShell Launch Current File",
+            "type": "PowerShell",
+            "request": "launch",
+            "script": "${file}",
+            "cwd": "${file}"
+        },
     ]
 }
