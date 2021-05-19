@@ -1,3 +1,7 @@
+# Usage:
+# 
+# Save the functionapp publish profile to GitHub secrets under the name 'AZURE_FUNCTIONAPP_PUBLISH_PROFILE'.
+
 name: Deploy Explain PowerShell app to Azure
 
 on: 
@@ -8,11 +12,12 @@ on:
 env:
   AZURE_RESOURCE_GROUP: explainpowershelltest
   BLOB_STORAGE_ACCOUNT_NAME: explainpowershelltest
-  API_NAME: explainpowershellsyntaxanalyzertest
+  AZURE_FUNCTIONAPP_NAME: explainpowershellsyntaxanalyzertest
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: ./explainpowershell.analysisservice
 
 jobs:
-  build:
-    name: Build
+  buildFrontend:
+    name: Build Frontend
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
@@ -20,7 +25,7 @@ jobs:
     - name: Set api url to correct url manually
       shell: pwsh
       run: |
-          $uri = "https://${{ env.API_NAME }}.azurewebsites.net/api/"
+          $uri = "https://${{ env.AZURE_FUNCTIONAPP_NAME }}.azurewebsites.net/api/"
           Set-Content -Path ./explainpowershell.frontend/wwwroot/appsettings.json -Value (@{BaseAddress = $uri} | ConvertTo-Json)
           Get-Content -path ./explainpowershell.frontend/wwwroot/appsettings.json
 
@@ -36,19 +41,17 @@ jobs:
         name: webapp
         path: ./explainpowershell.frontend/bin/Release/net5.0/publish/wwwroot
 
-  deploy:
-    needs: build
-    name: Deploy
+  deployFrontend:
+    needs: buildFrontend
+    name: Deploy Frontend
     runs-on: ubuntu-latest
     steps:
 
-    # Download artifacts
     - name: Download artifacts
       uses: actions/download-artifact@master
       with:
         name: webapp
 
-    # Authentication
     - name: Authenticate with Azure
       uses: azure/login@v1
       with:
@@ -59,8 +62,28 @@ jobs:
       run: |
           az storage blob delete-batch --account-name ${{ env.BLOB_STORAGE_ACCOUNT_NAME }} --source `$web 
 
-    # Deploy to storage using CLI
-    - name: Deploy to storage using CLI
+    - name: Deploy to storage account
       shell: pwsh
       run: |
           az storage blob upload-batch --account-name ${{ env.BLOB_STORAGE_ACCOUNT_NAME }} --source ./ --destination `$web
+
+  buildAndDeployBackend:
+    name: Build and deploy backend api
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Build with dotnet
+        shell: pwsh
+        run: |
+          Set-Location ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+          dotnet build --configuration Release
+          Pop-Location
+
+      - name: 'Run Azure Functions Action'
+        uses: Azure/functions-action@v1
+        id: fa
+        with:
+          app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
+          package: '${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/output'
+          publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
