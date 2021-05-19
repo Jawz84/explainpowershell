@@ -1,0 +1,5 @@
+# This github actions pipeline is intended to write help data to the Azure Table storage database. 
+#
+
+name: Fill_Help_Database
+

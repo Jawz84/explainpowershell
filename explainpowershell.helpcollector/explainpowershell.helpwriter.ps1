@@ -1,9 +1,22 @@
-# requires
+<#
+.SYNOPSIS
+Write help data about installed powershell modules and available about_ articles to database.
+.PARAMETER Force
+Forces collection of About_ and Help data, even if local cache files exist.
+#>
 
 [CmdletBinding()]
 param(
+    [Switch]$Force,
+    [parameter()]
+    [ParameterSetName("Production")]
     [Switch]$IsProduction,
-    [Switch]$Force
+    [parameter()]
+    [ParameterSetName("Production")]
+    [String]$storageAccountName = 'storageexplainpowershell',
+    [parameter()]
+    [ParameterSetName("Production")]
+    [String]$ResourceGroupName = 'explainpowershell'
 )
 
 Push-Location $PSScriptRoot\
@@ -12,7 +25,31 @@ Push-Location $PSScriptRoot\
 
 $tableName = 'HelpData'
 $partitionKey = 'CommandHelp'
+
+#TODO: Think of a way to make this script run locally for dev and in a pipeline for prod
+$azureSubscriptionId = 'ced1b96d-9473-4313-b1c2-f8b30db08841' # thisConnect-AzAccount -UseDeviceAuthentication -Subscription 
 $helpDataCacheFilename = 'helpdata.cache.user'
+
+function New-SasToken {
+    param(
+        $ResourceGroupName,
+        $StorageAccountName,
+        $TableName
+    )
+
+    $context = (Get-AzStorageAccount -ResourceGroupName $ResourceGroupName -AccountName $StorageAccountName).context
+
+    $sasSplat = @{
+        Name       = $TableName
+        Context    = $context
+        Permission = 'rwdlacu' # read, write, delete, list, add, copy?, update
+        StartTime  = (Get-Date)
+        ExpiryTime = (Get-Date).AddMinutes(30)
+    }
+
+    return New-AzStorageTableSASToken @sasSplat
+}
+
 
 if ($null -eq (Get-Command -Name 'Get-AzContext' -ErrorAction SilentlyContinue)) {
     Write-Host -ForegroundColor Green "Installing PowerShell Az module.."
@@ -25,8 +62,8 @@ if ($null -eq (Get-Command -Name 'Add-AzTableRow' -ErrorAction SilentlyContinue)
 }
 
 if ($IsProduction) {
-    $storageAccountName = 'storageexplainpowershell'
-    $sasToken = (Get-Content .\sastoken.user).trim()
+    Get-AzContext
+    $sasToken = New-SasToken -ResourceGroupName $ResourceGroupName -StorageAccountName $storageAccountName -TableName $TableName #(Get-Content .\sastoken.user).trim()
     $storageCtx = New-AzStorageContext -StorageAccountName $storageAccountName -SasToken $sasToken
 }
 else {
@@ -42,6 +79,9 @@ if ($Force -or !(Test-Path $PSScriptRoot\about$helpDataCacheFilename)) {
     Write-Host -Foregroundcolor green "Collecting about_.. article data and saving to cache file 'about$helpDataCacheFilename'.."
     .\explainpowershell.aboutcollector.ps1 | ConvertTo-Json | Set-Content -Path $PSScriptRoot\about$helpDataCacheFilename -Force
 }
+else {
+    Write-Host "Detected cache file 'about$helpDataCacheFilename', skipping collecting about_.. data. Use '-Force' or remove cache file to refresh about_.. data."
+}
 
 if ($Force -or !(Test-Path $PSScriptRoot\$helpDataCacheFilename)) {
     Write-Host -ForegroundColor Green "Collecting help data.."
@@ -50,6 +90,9 @@ if ($Force -or !(Test-Path $PSScriptRoot\$helpDataCacheFilename)) {
     $tmp = ConvertTo-Json -Depth 5 -InputObject $tmp
     Write-Host -ForegroundColor Green "Saving data to cache file '$helpDataCacheFilename'.."
     Set-Content -Path $PSScriptRoot\$helpDataCacheFilename -Value $tmp -Force
+}
+else {
+    Write-Host "Detected cache file '$helpDataCacheFilename', skipping collecting help data. Use '-Force' or remove cache file to refresh help data."
 }
 
 Write-Host -ForegroundColor Green "Reading help data from cached file '$helpDataCacheFilename' ($([int]((Get-Item ./$helpDataCacheFilename).Length /1mb)) MB).."
