@@ -22,6 +22,7 @@ jobs:
       run: |
           $uri = "https://`${{ env.API_NAME }}`.azurewebsites.net/api/"
           Set-Content -Path ./explainpowershell.frontend/wwwroot/appsettings.json -Value (@{BaseAddress = $uri} | ConvertTo-Json)
+          Set-Location ./explainpowershell.frontend
 
     - name: Build with dotnet
       run: dotnet build --configuration Release
@@ -33,7 +34,7 @@ jobs:
       uses: actions/upload-artifact@master
       with:
         name: webapp
-        path: bin/Release/net5.0/publish/wwwroot
+        path: ./bin/Release/net5.0/publish/wwwroot
 
   deploy:
     needs: build
