@@ -65,4 +65,5 @@ jobs:
       with:
         azcliversion: latest
         inlineScript: | 
+          ls
           az storage blob upload-batch --account-name ${{ env.BLOB_STORAGE_ACCOUNT_NAME }} --source webapp --destination \$web
