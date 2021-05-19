@@ -3,3 +3,5 @@
 
 name: Fill_Help_Database
 
+on:
+  branch: [none]

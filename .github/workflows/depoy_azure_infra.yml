@@ -12,18 +12,19 @@ name: Deploy_Azure_Infra
 on:
   workflow_dispatch:
 
+env:
+  BLOB_STORAGE_ACCOUNT_NAME: explainpowershelltest
+  RESOURCE_GROUP_NAME: explainpowershelltest
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    env:
-      RESOURCE_GROUP_NAME: explainpowershelltest
-
     steps:
       - uses: actions/checkout@v2
       - uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_SERVICE_PRINCIPAL_TEST }}
-      - name: Deploy Azure Resource Manager (ARM) Template
+      - name: Deploy ARM template for Storage and FunctionApp
         uses: Azure/arm-deploy@v1
         with:
           scope: resourcegroup
@@ -31,3 +32,7 @@ jobs:
           template: ./explainpowershell.azureinfra/template.json
           parameters: ./explainpowershell.azureinfra/parameters.json
           deploymentMode: incremental
+      - name: Enable static website
+        shell: pwsh
+        run: |
+          az storage blob service-properties update --account-name ${{ env.BLOB_STORAGE_ACCOUNT_NAME }} --static-website --index-document index.html
