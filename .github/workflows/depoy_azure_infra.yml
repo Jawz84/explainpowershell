@@ -33,6 +33,6 @@ jobs:
           # Specify the path or URL to the Azure Resource Manager template.
           template: ./explainpowershell.azureinfra/template.json
           # Incremental (only add resources to resource group) or Complete (remove extra resources from resource group) or Validate (only validates the template).
-          deploymentMode: validate
+          deploymentMode: incremental
           # Supply deployment parameter values.
           parameters: ./explainpowershell.azureinfra/parameters.json
