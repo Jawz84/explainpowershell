@@ -9,7 +9,7 @@
             "value": "ASP-explainpowershelltest-888a"
         },
         "storageAccounts_storageexplainpowershell_name": {
-            "value": "storageexplainpowershelltest"
+            "value": "explainpowershelltest"
         },
         "components_explainpowershellsyntaxanalyzer_name": {
             "value": "explainpowershellsyntaxanalyzertest"
