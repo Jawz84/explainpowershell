@@ -67,8 +67,8 @@ jobs:
       run: |
           az storage blob upload-batch --account-name ${{ env.BLOB_STORAGE_ACCOUNT_NAME }} --source ./ --destination `$web
 
-  buildAndDeployBackend:
-    name: Build and deploy backend api
+  buildBackend:
+    name: Build backend api
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
@@ -77,13 +77,28 @@ jobs:
         shell: pwsh
         run: |
           Set-Location ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
-          dotnet build --configuration Release
-          Pop-Location
+          dotnet build --configuration Release 
+
+      - name: Publish artifacts
+        uses: actions/upload-artifact@master
+        with:
+          name: api
+          path: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/bin/Release/netcoreapp3.1
+
+  deployBackend:
+    needs: buildBackend
+    name: Deploy Backend api
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@master
+        with:
+          name: api
 
       - name: 'Run Azure Functions Action'
         uses: Azure/functions-action@v1
         id: fa
         with:
           app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
-          package: '${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/output'
+          package: ./api
           publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
