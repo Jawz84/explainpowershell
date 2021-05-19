@@ -57,10 +57,10 @@ jobs:
     - name: Clean up previous deployment
       shell: pwsh
       run: |
-          az storage blob delete-batch --account-name ${{ env.BLOB_STORAGE_ACCOUNT_NAME }} --source \$web 
+          az storage blob delete-batch --account-name ${{ env.BLOB_STORAGE_ACCOUNT_NAME }} --source `$web 
 
     # Deploy to storage using CLI
     - name: Deploy to storage using CLI
       shell: pwsh
       run: |
-          az storage blob upload-batch --account-name ${{ env.BLOB_STORAGE_ACCOUNT_NAME }} --source ./ --destination \$web
+          az storage blob upload-batch --account-name ${{ env.BLOB_STORAGE_ACCOUNT_NAME }} --source ./ --destination `$web
