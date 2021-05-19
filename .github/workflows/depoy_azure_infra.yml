@@ -31,8 +31,8 @@ jobs:
           # Provide the name of a resource group, only required for resource Group deployments.
           resourceGroupName: ${{ env.RESOURCE_GROUP_NAME }}
           # Specify the path or URL to the Azure Resource Manager template.
-          template: $GITHUB_WORKSPACE/explainpowershell.azureinfra/template.json
+          template: ./explainpowershell.azureinfra/template.json
           # Incremental (only add resources to resource group) or Complete (remove extra resources from resource group) or Validate (only validates the template).
           deploymentMode: validate
           # Supply deployment parameter values.
-          parameters: $GITHUB_WORKSPACE/explainpowershell.azureinfra/parameters.json
+          parameters: ./explainpowershell.azureinfra/parameters.json
