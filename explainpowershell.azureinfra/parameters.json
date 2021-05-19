@@ -1,0 +1,18 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "sites_explainpowershellsyntaxanalyzer_name": {
+            "value": null
+        },
+        "serverfarms_ASP_explainpowershell_888a_name": {
+            "value": null
+        },
+        "storageAccounts_storageexplainpowershell_name": {
+            "value": null
+        },
+        "components_explainpowershellsyntaxanalyzer_name": {
+            "value": null
+        }
+    }
+}
