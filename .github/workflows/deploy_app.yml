@@ -24,10 +24,10 @@ jobs:
           Set-Content -Path ./explainpowershell.frontend/wwwroot/appsettings.json -Value (@{BaseAddress = $uri} | ConvertTo-Json)
 
     - name: Build with dotnet
-      run: dotnet build --configuration Release -p ./explainpowershell.frontend
+      run: dotnet build --configuration Release explainpowershell.frontend
 
     - name: Publish with dotnet
-      run: dotnet publish --configuration Release -p ./explainpowershell.frontend
+      run: dotnet publish --configuration Release explainpowershell.frontend
 
     - name: Publish artifacts
       uses: actions/upload-artifact@master
