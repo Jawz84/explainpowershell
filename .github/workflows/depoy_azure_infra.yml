@@ -15,6 +15,7 @@ on:
 env:
   BLOB_STORAGE_ACCOUNT_NAME: explainpowershelltest
   RESOURCE_GROUP_NAME: explainpowershelltest
+  FUNCTION_APP_NAME: explainpowershellsyntaxanalyzertest
 
 jobs:
   deploy:
@@ -36,3 +37,7 @@ jobs:
         shell: pwsh
         run: |
           az storage blob service-properties update --account-name ${{ env.BLOB_STORAGE_ACCOUNT_NAME }} --static-website --index-document index.html
+      - name: Add CORS rule to function app to allow access from frontend endpoint
+        shell: pwsh
+        run: |
+          az functionapp cors add -g ${{ env.RESOURCE_GROUP_NAME }} -n ${{ env.FUNCTION_APP_NAME }} --allowed-origins https://${{ env.BLOB_STORAGE_ACCOUNT_NAME }}.z6.web.core.windows.net
