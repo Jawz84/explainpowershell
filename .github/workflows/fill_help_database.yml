@@ -3,5 +3,6 @@
 
 name: Fill_Help_Database
 
-on:
-  branch: [none]
+on: 
+  push:
+    branch: [ main ]
