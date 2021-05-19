@@ -3,16 +3,16 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "sites_explainpowershellsyntaxanalyzer_name": {
-            "value": "explainpowershellsyntaxanalyzer"
+            "value": "explainpowershellsyntaxanalyzertest"
         },
         "serverfarms_ASP_explainpowershell_888a_name": {
-            "value": "ASP-explainpowershell-888a"
+            "value": "ASP-explainpowershelltest-888a"
         },
         "storageAccounts_storageexplainpowershell_name": {
-            "value": "storageexplainpowershell"
+            "value": "storageexplainpowershelltest"
         },
         "components_explainpowershellsyntaxanalyzer_name": {
-            "value": "explainpowershellsyntaxanalyzer"
+            "value": "explainpowershellsyntaxanalyzertest"
         }
     }
 }

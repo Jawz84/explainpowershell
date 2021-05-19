@@ -1,38 +1,33 @@
-# This is a basic workflow to help you get started with Actions
+# This github actions pipeline is intended to do a basic resource deployment in an Azure resoucegroup, it does not set up App Insights. 
+#
+# Usage: 
+#   - Create a resource group in Azure, with the name 'explainpowershelltest', or a different name -> make sure to change the `RESOURCE_GROUP_NAME` environment variable accordingly.
+#   - Create a Service Principal in Azure with permissions to deploy to this resource group: 
+#        `az ad sp create-for-rbac --name explainpowershell --role contributor --scopes /subscriptions/{YourSubscriptionId}/resourceGroups/explainpowershelltest --sdk-aut`
+#   - Add the json output of the previous command as a new secret in GitHub, with the name `AZURE_SERVICE_PRINCIPAL`.
+# Read full documentation with examples here: https://docs.microsoft.com/en-us/azure/azure-resource-manager/templates/deploy-github-actions
 
 name: Deploy_Azure_Infra
 
-# Controls when the action will run. 
 on:
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
+  deploy:
     runs-on: ubuntu-latest
     env:
-      RESOURCE_GROUP_NAME: explainpowershell
+      RESOURCE_GROUP_NAME: explainpowershelltest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
       - uses: azure/login@v1
         with:
-          creds: ${{ secrets.AZURE_MPN_OGD }}
+          creds: ${{ secrets.AZURE_SERVICE_PRINCIPAL }}
       - name: Deploy Azure Resource Manager (ARM) Template
         uses: Azure/arm-deploy@v1
         with:
-          # Provide the scope of the deployment. Valid values are: 'resourcegroup', 'managementgroup', 'subscription'
           scope: resourcegroup
-          # Provide the name of a resource group, only required for resource Group deployments.
           resourceGroupName: ${{ env.RESOURCE_GROUP_NAME }}
-          # Specify the path or URL to the Azure Resource Manager template.
           template: ./explainpowershell.azureinfra/template.json
-          # Incremental (only add resources to resource group) or Complete (remove extra resources from resource group) or Validate (only validates the template).
-          deploymentMode: incremental
-          # Supply deployment parameter values.
           parameters: ./explainpowershell.azureinfra/parameters.json
+          deploymentMode: incremental
