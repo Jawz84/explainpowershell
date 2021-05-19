@@ -54,12 +54,10 @@ jobs:
       with:
         creds: ${{ secrets.AZURE_SERVICE_PRINCIPAL_TEST  }}
 
-    - name: Clean up previous deployment
-      uses: azure/CLI@v1
-      with:
-        azcliversion: latest
-        inlineScript: |
-          az storage blob delete-batch --account-name ${{ env.BLOB_STORAGE_ACCOUNT_NAME }} --source \$web 
+    # - name: Clean up previous deployment
+    #   shell: pwsh
+    #   run: |
+    #       az storage blob delete-batch --account-name ${{ env.BLOB_STORAGE_ACCOUNT_NAME }} --source \$web 
 
     # Deploy to storage using CLI
     - name: Deploy to storage using CLI
