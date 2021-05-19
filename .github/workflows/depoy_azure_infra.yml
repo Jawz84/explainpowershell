@@ -26,9 +26,8 @@ jobs:
         with:
           # Provide the scope of the deployment. Valid values are: 'resourcegroup', 'managementgroup', 'subscription'
           scope: resourcegroup
-          # Override the Subscription Id set by Azure Login.
           # Provide the name of a resource group, only required for resource Group deployments.
-          resourceGroupName: $RESOURCE_GROUP_NAME
+          resourceGroupName: ${{ RESOURCE_GROUP_NAME }}
           # Specify the path or URL to the Azure Resource Manager template.
           template: $GITHUB_WORKSPACE/explainpowershell.azureinfra/template.json
           # Incremental (only add resources to resource group) or Complete (remove extra resources from resource group) or Validate (only validates the template).
