@@ -6,7 +6,7 @@ name: Fill_Help_Database
 on: 
   workflow_dispatch:
 
-steps:
+jobs:
   - name: test func
     shell: pwsh 
     run: |
