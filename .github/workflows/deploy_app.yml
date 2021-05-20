@@ -68,7 +68,7 @@ jobs:
   #         az storage blob upload-batch --account-name ${{ env.BLOB_STORAGE_ACCOUNT_NAME }} --source ./ --destination `$web
 
   buildBackend:
-    name: Build backend api
+    name: Build Backend api
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1

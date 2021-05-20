@@ -4,5 +4,11 @@
 name: Fill_Help_Database
 
 on: 
-  push:
-    branch: [ main ]
+  workflow_dispatch:
+
+steps:
+  - name: test func
+    shell: pwsh 
+    run: |
+      set-location ./explainpowershell.analysisservice
+      func host start
