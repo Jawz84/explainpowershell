@@ -5,17 +5,19 @@ Write help data about installed powershell modules and available about_ articles
 Forces collection of About_ and Help data, even if local cache files exist.
 #>
 
-[CmdletBinding()]
+[CmdletBinding(DefaultParameterSetName="default")]
 param(
+    [parameter(ParameterSetName ="Production")]
+    [parameter(ParameterSetName ="default")]
     [Switch]$Force,
-    [parameter()]
-    [ParameterSetName("Production")]
+
+    [parameter(ParameterSetName ="Production")]
     [Switch]$IsProduction,
-    [parameter()]
-    [ParameterSetName("Production")]
+
+    [parameter(ParameterSetName ="Production")]
     [String]$storageAccountName = 'storageexplainpowershell',
-    [parameter()]
-    [ParameterSetName("Production")]
+
+    [parameter(ParameterSetName ="Production")]
     [String]$ResourceGroupName = 'explainpowershell'
 )
 
