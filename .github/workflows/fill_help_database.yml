@@ -5,7 +5,7 @@ name: Fill_Help_Database
 
 on:
   push:
-    branch: [func_testing]
+    branches: [func_testing]
   workflow_dispatch:
 
 env:
