@@ -11,10 +11,30 @@ if ($IsLinux && $env:DOTNET_RUNNING_IN_CONTAINER) {
 Write-Host -ForegroundColor Green "Downloading all C# dependencies (dotnet restore).."
 dotnet restore
 
-if (((Get-ChildItem '/home/vscode/.local/share/powershell/Modules' -Name ) -match "Az.Accounts|AzTable|Pester" ).count -ne 3) {
-    $modules = 'Pester', 'Az', 'AzTable'
-    Write-Host -ForegroundColor Green "Install PowerShell modules ($($modules -join ', ')).."
-    Install-Module -Name $modules -Force
+
+$modules = 'Pester', 'Az', 'AzTable', 'Posh-Git'
+foreach ($module in $modules) {
+    if (($m = Get-Module -ListAvailable $module)) {
+        Write-Host "Module '$module' version $($m.Version) already installed. Use -Force to update."
+        if (!$Force) {
+            continue
+        }
+    }
+
+    Write-Host -ForegroundColor Green "Install PowerShell module '$module'.."
+    Install-Module -Name $module -Force
+}
+
+$commandsToAddToProfile = @(
+    'Import-Module Posh-Git', 
+    'Set-PSReadLineOption -EditMode Windows'
+)
+
+if ( !(Test-Path -path $profile.CurrentUserAllHosts) ) {
+    New-Item -path $profile.CurrentUserAllHosts -Force -ItemType file | Out-Null
+}
+if ((Get-Content -path $profile.CurrentUserAllHosts).split("`n") -notcontains $commandsToAddToProfile[0]) {
+    Add-Content -Path $profile.CurrentUserAllHosts -Value $commandsToAddToProfile
 }
 
 Write-Host -ForegroundColor Green "Fill local database with help data.."
