@@ -11,7 +11,6 @@ if ($IsLinux && $env:DOTNET_RUNNING_IN_CONTAINER) {
 Write-Host -ForegroundColor Green "Downloading all C# dependencies (dotnet restore).."
 dotnet restore
 
-
 $modules = 'Pester', 'Az', 'AzTable', 'Posh-Git'
 foreach ($module in $modules) {
     if (($m = Get-Module -ListAvailable $module)) {
@@ -25,6 +24,8 @@ foreach ($module in $modules) {
     Install-Module -Name $module -Force
 }
 
+Import-Module Posh-Git
+
 $commandsToAddToProfile = @(
     'Import-Module Posh-Git', 
     'Set-PSReadLineOption -EditMode Windows'
@@ -33,8 +34,18 @@ $commandsToAddToProfile = @(
 if ( !(Test-Path -path $profile.CurrentUserAllHosts) ) {
     New-Item -path $profile.CurrentUserAllHosts -Force -ItemType file | Out-Null
 }
-if ((Get-Content -path $profile.CurrentUserAllHosts).split("`n") -notcontains $commandsToAddToProfile[0]) {
+
+$profileContents = Get-Content -path $profile.CurrentUserAllHosts
+if ($null -eq $profileContents -or
+    $profileContents.split("`n") -notcontains $commandsToAddToProfile[0]) 
+{
+    Write-Host -ForegroundColor Green "Add settings to PowerShell profile"
     Add-Content -Path $profile.CurrentUserAllHosts -Value $commandsToAddToProfile
+    # Add copy profile to VSCode profile too: Microsoft.VSCode_profile.ps1
+    Get-Content -Path $profile.CurrentUserAllHosts 
+        | Set-Content -Path ($profile.CurrentUserAllHosts 
+        | Split-Path -Parent 
+        | Join-Path -ChildPath 'Microsoft.VSCode_profile.ps1') -Force
 }
 
 Write-Host -ForegroundColor Green "Fill local database with help data.."
