@@ -16,56 +16,56 @@ env:
   AZURE_FUNCTIONAPP_PACKAGE_PATH: ./explainpowershell.analysisservice
 
 jobs:
-  # buildFrontend:
-  #   name: Build Frontend
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - uses: actions/checkout@v1
+  buildFrontend:
+    name: Build Frontend
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
 
-  #   - name: Set api url to correct url manually
-  #     shell: pwsh
-  #     run: |
-  #         $uri = "https://${{ env.AZURE_FUNCTIONAPP_NAME }}.azurewebsites.net/api/"
-  #         Set-Content -Path ./explainpowershell.frontend/wwwroot/appsettings.json -Value (@{BaseAddress = $uri} | ConvertTo-Json)
-  #         Get-Content -path ./explainpowershell.frontend/wwwroot/appsettings.json
+    - name: Set api url to correct url manually
+      shell: pwsh
+      run: |
+          $uri = "https://${{ env.AZURE_FUNCTIONAPP_NAME }}.azurewebsites.net/api/"
+          Set-Content -Path ./explainpowershell.frontend/wwwroot/appsettings.json -Value (@{BaseAddress = $uri} | ConvertTo-Json)
+          Get-Content -path ./explainpowershell.frontend/wwwroot/appsettings.json
 
-  #   - name: Build with dotnet
-  #     run: dotnet build --configuration Release explainpowershell.frontend
+    - name: Build with dotnet
+      run: dotnet build --configuration Release explainpowershell.frontend
 
-  #   - name: Publish with dotnet
-  #     run: dotnet publish --configuration Release explainpowershell.frontend
+    - name: Publish with dotnet
+      run: dotnet publish --configuration Release explainpowershell.frontend
 
-  #   - name: Publish artifacts
-  #     uses: actions/upload-artifact@master
-  #     with:
-  #       name: webapp
-  #       path: ./explainpowershell.frontend/bin/Release/net5.0/publish/wwwroot
+    - name: Publish artifacts
+      uses: actions/upload-artifact@master
+      with:
+        name: webapp
+        path: ./explainpowershell.frontend/bin/Release/net5.0/publish/wwwroot
 
-  # deployFrontend:
-  #   needs: buildFrontend
-  #   name: Deploy Frontend
-  #   runs-on: ubuntu-latest
-  #   steps:
+  deployFrontend:
+    needs: buildFrontend
+    name: Deploy Frontend
+    runs-on: ubuntu-latest
+    steps:
 
-  #   - name: Download artifacts
-  #     uses: actions/download-artifact@master
-  #     with:
-  #       name: webapp
+    - name: Download artifacts
+      uses: actions/download-artifact@master
+      with:
+        name: webapp
 
-  #   - name: Authenticate with Azure
-  #     uses: azure/login@v1
-  #     with:
-  #       creds: ${{ secrets.AZURE_SERVICE_PRINCIPAL_TEST  }}
+    - name: Authenticate with Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_SERVICE_PRINCIPAL_TEST  }}
 
-  #   - name: Clean up previous deployment
-  #     shell: pwsh
-  #     run: |
-  #         az storage blob delete-batch --account-name ${{ env.BLOB_STORAGE_ACCOUNT_NAME }} --source `$web 
+    - name: Clean up previous deployment
+      shell: pwsh
+      run: |
+          az storage blob delete-batch --account-name ${{ env.BLOB_STORAGE_ACCOUNT_NAME }} --source `$web 
 
-  #   - name: Deploy to storage account
-  #     shell: pwsh
-  #     run: |
-  #         az storage blob upload-batch --account-name ${{ env.BLOB_STORAGE_ACCOUNT_NAME }} --source ./ --destination `$web
+    - name: Deploy to storage account
+      shell: pwsh
+      run: |
+          az storage blob upload-batch --account-name ${{ env.BLOB_STORAGE_ACCOUNT_NAME }} --source ./ --destination `$web
 
   buildBackend:
     name: Build Backend api
