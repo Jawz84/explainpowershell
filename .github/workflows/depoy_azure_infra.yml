@@ -4,7 +4,7 @@
 #   - Create a resource group in Azure, with the name 'explainpowershelltest', or a different name -> make sure to change the `RESOURCE_GROUP_NAME` environment variable accordingly.
 #   - Create a Service Principal in Azure with permissions to deploy to this resource group: 
 #        `az ad sp create-for-rbac --name explainpowershell --role contributor --scopes /subscriptions/{YourSubscriptionId}/resourceGroups/explainpowershelltest --sdk-aut`
-#   - Add the json output of the previous command as a new secret in GitHub, with the name `AZURE_SERVICE_PRINCIPAL`.
+#   - Add the json output of the previous command as a new secret in GitHub, with the name `AZURE_SERVICE_PRINCIPAL_TEST`.
 # Read full documentation with examples here: https://docs.microsoft.com/en-us/azure/azure-resource-manager/templates/deploy-github-actions
 
 name: Deploy_Azure_Infra

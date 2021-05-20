@@ -55,7 +55,7 @@ jobs:
     - name: Authenticate with Azure
       uses: azure/login@v1
       with:
-        creds: ${{ secrets.AZURE_SERVICE_PRINCIPAL_TEST  }}
+        creds: ${{ secrets.AZURE_SERVICE_PRINCIPAL_TEST }}
 
     - name: Clean up previous deployment
       shell: pwsh
@@ -95,10 +95,25 @@ jobs:
         with:
           name: api
 
+      - name: Authenticate with Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_SERVICE_PRINCIPAL_TEST }}
+          enable-AzPSSession: true
+
+      - name: Get functionapp publish profile
+        id: publishprofile
+        shell: pwsh
+        run: |
+          $funcProfile = Get-AzWebAppPublishingProfile -ResourceGroupName ${{ env.RESOURCE_GROUP_NAME }} -Name ${{ env.FUNCTION_APP_NAME }}
+          $funcProfile = $funcProfile.Replace("`r", "").Replace("`n", "")
+          Write-Output "::add-mask::$funcProfile"
+          Write-Output "::set-output name=profile::$funcProfile"
+
       - name: 'Run Azure Functions Action'
         uses: Azure/functions-action@v1
         id: fa
         with:
           app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
           package: ./
-          publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
+          publish-profile: ${{ steps.publishprofile.outputs.profile }}
