@@ -99,14 +99,24 @@ jobs:
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_SERVICE_PRINCIPAL_TEST }}
-          enable-AzPSSession: true
 
       - name: Get functionapp publish profile
         id: publishprofile
         shell: pwsh
         run: |
-          $funcProfile = Get-AzWebAppPublishingProfile -ResourceGroupName ${{ env.RESOURCE_GROUP_NAME }} -Name ${{ env.FUNCTION_APP_NAME }}
-          $funcProfile = $funcProfile.Replace("`r", "").Replace("`n", "")
+          $json = az functionapp deployment list-publishing-profiles --name ${{ env.FUNCTION_APP_NAME }} --resource-group ${{ env.RESOURCE_GROUP_NAME }}
+          $funcProfile = $(
+              "<publishData>"
+              foreach ($publishProfile in $json) {
+                  "<publishProfile "
+                  foreach ($prop in $publishProfile.psobject.Properties | where name -ne databases) {
+                      "$($prop.Name)=`"$($prop.Value)`" "
+                  }
+                  "><databases /></publishProfile>"
+              }
+              "</publishData>"
+          ) -join ''
+
           Write-Output "::add-mask::$funcProfile"
           Write-Output "::set-output name=profile::$funcProfile"
 
