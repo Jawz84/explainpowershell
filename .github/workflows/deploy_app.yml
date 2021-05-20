@@ -6,7 +6,7 @@ name: Deploy Explain PowerShell app to Azure
 
 on: 
   push:
-    branch: [ main ]
+    branches: [ main ]
   workflow_dispatch:
 
 env:
