@@ -2,17 +2,14 @@
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "sites_explainpowershellsyntaxanalyzer_name": {
+        "functionAppName": {
             "value": "explainpowershellsyntaxanalyzertest"
         },
-        "serverfarms_ASP_explainpowershell_888a_name": {
+        "appServicePlanName": {
             "value": "ASP-explainpowershelltest-888a"
         },
-        "storageAccounts_storageexplainpowershell_name": {
+        "storageAccountName": {
             "value": "explainpowershelltest"
-        },
-        "components_explainpowershellsyntaxanalyzer_name": {
-            "value": "explainpowershellsyntaxanalyzertest"
         }
     }
 }

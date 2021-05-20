@@ -2,16 +2,13 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "sites_explainpowershellsyntaxanalyzer_name": {
+        "functionAppName": {
             "type": "string"
         },
-        "serverfarms_ASP_explainpowershell_888a_name": {
+        "appServicePlanName": {
             "type": "string"
         },
-        "storageAccounts_storageexplainpowershell_name": {
-            "type": "string"
-        },
-        "components_explainpowershellsyntaxanalyzer_name": {
+        "storageAccountName": {
             "type": "string"
         }
     },
@@ -20,7 +17,7 @@
         {
             "type": "Microsoft.Storage/storageAccounts",
             "apiVersion": "2021-02-01",
-            "name": "[parameters('storageAccounts_storageexplainpowershell_name')]",
+            "name": "[parameters('storageAccountName')]",
             "location": "westeurope",
             "sku": {
                 "name": "Standard_LRS",
@@ -57,7 +54,7 @@
         {
             "type": "Microsoft.Web/serverfarms",
             "apiVersion": "2018-02-01",
-            "name": "[parameters('serverfarms_ASP_explainpowershell_888a_name')]",
+            "name": "[parameters('appServicePlanName')]",
             "location": "West Europe",
             "sku": {
                 "name": "Y1",
@@ -81,9 +78,9 @@
         {
             "type": "Microsoft.Storage/storageAccounts/blobServices",
             "apiVersion": "2021-02-01",
-            "name": "[concat(parameters('storageAccounts_storageexplainpowershell_name'), '/default')]",
+            "name": "[concat(parameters('storageAccountName'), '/default')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_storageexplainpowershell_name'))]"
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
             ],
             "sku": {
                 "name": "Standard_LRS",
@@ -101,9 +98,9 @@
         {
             "type": "Microsoft.Storage/storageAccounts/queueServices",
             "apiVersion": "2021-02-01",
-            "name": "[concat(parameters('storageAccounts_storageexplainpowershell_name'), '/default')]",
+            "name": "[concat(parameters('storageAccountName'), '/default')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_storageexplainpowershell_name'))]"
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
             ],
             "properties": {
                 "cors": {
@@ -114,9 +111,9 @@
         {
             "type": "Microsoft.Storage/storageAccounts/tableServices",
             "apiVersion": "2021-02-01",
-            "name": "[concat(parameters('storageAccounts_storageexplainpowershell_name'), '/default')]",
+            "name": "[concat(parameters('storageAccountName'), '/default')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_storageexplainpowershell_name'))]"
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
             ],
             "properties": {
                 "cors": {
@@ -127,27 +124,27 @@
         {
             "type": "Microsoft.Web/sites",
             "apiVersion": "2018-11-01",
-            "name": "[parameters('sites_explainpowershellsyntaxanalyzer_name')]",
+            "name": "[parameters('functionAppName')]",
             "location": "West Europe",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/serverfarms', parameters('serverfarms_ASP_explainpowershell_888a_name'))]"
+                "[resourceId('Microsoft.Web/serverfarms', parameters('appServicePlanName'))]"
             ],
             "kind": "functionapp",
             "properties": {
                 "enabled": true,
                 "hostNameSslStates": [
                     {
-                        "name": "[concat(parameters('sites_explainpowershellsyntaxanalyzer_name'), '.azurewebsites.net')]",
+                        "name": "[concat(parameters('functionAppName'), '.azurewebsites.net')]",
                         "sslState": "Disabled",
                         "hostType": "Standard"
                     },
                     {
-                        "name": "[concat(parameters('sites_explainpowershellsyntaxanalyzer_name'), '.scm.azurewebsites.net')]",
+                        "name": "[concat(parameters('functionAppName'), '.scm.azurewebsites.net')]",
                         "sslState": "Disabled",
                         "hostType": "Repository"
                     }
                 ],
-                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('serverfarms_ASP_explainpowershell_888a_name'))]",
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('appServicePlanName'))]",
                 "reserved": false,
                 "isXenon": false,
                 "hyperV": false,
@@ -165,10 +162,10 @@
         {
             "type": "Microsoft.Web/sites/config",
             "apiVersion": "2018-11-01",
-            "name": "[concat(parameters('sites_explainpowershellsyntaxanalyzer_name'), '/web')]",
+            "name": "[concat(parameters('functionAppName'), '/web')]",
             "location": "West Europe",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_explainpowershellsyntaxanalyzer_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('functionAppName'))]"
             ],
             "properties": {
                 "numberOfWorkers": 1,
@@ -190,7 +187,7 @@
                 "httpLoggingEnabled": false,
                 "logsDirectorySizeLimit": 35,
                 "detailedErrorLoggingEnabled": false,
-                "publishingUsername": "$explainpowershellsyntaxanalyzer",
+                "publishingUsername": "[concat('$', parameters('functionAppName'))]",
                 "azureStorageAccounts": {},
                 "scmType": "None",
                 "use32BitWorkerProcess": true,
@@ -214,7 +211,7 @@
                         "https://functions.azure.com",
                         "https://functions-staging.azure.com",
                         "https://functions-next.azure.com",
-                        "https://storageexplainpowershell.z6.web.core.windows.net"
+                        "[concat('https://', parameters('storageAccountName'), '.z6.web.core.windows.net')]"
                     ],
                     "supportCredentials": true
                 },
@@ -245,58 +242,25 @@
             }
         },
         {
-            "type": "Microsoft.Web/sites/functions",
-            "apiVersion": "2018-11-01",
-            "name": "[concat(parameters('sites_explainpowershellsyntaxanalyzer_name'), '/MetaData')]",
-            "location": "West Europe",
-            "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_explainpowershellsyntaxanalyzer_name'))]"
-            ],
-            "properties": {
-                "script_root_path_href": "https://explainpowershellsyntaxanalyzer.azurewebsites.net/admin/vfs/site/wwwroot/MetaData/",
-                "script_href": "https://explainpowershellsyntaxanalyzer.azurewebsites.net/admin/vfs/site/wwwroot/bin/explainpowershell.dll",
-                "config_href": "https://explainpowershellsyntaxanalyzer.azurewebsites.net/admin/vfs/site/wwwroot/MetaData/function.json",
-                "href": "https://explainpowershellsyntaxanalyzer.azurewebsites.net/admin/functions/MetaData",
-                "config": {}
-            }
-        },
-        {
-            "type": "Microsoft.Web/sites/functions",
-            "apiVersion": "2018-11-01",
-            "name": "[concat(parameters('sites_explainpowershellsyntaxanalyzer_name'), '/SyntaxAnalyzer')]",
-            "location": "West Europe",
-            "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_explainpowershellsyntaxanalyzer_name'))]"
-            ],
-            "properties": {
-                "script_root_path_href": "https://explainpowershellsyntaxanalyzer.azurewebsites.net/admin/vfs/site/wwwroot/SyntaxAnalyzer/",
-                "script_href": "https://explainpowershellsyntaxanalyzer.azurewebsites.net/admin/vfs/site/wwwroot/bin/explainpowershell.dll",
-                "config_href": "https://explainpowershellsyntaxanalyzer.azurewebsites.net/admin/vfs/site/wwwroot/SyntaxAnalyzer/function.json",
-                "href": "https://explainpowershellsyntaxanalyzer.azurewebsites.net/admin/functions/SyntaxAnalyzer",
-                "config": {},
-                "test_data": "{\"method\":\"post\",\"queryStringParams\":[],\"headers\":[],\"body\":\"{\\n  \\\"PowershellCode\\\": \\\"sls\\\"\\n}\"}"
-            }
-        },
-        {
             "type": "Microsoft.Web/sites/hostNameBindings",
             "apiVersion": "2018-11-01",
-            "name": "[concat(parameters('sites_explainpowershellsyntaxanalyzer_name'), '/', parameters('sites_explainpowershellsyntaxanalyzer_name'), '.azurewebsites.net')]",
+            "name": "[concat(parameters('functionAppName'), '/', parameters('functionAppName'), '.azurewebsites.net')]",
             "location": "West Europe",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_explainpowershellsyntaxanalyzer_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('functionAppName'))]"
             ],
             "properties": {
-                "siteName": "explainpowershellsyntaxanalyzer",
+                "siteName": "[parameters('functionAppName')]",
                 "hostNameType": "Verified"
             }
         },
         {
             "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
             "apiVersion": "2021-02-01",
-            "name": "[concat(parameters('storageAccounts_storageexplainpowershell_name'), '/default/$web')]",
+            "name": "[concat(parameters('storageAccountName'), '/default/$web')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Storage/storageAccounts/blobServices', parameters('storageAccounts_storageexplainpowershell_name'), 'default')]",
-                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_storageexplainpowershell_name'))]"
+                "[resourceId('Microsoft.Storage/storageAccounts/blobServices', parameters('storageAccountName'), 'default')]",
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
             ],
             "properties": {
                 "defaultEncryptionScope": "$account-encryption-key",
@@ -307,10 +271,10 @@
         {
             "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
             "apiVersion": "2021-02-01",
-            "name": "[concat(parameters('storageAccounts_storageexplainpowershell_name'), '/default/azure-webjobs-hosts')]",
+            "name": "[concat(parameters('storageAccountName'), '/default/azure-webjobs-hosts')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Storage/storageAccounts/blobServices', parameters('storageAccounts_storageexplainpowershell_name'), 'default')]",
-                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_storageexplainpowershell_name'))]"
+                "[resourceId('Microsoft.Storage/storageAccounts/blobServices', parameters('storageAccountName'), 'default')]",
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
             ],
             "properties": {
                 "defaultEncryptionScope": "$account-encryption-key",
@@ -321,10 +285,10 @@
         {
             "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
             "apiVersion": "2021-02-01",
-            "name": "[concat(parameters('storageAccounts_storageexplainpowershell_name'), '/default/azure-webjobs-secrets')]",
+            "name": "[concat(parameters('storageAccountName'), '/default/azure-webjobs-secrets')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Storage/storageAccounts/blobServices', parameters('storageAccounts_storageexplainpowershell_name'), 'default')]",
-                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_storageexplainpowershell_name'))]"
+                "[resourceId('Microsoft.Storage/storageAccounts/blobServices', parameters('storageAccountName'), 'default')]",
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
             ],
             "properties": {
                 "defaultEncryptionScope": "$account-encryption-key",
@@ -335,10 +299,10 @@
         {
             "type": "Microsoft.Storage/storageAccounts/tableServices/tables",
             "apiVersion": "2021-02-01",
-            "name": "[concat(parameters('storageAccounts_storageexplainpowershell_name'), '/default/HelpData')]",
+            "name": "[concat(parameters('storageAccountName'), '/default/HelpData')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Storage/storageAccounts/tableServices', parameters('storageAccounts_storageexplainpowershell_name'), 'default')]",
-                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_storageexplainpowershell_name'))]"
+                "[resourceId('Microsoft.Storage/storageAccounts/tableServices', parameters('storageAccountName'), 'default')]",
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
             ]
         }
     ]
