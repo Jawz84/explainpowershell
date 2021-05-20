@@ -10,6 +10,8 @@ on:
 
 env:
   AZURE_FUNCTIONAPP_NAME: explainpowershellsyntaxanalyzertest
+  AZURE_SUBSCRIPTION_ID: ced1b96d-9473-4313-b1c2-f8b30db08841
+  RESOURCE_GROUP_NAME: explainpowershelltest
 
 jobs:
   deploy:
@@ -42,8 +44,18 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_SERVICE_PRINCIPAL_TEST }}
 
-      - name: test func
+      - name: set app settings
         shell: pwsh
         run: |
           set-location ./explainpowershell.analysisservice
+          az account set --subscription ${{ env.AZURE_SUBSCRIPTION_ID }}
+          func azure storage fetch-connection-string ${{ env.AZURE_FUNCTIONAPP_NAME }}
+          $connectionstring = (Get-Content ./local.settings.json | ConvertFrom-Json ).Values.${{ env.AZURE_FUNCTIONAPP_NAME }}_STORAGE
+          az functionapp config appsettings set --settings "AzureWebJobsStorage=$connectionstring" --name ${{ env.AZURE_FUNCTIONAPP_NAME }} --resource-group ${{ env.RESOURCE_GROUP_NAME }}
+          az functionapp config appsettings set --settings "FUNCTIONS_WORKER_RUNTIME=dotnet" --name ${{ env.AZURE_FUNCTIONAPP_NAME }} --resource-group ${{ env.RESOURCE_GROUP_NAME }}
+          az functionapp config appsettings set --settings "FUNCTIONS_EXTENSION_VERSION=~3" --name ${{ env.AZURE_FUNCTIONAPP_NAME }} --resource-group ${{ env.RESOURCE_GROUP_NAME }}
+
+      - name: test func
+        shell: pwsh
+        run: |
           func azure functionapp publish ${{ env.AZURE_FUNCTIONAPP_NAME }} --force
