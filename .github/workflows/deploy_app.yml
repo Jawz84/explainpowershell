@@ -10,10 +10,10 @@ on:
   workflow_dispatch:
 
 env:
-  AZURE_RESOURCE_GROUP: explainpowershelltest
+  RESOURCE_GROUP_NAME: explainpowershelltest
   BLOB_STORAGE_ACCOUNT_NAME: explainpowershelltest
-  AZURE_FUNCTIONAPP_NAME: explainpowershellsyntaxanalyzertest
-  AZURE_FUNCTIONAPP_PACKAGE_PATH: ./explainpowershell.analysisservice
+  FUNCTION_APP_NAME: explainpowershellsyntaxanalyzertest
+  FUNCTIONAPP_PACKAGE_PATH: ./explainpowershell.analysisservice
 
 jobs:
   buildFrontend:
@@ -25,7 +25,7 @@ jobs:
     - name: Set api url to correct url manually
       shell: pwsh
       run: |
-          $uri = "https://${{ env.AZURE_FUNCTIONAPP_NAME }}.azurewebsites.net/api/"
+          $uri = "https://${{ env.FUNCTION_APP_NAME }}.azurewebsites.net/api/"
           Set-Content -Path ./explainpowershell.frontend/wwwroot/appsettings.json -Value (@{BaseAddress = $uri} | ConvertTo-Json)
           Get-Content -path ./explainpowershell.frontend/wwwroot/appsettings.json
 
@@ -76,14 +76,14 @@ jobs:
       - name: Build with dotnet
         shell: pwsh
         run: |
-          Set-Location ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+          Set-Location ${{ env.FUNCTIONAPP_PACKAGE_PATH }}
           dotnet build --configuration Release 
 
       - name: Publish artifacts
         uses: actions/upload-artifact@master
         with:
           name: api
-          path: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/bin/Release/netcoreapp3.1
+          path: ${{ env.FUNCTIONAPP_PACKAGE_PATH }}/bin/Release/netcoreapp3.1
 
   deployBackend:
     needs: buildBackend
@@ -124,6 +124,6 @@ jobs:
         uses: Azure/functions-action@v1
         id: fa
         with:
-          app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
+          app-name: ${{ env.FUNCTION_APP_NAME }}
           package: ./
           publish-profile: ${{ steps.publishprofile.outputs.profile }}
