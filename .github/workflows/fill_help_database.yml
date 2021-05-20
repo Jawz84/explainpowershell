@@ -7,8 +7,12 @@ on:
   workflow_dispatch:
 
 jobs:
-  - name: test func
-    shell: pwsh 
-    run: |
-      set-location ./explainpowershell.analysisservice
-      func host start
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: test func
+        shell: pwsh 
+        run: |
+          set-location ./explainpowershell.analysisservice
+          func host start
