@@ -36,8 +36,9 @@ jobs:
           sudo apt-get clean -y
           sudo rm -rf /var/lib/apt/lists/*
 
-      - name: Authenticate with Azure
-        uses: azure/login@v1
+      - uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_SERVICE_PRINCIPAL_TEST }}
 
       - name: test func
         shell: pwsh
