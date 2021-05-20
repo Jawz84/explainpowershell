@@ -4,6 +4,8 @@
 name: Fill_Help_Database
 
 on:
+  push:
+    branch: [func_testing]
   workflow_dispatch:
 
 env:
@@ -44,4 +46,4 @@ jobs:
         shell: pwsh
         run: |
           set-location ./explainpowershell.analysisservice
-          func azure functionapp publish ${{ env.AZURE_FUNCTIONAPP_NAME }}
+          func azure functionapp publish ${{ env.AZURE_FUNCTIONAPP_NAME }} --force
