@@ -4,8 +4,6 @@
 name: Fill_Help_Database
 
 on:
-  push:
-    branches: [func_testing]
   workflow_dispatch:
 
 env:
@@ -51,10 +49,9 @@ jobs:
           set-location ./explainpowershell.analysisservice
           az account set --subscription ${{ env.AZURE_SUBSCRIPTION_ID }}
           $connectionstring = (az storage account show-connection-string --name ${{ env.BLOB_STORAGE_ACCOUNT_NAME }} | convertfrom-json).connectionstring
-          "AzureWebJobsStorage=$connectionstring"
-          az functionapp config appsettings set --settings "AzureWebJobsStorage=$connectionstring" --name ${{ env.AZURE_FUNCTIONAPP_NAME }} --resource-group ${{ env.RESOURCE_GROUP_NAME }}
-          az functionapp config appsettings set --settings "FUNCTIONS_WORKER_RUNTIME=dotnet" --name ${{ env.AZURE_FUNCTIONAPP_NAME }} --resource-group ${{ env.RESOURCE_GROUP_NAME }}
-          az functionapp config appsettings set --settings "FUNCTIONS_EXTENSION_VERSION=~3" --name ${{ env.AZURE_FUNCTIONAPP_NAME }} --resource-group ${{ env.RESOURCE_GROUP_NAME }}
+          az functionapp config appsettings set --settings "AzureWebJobsStorage=$connectionstring" --name ${{ env.AZURE_FUNCTIONAPP_NAME }} --resource-group ${{ env.RESOURCE_GROUP_NAME }} --output none
+          az functionapp config appsettings set --settings "FUNCTIONS_WORKER_RUNTIME=dotnet" --name ${{ env.AZURE_FUNCTIONAPP_NAME }} --resource-group ${{ env.RESOURCE_GROUP_NAME }} --output none
+          az functionapp config appsettings set --settings "FUNCTIONS_EXTENSION_VERSION=~3" --name ${{ env.AZURE_FUNCTIONAPP_NAME }} --resource-group ${{ env.RESOURCE_GROUP_NAME }} --output none
 
       - name: test func
         shell: pwsh
