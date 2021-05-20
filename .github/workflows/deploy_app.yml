@@ -107,7 +107,7 @@ jobs:
           $json = az functionapp deployment list-publishing-profiles --name ${{ env.FUNCTION_APP_NAME }} --resource-group ${{ env.RESOURCE_GROUP_NAME }}
           $funcProfile = $(
               "<publishData>"
-              foreach ($publishProfile in $json) {
+              foreach ($publishProfile in ($json | ConvertFrom-Json)) {
                   "<publishProfile "
                   foreach ($prop in $publishProfile.psobject.Properties | where name -ne databases) {
                       "$($prop.Name)=`"$($prop.Value)`" "
