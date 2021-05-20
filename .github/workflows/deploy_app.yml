@@ -117,7 +117,8 @@ jobs:
               "</publishData>"
           ) -join ''
 
-          Write-Output "::add-mask::$funcProfile"
+          ##Write-Output "::add-mask::$funcProfile"
+          write-output $funcProfile
           Write-Output "::set-output name=profile::$funcProfile"
 
       - name: 'Run Azure Functions Action'
