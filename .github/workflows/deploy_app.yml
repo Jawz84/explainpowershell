@@ -5,11 +5,6 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
-env:
-  RESOURCE_GROUP_NAME: explainpowershelltest
-  BLOB_STORAGE_ACCOUNT_NAME: explainpowershelltest
-  FUNCTION_APP_NAME: explainpowershellsyntaxanalyzertest
-
 jobs:
   buildFrontend:
     name: Build Frontend
@@ -20,7 +15,7 @@ jobs:
     - name: Set api url to correct url manually
       shell: pwsh
       run: |
-          $uri = "https://${{ env.FUNCTION_APP_NAME }}.azurewebsites.net/api/"
+          $uri = "https://${{ secrets.FUNCTION_APP_NAME }}.azurewebsites.net/api/"
           Set-Content -Path ./explainpowershell.frontend/wwwroot/appsettings.json -Value (@{BaseAddress = $uri} | ConvertTo-Json)
           Get-Content -path ./explainpowershell.frontend/wwwroot/appsettings.json
 
@@ -50,17 +45,17 @@ jobs:
     - name: Authenticate with Azure
       uses: azure/login@v1
       with:
-        creds: ${{ secrets.AZURE_SERVICE_PRINCIPAL_TEST }}
+        creds: ${{ secrets.AZURE_SERVICE_PRINCIPAL }}
 
     - name: Clean up previous deployment
       shell: pwsh
       run: |
-          az storage blob delete-batch --account-name ${{ env.BLOB_STORAGE_ACCOUNT_NAME }} --source `$web 
+          az storage blob delete-batch --account-name ${{ secrets.STORAGE_ACCOUNT_NAME }} --source `$web 
 
     - name: Deploy to storage account
       shell: pwsh
       run: |
-          az storage blob upload-batch --account-name ${{ env.BLOB_STORAGE_ACCOUNT_NAME }} --source ./ --destination `$web
+          az storage blob upload-batch --account-name ${{ secrets.STORAGE_ACCOUNT_NAME }} --source ./ --destination `$web
 
   buildBackend:
     name: Build Backend api
@@ -93,13 +88,13 @@ jobs:
       - name: Authenticate with Azure
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.AZURE_SERVICE_PRINCIPAL_TEST }}
+          creds: ${{ secrets.AZURE_SERVICE_PRINCIPAL }}
 
       - name: Get functionapp publish profile
         id: publishprofile
         shell: pwsh
         run: |
-          $json = az functionapp deployment list-publishing-profiles --name ${{ env.FUNCTION_APP_NAME }} --resource-group ${{ env.RESOURCE_GROUP_NAME }}
+          $json = az functionapp deployment list-publishing-profiles --name ${{ secrets.FUNCTION_APP_NAME }} --resource-group ${{ secrets.RESOURCE_GROUP_NAME }}
           $funcProfile = $(
               "<publishData>"
               foreach ($publishProfile in ($json | ConvertFrom-Json)) {
@@ -120,6 +115,6 @@ jobs:
         uses: Azure/functions-action@v1
         id: fa
         with:
-          app-name: ${{ env.FUNCTION_APP_NAME }}
+          app-name: ${{ secrets.FUNCTION_APP_NAME }}
           package: ./
           publish-profile: ${{ steps.publishprofile.outputs.profile }}

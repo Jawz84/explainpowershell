@@ -36,7 +36,9 @@ This repo offers a development container, with a bootstrap script to get you ful
 
 ## Deploying to Azure
 
-To deploy this to your own Azure environment, you can use the `deploy.ps1` script.
-- Create a storage account in Azure
-- In the root of the repo, create a file `storageaccountkey.user` and in that, paste the storage account key for the account you have created.
-- 
+Deploying to Azure is done using GitHub Actions. To set everything up, you will need to create an Azure resource group, an service principal for that group. Also you will need to save the secret for that service principal in GitHub as a secret. Lastly you need to give your resources a name. 
+I wrote a script so you can sit back and relax while all that is being done for you. Just make sure you log on to GitHub an Azure when prompted.
+
+```powershell
+./azuredeploymentbootstrapper.ps1 -SubscriptionId 12345678-91e7-42d9-bb2d-09876543321 -ResourceGroupName MyExplainPowerShell -AzureLocation westeurope
+```

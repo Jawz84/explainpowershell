@@ -13,7 +13,3 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-      - name: Authenticate with Azure
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_SERVICE_PRINCIPAL_TEST }}
