@@ -34,6 +34,8 @@ This repo offers a development container, with a bootstrap script to get you ful
     - Fill local Azurite Table emulator with the necessary database
     - Run all tests for you, so you know everything is working
 
+There are multiple preconfigured launch configurations, and there is also a `watch_run.ps1` script that you can use if you want to iterate quickly without debugging.
+
 ## Deploying to Azure
 
 Deploying to Azure is done using GitHub Actions. To set everything up, you will need to create an Azure resource group, an service principal for that group. Also you will need to save the secret for that service principal in GitHub as a secret. Lastly you need to give your resources a name. 
