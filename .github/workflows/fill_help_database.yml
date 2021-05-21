@@ -4,6 +4,8 @@
 name: Fill_Help_Database
 
 on:
+  push:
+    branches: [test_secret]
   workflow_dispatch:
 
 jobs:
