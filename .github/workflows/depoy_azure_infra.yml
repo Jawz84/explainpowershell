@@ -37,18 +37,18 @@ jobs:
       - name: Enable static website
         shell: pwsh
         run: |
-          az storage blob service-properties update --account-name ${{ secrets.STORAGE_ACCOUNT_NAME }} --static-website --index-document index.html
+          az storage blob service-properties update --account-name "${{ secrets.STORAGE_ACCOUNT_NAME }}".trim() --static-website --index-document index.html
 
       - name: Add CORS rule to function app to allow access from frontend endpoint
         shell: pwsh
         run: |
-          az functionapp cors add -g ${{ secrets.RESOURCE_GROUP_NAME }} -n ${{ secrets.FUNCTION_APP_NAME }} --allowed-origins https://${{ secrets.STORAGE_ACCOUNT_NAME }}.z6.web.core.windows.net
+          az functionapp cors add --resource-group "${{ secrets.RESOURCE_GROUP_NAME }}".trim() --name "${{ secrets.FUNCTION_APP_NAME }}".trim() --allowed-origins https://$("${{ secrets.STORAGE_ACCOUNT_NAME }}".trim()).z6.web.core.windows.net
 
       - name: set app settings
         shell: pwsh
         run: |
-          $connectionstring = (az storage account show-connection-string --name ${{ secrets.STORAGE_ACCOUNT_NAME }} | convertfrom-json).connectionstring
-          az functionapp config appsettings set --settings "AzureWebJobsStorage=$connectionstring" --name ${{ secrets.FUNCTION_APP_NAME }} --resource-group ${{ secrets.RESOURCE_GROUP_NAME }} --output none
-          az functionapp config appsettings set --settings "FUNCTIONS_WORKER_RUNTIME=dotnet" --name ${{ secrets.FUNCTION_APP_NAME }} --resource-group ${{ secrets.RESOURCE_GROUP_NAME }} --output none
-          az functionapp config appsettings set --settings "FUNCTIONS_EXTENSION_VERSION=~3" --name ${{ secrets.FUNCTION_APP_NAME }} --resource-group ${{ secrets.RESOURCE_GROUP_NAME }} --output none
+          $connectionstring = (az storage account show-connection-string --name "${{ secrets.STORAGE_ACCOUNT_NAME }}".trim() | convertfrom-json).connectionstring
+          az functionapp config appsettings set --settings "AzureWebJobsStorage=$connectionstring" --name "${{ secrets.FUNCTION_APP_NAME }}".trim() --resource-group "${{ secrets.RESOURCE_GROUP_NAME }}".trim() --output none
+          az functionapp config appsettings set --settings "FUNCTIONS_WORKER_RUNTIME=dotnet" --name "${{ secrets.FUNCTION_APP_NAME }}".trim() --resource-group "${{ secrets.RESOURCE_GROUP_NAME }}".trim() --output none
+          az functionapp config appsettings set --settings "FUNCTIONS_EXTENSION_VERSION=~3" --name "${{ secrets.FUNCTION_APP_NAME }}".trim() --resource-group "${{ secrets.RESOURCE_GROUP_NAME }}".trim() --output none
 
