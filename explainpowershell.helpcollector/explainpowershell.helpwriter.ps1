@@ -34,36 +34,36 @@ $helpDataCacheFilename = 'helpdata.cache.user'
 function New-SasToken {
     param(
         $ResourceGroupName,
-        $StorageAccountName,
-        $TableName
+        $StorageAccountName
     )
 
     $context = (Get-AzStorageAccount -ResourceGroupName $ResourceGroupName -AccountName $StorageAccountName).context
 
     $sasSplat = @{
-        Name       = $TableName
-        Context    = $context
-        Permission = 'rwdlacu' # read, write, delete, list, add, copy?, update
+        Service = 'Table'
+        ResourceType = 'Service', 'Container', 'Object'
+        Permission = 'racwdlup' # https://docs.microsoft.com/en-us/powershell/module/az.storage/new-azstorageaccountsastoken
         StartTime  = (Get-Date)
         ExpiryTime = (Get-Date).AddMinutes(30)
+        Context    = $context
     }
 
-    return New-AzStorageTableSASToken @sasSplat
+    return New-AzStorageAccountSASToken @sasSplat
 }
 
-if ($null -eq (Get-Command -Name 'Get-AzContext' -ErrorAction SilentlyContinue)) {
-    Write-Host -ForegroundColor Green "Installing PowerShell Az module.."
-    Install-Module Az -Force
+if ($null -eq (Get-Module -ListAvailable Az.Accounts)) {
+    Write-Host -ForegroundColor Green "Installing PowerShell Az.Accounts and Az.Storage module.."
+    Install-Module Az.Accounts, Az.Storage -Force
 }
 
-if ($null -eq (Get-Command -Name 'Add-AzTableRow' -ErrorAction SilentlyContinue)) {
+if ($null -eq (Get-Module -ListAvailable AzTable)) {
     Write-Host -ForegroundColor Green "Installing PowerShell AzTable module.."
     Install-Module AzTable -Force
 }
 
 if ($IsProduction) {
     Get-AzContext
-    $sasToken = New-SasToken -ResourceGroupName $ResourceGroupName -StorageAccountName $storageAccountName -TableName $TableName
+    $sasToken = New-SasToken -ResourceGroupName $ResourceGroupName -StorageAccountName $storageAccountName
     $storageCtx = New-AzStorageContext -StorageAccountName $storageAccountName -SasToken $sasToken
 }
 else {
