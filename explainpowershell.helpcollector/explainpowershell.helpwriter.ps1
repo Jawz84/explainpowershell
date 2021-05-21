@@ -77,7 +77,7 @@ if ($null -eq ($table = Get-AzStorageTable -Context $storageCtx -Name $tableName
 
 if ($Force -or !(Test-Path $PSScriptRoot\about$helpDataCacheFilename)) {
     Write-Host -Foregroundcolor green "Collecting about_.. article data and saving to cache file 'about$helpDataCacheFilename'.."
-    .\explainpowershell.aboutcollector.ps1 | ConvertTo-Json | Set-Content -Path $PSScriptRoot\about$helpDataCacheFilename -Force
+    .\explainpowershell.aboutcollector.ps1 | ConvertTo-Json | Set-Content -Path $PSScriptRoot/about$helpDataCacheFilename -Force
 }
 else {
     Write-Host "Detected cache file 'about$helpDataCacheFilename', skipping collecting about_.. data. Use '-Force' or remove cache file to refresh about_.. data."
@@ -89,15 +89,16 @@ if ($Force -or !(Test-Path $PSScriptRoot\$helpDataCacheFilename)) {
     Write-Host -ForegroundColor Green "Converting help data to JSON ($($tmp.Count) items).."
     $tmp = ConvertTo-Json -Depth 5 -InputObject $tmp
     Write-Host -ForegroundColor Green "Saving data to cache file '$helpDataCacheFilename'.."
-    Set-Content -Path $PSScriptRoot\$helpDataCacheFilename -Value $tmp -Force
+    Set-Content -Path $PSScriptRoot/$helpDataCacheFilename -Value $tmp -Force
 }
 else {
     Write-Host "Detected cache file '$helpDataCacheFilename', skipping collecting help data. Use '-Force' or remove cache file to refresh help data."
 }
 
 Write-Host -ForegroundColor Green "Reading help data from cached file '$helpDataCacheFilename' ($([int]((Get-Item ./$helpDataCacheFilename).Length /1mb)) MB).."
-$commandHelp = Get-Content $PSScriptRoot\$helpDataCacheFilename -Raw | ConvertFrom-Json
-$commandHelp += Get-Content $PSScriptRoot\about$helpDataCacheFilename -Raw | ConvertFrom-Json
+$commandHelp = Get-Content $PSScriptRoot/$helpDataCacheFilename -Raw | ConvertFrom-Json
+Write-Host -ForegroundColor Green "Reading about_.. data from cached file 'about$helpDataCacheFilename' ($([int]((Get-Item ./about$helpDataCacheFilename).Length /1mb)) MB).."
+$commandHelp += Get-Content $PSScriptRoot/about$helpDataCacheFilename -Raw | ConvertFrom-Json
 
 Write-Host -ForegroundColor Green "Adding help data to $(if ($IsProduction) {'Azure Storage Tables production'} else {'local Azurite developement'}) table.."
 $i = 0
