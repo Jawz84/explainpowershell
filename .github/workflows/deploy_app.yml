@@ -1,4 +1,4 @@
-name: Deploy Explain PowerShell app to Azure
+name: Deploy app to Azure
 
 on:
   push:

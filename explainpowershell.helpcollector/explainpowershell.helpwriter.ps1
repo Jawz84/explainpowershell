@@ -15,10 +15,12 @@ param(
     [Switch]$IsProduction,
 
     [parameter(ParameterSetName ="Production")]
-    [String]$storageAccountName = 'storageexplainpowershell',
+    [String]$StorageAccountName = 'storageexplainpowershell',
 
     [parameter(ParameterSetName ="Production")]
     [String]$ResourceGroupName = 'explainpowershell'
+
+
 )
 
 Push-Location $PSScriptRoot\
@@ -27,9 +29,6 @@ Push-Location $PSScriptRoot\
 
 $tableName = 'HelpData'
 $partitionKey = 'CommandHelp'
-
-#TODO: Think of a way to make this script run locally for dev and in a pipeline for prod
-$azureSubscriptionId = 'ced1b96d-9473-4313-b1c2-f8b30db08841' # thisConnect-AzAccount -UseDeviceAuthentication -Subscription 
 $helpDataCacheFilename = 'helpdata.cache.user'
 
 function New-SasToken {
@@ -52,7 +51,6 @@ function New-SasToken {
     return New-AzStorageTableSASToken @sasSplat
 }
 
-
 if ($null -eq (Get-Command -Name 'Get-AzContext' -ErrorAction SilentlyContinue)) {
     Write-Host -ForegroundColor Green "Installing PowerShell Az module.."
     Install-Module Az -Force
@@ -65,7 +63,7 @@ if ($null -eq (Get-Command -Name 'Add-AzTableRow' -ErrorAction SilentlyContinue)
 
 if ($IsProduction) {
     Get-AzContext
-    $sasToken = New-SasToken -ResourceGroupName $ResourceGroupName -StorageAccountName $storageAccountName -TableName $TableName #(Get-Content .\sastoken.user).trim()
+    $sasToken = New-SasToken -ResourceGroupName $ResourceGroupName -StorageAccountName $storageAccountName -TableName $TableName
     $storageCtx = New-AzStorageContext -StorageAccountName $storageAccountName -SasToken $sasToken
 }
 else {

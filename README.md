@@ -43,7 +43,7 @@ I wrote a script so you can sit back and relax while all that is being done for 
 ./azuredeploymentbootstrapper.ps1 -SubscriptionId 12345678-91e7-42d9-bb2d-09876543321 -ResourceGroupName MyExplainPowerShell -AzureLocation westeurope
 ```
 
-After this, go to your explainpowershell fork on GitHub. Under Actions, run the `Deploy_Azure_Infra` workflow, and after that, the `Deploy Explain PowerShell app to Azure` workflow. 
+After this, go to your explainpowershell fork on GitHub. Under Actions, run the `Deploy Azure Infra` workflow, then the `Deploy app to Azure` workflow and lastly the `Fill help database` workflow.
 The Url where you can reach your version of the project can be found in the Azure Portal. Under the storage account resource that was deployed, find the `Static Website` entry in the menu. It is the Url for `Primary Endpoint`. 
 Alternatively, you can retrieve it with `az`:
 

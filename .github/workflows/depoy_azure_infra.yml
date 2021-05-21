@@ -1,6 +1,6 @@
 # This github actions pipeline is intended to do a basic resource deployment in an Azure resoucegroup, it does not set up App Insights. 
 
-name: Deploy_Azure_Infra
+name: Deploy Azure infra
 
 on:
   workflow_dispatch:

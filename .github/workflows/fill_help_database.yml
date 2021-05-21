@@ -1,7 +1,7 @@
 # This github actions pipeline is intended to write help data to the Azure Table storage database. 
 #
 
-name: Fill_Help_Database
+name: Fill help database
 
 on:
   workflow_dispatch:
@@ -10,3 +10,12 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+
+      - uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_SERVICE_PRINCIPAL }}
+          enable-AzPSSession: true
+
+      - name: Fill database
+        shell: pwsh
+        run: ./explainpowershell.helpcollector/explainpowershell.helpwriter.ps1 -Force -IsProduction -StorageAccountName "${{ secrets.STORAGE_ACCOUNT_NAME }}".trim() -ResourceGroupName "${{ secrets.RESOURCE_GROUP_NAME }}".trim()
