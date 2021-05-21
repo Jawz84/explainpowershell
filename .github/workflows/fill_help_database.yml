@@ -13,9 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-      - name: test func
-        shell: pwsh
-        run: |
-          write-Output "start"
-          write-Output "${{ secrets.TEST }}".split(':')
-          write-Output "done"
+      - name: Authenticate with Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_SERVICE_PRINCIPAL_TEST }}
