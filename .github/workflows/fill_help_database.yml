@@ -17,5 +17,5 @@ jobs:
         shell: pwsh
         run: |
           write-Output "start"
-          write-Output ${{ secret.TEST }}
+          write-Output ${{ secrets.TEST }}
           write-Output "done"
