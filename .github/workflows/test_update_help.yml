@@ -1,0 +1,17 @@
+name: Deploy app to Azure
+
+on:
+  push:
+    branches: [ test ]
+  workflow_dispatch:
+
+jobs:
+  buildFrontend:
+    name: Build Frontend
+    runs-on: ubuntu-latest
+    steps:
+    #- uses: actions/checkout@v1
+
+    - name: update-help
+      shell: pwsh
+      run: update-help -force
