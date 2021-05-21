@@ -1,21 +1,9 @@
 # This github actions pipeline is intended to do a basic resource deployment in an Azure resoucegroup, it does not set up App Insights. 
-#
-# Usage: 
-#   - Create a resource group in Azure, with the name 'explainpowershelltest', or a different name -> make sure to change the `RESOURCE_GROUP_NAME` environment variable accordingly.
-#   - Create a Service Principal in Azure with permissions to deploy to this resource group: 
-#        `az ad sp create-for-rbac --name explainpowershell --role contributor --scopes /subscriptions/{YourSubscriptionId}/resourceGroups/explainpowershelltest --sdk-aut`
-#   - Add the json output of the previous command as a new secret in GitHub, with the name `AZURE_SERVICE_PRINCIPAL_TEST`.
-# Read full documentation with examples here: https://docs.microsoft.com/en-us/azure/azure-resource-manager/templates/deploy-github-actions
 
 name: Deploy_Azure_Infra
 
 on:
   workflow_dispatch:
-
-env:
-  BLOB_STORAGE_ACCOUNT_NAME: explainpowershelltest
-  RESOURCE_GROUP_NAME: explainpowershelltest
-  FUNCTION_APP_NAME: explainpowershellsyntaxanalyzertest
 
 jobs:
   deploy:
@@ -26,13 +14,13 @@ jobs:
 
       - uses: azure/login@v1
         with:
-          creds: ${{ secrets.AZURE_SERVICE_PRINCIPAL_TEST }}
+          creds: ${{ secrets.AZURE_SERVICE_PRINCIPAL }}
 
       - name: Deploy ARM template for Storage and FunctionApp
         uses: Azure/arm-deploy@v1
         with:
           scope: resourcegroup
-          resourceGroupName: ${{ env.RESOURCE_GROUP_NAME }}
+          resourceGroupName: ${{ secrets.RESOURCE_GROUP_NAME }}
           template: ./explainpowershell.azureinfra/template.json
           parameters: ./explainpowershell.azureinfra/parameters.json
           deploymentMode: incremental
@@ -40,18 +28,18 @@ jobs:
       - name: Enable static website
         shell: pwsh
         run: |
-          az storage blob service-properties update --account-name ${{ env.BLOB_STORAGE_ACCOUNT_NAME }} --static-website --index-document index.html
+          az storage blob service-properties update --account-name ${{ secrets.STORAGE_ACCOUNT_NAME }} --static-website --index-document index.html
 
       - name: Add CORS rule to function app to allow access from frontend endpoint
         shell: pwsh
         run: |
-          az functionapp cors add -g ${{ env.RESOURCE_GROUP_NAME }} -n ${{ env.FUNCTION_APP_NAME }} --allowed-origins https://${{ env.BLOB_STORAGE_ACCOUNT_NAME }}.z6.web.core.windows.net
+          az functionapp cors add -g ${{ secrets.RESOURCE_GROUP_NAME }} -n ${{ secrets.FUNCTION_APP_NAME }} --allowed-origins https://${{ secrets.STORAGE_ACCOUNT_NAME }}.z6.web.core.windows.net
 
       - name: set app settings
         shell: pwsh
         run: |
-          $connectionstring = (az storage account show-connection-string --name ${{ env.BLOB_STORAGE_ACCOUNT_NAME }} | convertfrom-json).connectionstring
-          az functionapp config appsettings set --settings "AzureWebJobsStorage=$connectionstring" --name ${{ env.FUNCTION_APP_NAME }} --resource-group ${{ env.RESOURCE_GROUP_NAME }} --output none
-          az functionapp config appsettings set --settings "FUNCTIONS_WORKER_RUNTIME=dotnet" --name ${{ env.FUNCTION_APP_NAME }} --resource-group ${{ env.RESOURCE_GROUP_NAME }} --output none
-          az functionapp config appsettings set --settings "FUNCTIONS_EXTENSION_VERSION=~3" --name ${{ env.FUNCTION_APP_NAME }} --resource-group ${{ env.RESOURCE_GROUP_NAME }} --output none
+          $connectionstring = (az storage account show-connection-string --name ${{ secrets.STORAGE_ACCOUNT_NAME }} | convertfrom-json).connectionstring
+          az functionapp config appsettings set --settings "AzureWebJobsStorage=$connectionstring" --name ${{ secrets.FUNCTION_APP_NAME }} --resource-group ${{ secrets.RESOURCE_GROUP_NAME }} --output none
+          az functionapp config appsettings set --settings "FUNCTIONS_WORKER_RUNTIME=dotnet" --name ${{ secrets.FUNCTION_APP_NAME }} --resource-group ${{ secrets.RESOURCE_GROUP_NAME }} --output none
+          az functionapp config appsettings set --settings "FUNCTIONS_EXTENSION_VERSION=~3" --name ${{ secrets.FUNCTION_APP_NAME }} --resource-group ${{ secrets.RESOURCE_GROUP_NAME }} --output none
 
