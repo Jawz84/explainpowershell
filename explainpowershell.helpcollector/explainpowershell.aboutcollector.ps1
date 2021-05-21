@@ -4,7 +4,8 @@ using namespace Microsoft.PowerShell.Commands
 
 if (!(Test-Path '~/.local/share/powershell/Help/en-US/about_History.help.txt')) {
     Write-Host -Foregroundcolor green "Updating local PowerShell Help files.."
-    Update-Help -Force -ErrorAction SilentlyContinue
+    Update-Help -Force -ErrorAction SilentlyContinue -ErrorVariable updateerrors
+    Write-Warning "$($updateerrors -join `"`n`")"
 }
 
 # about_.. articles
@@ -18,16 +19,16 @@ foreach ($about in $abouts) {
     $baseUrl = 'https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/'
     [BasicHtmlWebResponseObject]$result = $null
     try {
-        $result = Invoke-WebRequest -Uri ($baseUrl + $about.name) -ErrorAction SilentlyContinue -TimeoutSec 1
+        $result = Invoke-WebRequest -Uri ($baseUrl + $about.name) -ErrorAction SilentlyContinue
     }
     catch {
         try {
             $baseUrl = $baseUrl.replace("microsoft.powershell.core/about","Microsoft.PowerShell.Security/About")
-            $result = Invoke-WebRequest -ErrorAction SilentlyContinue -Uri ($baseUrl + $about.name) -TimeoutSec 1
+            $result = Invoke-WebRequest -ErrorAction SilentlyContinue -Uri ($baseUrl + $about.name)
         }
         catch {
             $baseUrl = $baseUrl.replace("Microsoft.PowerShell.Security/About","microsoft.wsman.management/about")
-            $result = Invoke-WebRequest -ErrorAction SilentlyContinue -Uri ($baseUrl + $about.name) -TimeoutSec 1
+            $result = Invoke-WebRequest -ErrorAction SilentlyContinue -Uri ($baseUrl + $about.name)
         }
     }
 
