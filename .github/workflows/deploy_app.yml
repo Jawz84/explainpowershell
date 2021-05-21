@@ -15,7 +15,7 @@ jobs:
     - name: Set api url to correct url manually
       shell: pwsh
       run: |
-          $uri = "https://${{ secrets.FUNCTION_APP_NAME }}.azurewebsites.net/api/"
+          $uri = "https://$("${{ secrets.FUNCTION_APP_NAME }}".trim()).azurewebsites.net/api/"
           Set-Content -Path ./explainpowershell.frontend/wwwroot/appsettings.json -Value (@{BaseAddress = $uri} | ConvertTo-Json)
           Get-Content -path ./explainpowershell.frontend/wwwroot/appsettings.json
 
@@ -50,12 +50,12 @@ jobs:
     - name: Clean up previous deployment
       shell: pwsh
       run: |
-          az storage blob delete-batch --account-name ${{ secrets.STORAGE_ACCOUNT_NAME }} --source `$web 
+          az storage blob delete-batch --account-name "${{ secrets.STORAGE_ACCOUNT_NAME }}".trim() --source `$web 
 
     - name: Deploy to storage account
       shell: pwsh
       run: |
-          az storage blob upload-batch --account-name ${{ secrets.STORAGE_ACCOUNT_NAME }} --source ./ --destination `$web
+          az storage blob upload-batch --account-name "${{ secrets.STORAGE_ACCOUNT_NAME }}".trim() --source ./ --destination `$web
 
   buildBackend:
     name: Build Backend api
@@ -94,7 +94,7 @@ jobs:
         id: publishprofile
         shell: pwsh
         run: |
-          $json = az functionapp deployment list-publishing-profiles --name ${{ secrets.FUNCTION_APP_NAME }} --resource-group ${{ secrets.RESOURCE_GROUP_NAME }}
+          $json = az functionapp deployment list-publishing-profiles --name "${{ secrets.FUNCTION_APP_NAME }}".trim() --resource-group "${{ secrets.RESOURCE_GROUP_NAME }}".trim()
           $funcProfile = $(
               "<publishData>"
               foreach ($publishProfile in ($json | ConvertFrom-Json)) {

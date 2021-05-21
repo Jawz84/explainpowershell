@@ -25,7 +25,7 @@ if ($null -eq $FunctionAppName) {
 }
 
 if ($null -eq $StorageAccountName) {
-    $StorageAccountName = "sa$StorageAccountName$rnd"
+    $StorageAccountName = "sa$ResourceGroupName$rnd"
 }
 
 $spn = az ad sp create-for-rbac --name $spnName --role contributor --scopes /subscriptions/$SubscriptionId/resourceGroups/$ResourceGroupName --sdk-aut
