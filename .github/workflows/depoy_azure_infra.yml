@@ -13,8 +13,8 @@ on:
   workflow_dispatch:
 
 env:
-  BLOB_STORAGE_ACCOUNT_NAME: explainpowershelltest
   RESOURCE_GROUP_NAME: explainpowershelltest
+  BLOB_STORAGE_ACCOUNT_NAME: explainpowershelltest
   FUNCTION_APP_NAME: explainpowershellsyntaxanalyzertest
 
 jobs:
