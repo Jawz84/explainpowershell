@@ -1,4 +1,4 @@
-name: Deploy app to Azure
+name: test
 
 on:
   push:
