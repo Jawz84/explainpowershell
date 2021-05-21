@@ -1,7 +1,3 @@
-# Usage:
-# 
-# Save the functionapp publish profile to GitHub secrets under the name 'AZURE_FUNCTIONAPP_PUBLISH_PROFILE'.
-
 name: Deploy Explain PowerShell app to Azure
 
 on:
@@ -13,7 +9,6 @@ env:
   RESOURCE_GROUP_NAME: explainpowershelltest
   BLOB_STORAGE_ACCOUNT_NAME: explainpowershelltest
   FUNCTION_APP_NAME: explainpowershellsyntaxanalyzertest
-  FUNCTIONAPP_PACKAGE_PATH: ./explainpowershell.analysisservice
 
 jobs:
   buildFrontend:
@@ -76,14 +71,14 @@ jobs:
       - name: Build with dotnet
         shell: pwsh
         run: |
-          Set-Location ${{ env.FUNCTIONAPP_PACKAGE_PATH }}
+          Set-Location ./explainpowershell.analysisservice
           dotnet build --configuration Release 
 
       - name: Publish artifacts
         uses: actions/upload-artifact@master
         with:
           name: api
-          path: ${{ env.FUNCTIONAPP_PACKAGE_PATH }}/bin/Release/netcoreapp3.1
+          path: ./explainpowershell.analysisservice/bin/Release/netcoreapp3.1
 
   deployBackend:
     needs: buildBackend
