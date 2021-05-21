@@ -14,4 +14,7 @@ jobs:
 
     - name: update-help
       shell: pwsh
-      run: update-help -force
+      run: |
+        gci '~/.local/share/powershell/Help/
+        update-help -force
+        gci '~/.local/share/powershell/Help/
