@@ -16,7 +16,7 @@ if ($IsLinux && $env:DOTNET_RUNNING_IN_CONTAINER) {
 Write-Host -ForegroundColor Green "Downloading all C# dependencies (dotnet restore).."
 dotnet restore
 
-$modules = 'Pester', 'Az', 'AzTable', 'Posh-Git'
+$modules = 'Pester', 'Az', 'AzTable', 'Posh-Git'. 'Microsoft.PowerShell.UnixCompleters'
 foreach ($module in $modules) {
     if (($m = Get-Module -ListAvailable $module)) {
         Write-Host "Module '$module' version $($m.Version) already installed. Use -Force to update."
@@ -30,11 +30,14 @@ foreach ($module in $modules) {
 }
 
 Import-Module Posh-Git
+Import-UnixCompleters
 
 $commandsToAddToProfile = @(
     'Import-Module Posh-Git',
     'Set-PSReadLineOption -EditMode Windows'
     'Set-PSReadLineKeyHandler -Chord tab -Function MenuComplete'
+    'Set-UnixCompleter -ShellType Bash'
+    'Import-UnixCompleters'
 )
 
 if ( !(Test-Path -path $profile.CurrentUserAllHosts) ) {
