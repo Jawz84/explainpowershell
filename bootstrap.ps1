@@ -7,7 +7,7 @@ if ($IsLinux && $env:DOTNET_RUNNING_IN_CONTAINER) {
     Write-Host -ForegroundColor Green "We are running in a container, make sure we have permissions on all folders in the repo, to be able to build and run the application."
     $testOwnershipAndPermissions = ls -l $PSScriptRoot | Select-String bootstrap -Raw
 
-    if ($testOwnershipAndPermissions | Select-String root) {
+    if ($Force -or ($testOwnershipAndPermissions | Select-String root)) {
         Write-Host "Making 'vscode' owner of all files in '$PSScriptRoot/' (recursive)."
         sudo chown -R vscode:vscode $PSScriptRoot/
     }
@@ -34,6 +34,7 @@ Import-Module Posh-Git
 $commandsToAddToProfile = @(
     'Import-Module Posh-Git',
     'Set-PSReadLineOption -EditMode Windows'
+    'Set-PSReadLineKeyHandler -Chord tab -Function MenuComplete'
 )
 
 if ( !(Test-Path -path $profile.CurrentUserAllHosts) ) {
