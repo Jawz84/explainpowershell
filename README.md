@@ -36,6 +36,11 @@ This repo offers a development container, with a bootstrap script to get you ful
 
 There are multiple preconfigured launch configurations, and there is also a `watch_run.ps1` script that you can use if you want to iterate quickly without debugging.
 
+### Access to local emulated db
+
+The local emulated db lives in the Azurite container. This container is automatically started when you open the repository in a Development Container. It should be accessible through `http://localhost:10002/devstoreaccount1/HelpData` with for instance [Azure Storage Explorer](https://azure.microsoft.com/en-us/features/storage-explorer/), with the default development keys. See [Azurite documentation](https://docs.microsoft.com/en-us/azure/storage/common/storage-use-azurite) for more info. 
+Keep in mind that the Azurite container access works with timing based auth. If the docker container clock deviates from the system clock, you cannot authenticate. On Windows, this has been a bug, that is fixed in WSL2 kernel `5.10.16.3`. To see your WSL2 kernel version, use `uname -r`. [Read more information](https://devblogs.microsoft.com/commandline/servicing-the-windows-subsystem-for-linux-wsl-2-linux-kernel/#bug-fix-clock-sync)
+
 ## Deploying to Azure
 
 Deploying to Azure is done using GitHub Actions. To set everything up, you will need to create an Azure resource group, an service principal for that group. Also you will need to save the secret for that service principal in GitHub as a secret. Lastly you need to give your resources a name. 
