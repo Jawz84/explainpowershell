@@ -86,13 +86,42 @@
 		},
 		{
 			"type": "func",
-			"dependsOn": "build",
 			"options": {
-				"cwd": "${workspaceFolder}/explainpowershell.analysisservice/bin/Debug/netcoreapp3.1"
+				"cwd": "${workspaceFolder}/explainpowershell.analysisservice/"
 			},
-			"command": "host start",
+			"command": "host start --no-build false",
 			"isBackground": true,
 			"problemMatcher": "$func-dotnet-watch"
+		},
+		{
+			"label": "watch run frontend",
+			"command": "dotnet",
+			"args": [
+				"watch",
+				"run",
+				"-p",
+				"${workspaceFolder}/explainpowershell.frontend/explainpowershell.frontend.csproj"
+			],
+			"type": "process",
+			"problemMatcher": "$msCompile"
+		},
+		{
+			"label": "watch run backend",
+			"command": "dotnet",
+			"args": [
+				"watch",
+				"-p",
+				"${workspaceFolder}/explainpowershell.analysisservice/explainpowershell.csproj",
+				"msbuild",
+				"/t:RunFunctions",
+			],
+			"type": "process",
+			"problemMatcher": "$msCompile",
+			"options": {
+				"env": {
+					"DOTNET_USE_POLLING_FILE_WATCHER": "false"
+				}
+			}
 		}
 	]
 }

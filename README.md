@@ -34,7 +34,7 @@ This repo offers a development container, with a bootstrap script to get you ful
     - Fill local Azurite Table emulator with the necessary database
     - Run all tests for you, so you know everything is working
 
-There are multiple preconfigured launch configurations, and there is also a `watch_run.ps1` script that you can use if you want to iterate quickly without debugging.
+There are multiple preconfigured launch configurations and tasks. Use the `Watch run ..` tasks if you want to iterate quickly without debugging (these use dotnet watch under the hood).
 
 ### Access to local emulated db
 
