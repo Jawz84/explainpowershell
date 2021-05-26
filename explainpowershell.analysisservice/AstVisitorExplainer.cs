@@ -231,6 +231,14 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
             ExpandAliasesInExtent(commandAst, resolvedCmd);
 
+            if (commandAst.InvocationOperator != TokenKind.Unknown) {
+                string invocationOperatorExplanation = commandAst.InvocationOperator == TokenKind.Dot ?
+                    "The dot source invocation operator '.'" :
+                    Helpers.TokenExplainer(commandAst.InvocationOperator);
+
+                description = invocationOperatorExplanation + " " + description;
+            }
+
             explanations.Add(
                 new Explanation()
                 {
