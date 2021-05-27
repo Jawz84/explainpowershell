@@ -10,7 +10,6 @@ namespace ExplainPowershell.SyntaxAnalyzer
             {
                 { "?", "Where-Object" },
                 { "%", "ForEach-Object" },
-                { "Add-AssertionOperator", "Add-ShouldOperator" },
                 { "cd", "Set-Location" },
                 { "chdir", "Set-Location" },
                 { "clc", "Clear-Content" },
@@ -47,7 +46,6 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 { "gcs", "Get-PSCallStack" },
                 { "gdr", "Get-PSDrive" },
                 { "gerr", "Get-Error" },
-                { "Get-AssertionOperator", "Get-ShouldOperator" },
                 { "ghy", "Get-History" },
                 { "gi", "Get-Item" },
                 { "gjb", "Get-Job" },
@@ -86,7 +84,6 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 { "nv", "New-Variable" },
                 { "oh", "Out-Host" },
                 { "popd", "Pop-Location" },
-                { "psedit", "Open-EditorFile" },
                 { "pushd", "Push-Location" },
                 { "pwd", "Get-Location" },
                 { "r", "Invoke-History" },
