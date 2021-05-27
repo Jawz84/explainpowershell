@@ -6,19 +6,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  runTests:
-    name: Run tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v1
-
-      - name: Run Pester
-        shell: pwsh
-        run: Invoke-Pester -Path ./Tests -CI
-
   buildFrontend:
     name: Build Frontend
-    needs: runTests
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
@@ -37,6 +26,10 @@ jobs:
     - name: Build with dotnet
       run: dotnet build --configuration Release explainpowershell.frontend
 
+    - name: Run Pester
+      shell: pwsh
+      run: Invoke-Pester -Path ./Tests -CI
+
     - name: Publish with dotnet
       run: dotnet publish --configuration Release explainpowershell.frontend
 
@@ -45,6 +38,32 @@ jobs:
       with:
         name: webapp
         path: ./explainpowershell.frontend/bin/Release/net5.0/publish/wwwroot
+
+  buildBackend:
+    name: Build Backend api
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Run code generators
+        shell: pwsh
+        run: Get-ChildItem -Path ./explainpowershell.analysisservice/ -Recurse -Filter *_code_generator.ps1 | ForEach-Object { & $_.FullName }
+
+      - name: Build with dotnet
+        shell: pwsh
+        run: |
+          Set-Location ./explainpowershell.analysisservice
+          dotnet build --configuration Release 
+
+      - name: Run Pester
+        shell: pwsh
+        run: Invoke-Pester -Path ./Tests -CI
+
+      - name: Publish artifacts
+        uses: actions/upload-artifact@master
+        with:
+          name: api
+          path: ./explainpowershell.analysisservice/bin/Release/netcoreapp3.1
 
   deployFrontend:
     needs: buildFrontend
@@ -71,29 +90,6 @@ jobs:
       shell: pwsh
       run: |
           az storage blob upload-batch --account-name "${{ secrets.STORAGE_ACCOUNT_NAME }}".trim() --source ./ --destination `$web
-
-  buildBackend:
-    name: Build Backend api
-    needs: runTests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v1
-
-      - name: Run code generators
-        shell: pwsh
-        run: Get-ChildItem -Path ./explainpowershell.analysisservice/ -Recurse -Filter *_code_generator.ps1 | ForEach-Object { & $_.FullName }
-
-      - name: Build with dotnet
-        shell: pwsh
-        run: |
-          Set-Location ./explainpowershell.analysisservice
-          dotnet build --configuration Release 
-
-      - name: Publish artifacts
-        uses: actions/upload-artifact@master
-        with:
-          name: api
-          path: ./explainpowershell.analysisservice/bin/Release/netcoreapp3.1
 
   deployBackend:
     needs: buildBackend
