@@ -16,7 +16,8 @@ if ($IsLinux && $env:DOTNET_RUNNING_IN_CONTAINER) {
 Write-Host -ForegroundColor Green "Downloading all C# dependencies (dotnet restore).."
 dotnet restore
 
-$modules = 'Pester', 'Az', 'AzTable', 'Posh-Git'. 'Microsoft.PowerShell.UnixCompleters'
+Write-Host -ForegroundColor Green "Checking PowerShell modules.."
+$modules = 'Pester', 'Az', 'AzTable', 'Posh-Git', 'Microsoft.PowerShell.UnixCompleters'
 foreach ($module in $modules) {
     if (($m = Get-Module -ListAvailable $module)) {
         Write-Host "Module '$module' version $($m.Version) already installed. Use -Force to update."
@@ -32,6 +33,7 @@ foreach ($module in $modules) {
 Import-Module Posh-Git
 Import-UnixCompleters
 
+Write-Host -ForegroundColor Green "Checking PowerShell '`$profile.CurrentUserAllHosts'.."
 $commandsToAddToProfile = @(
     'Import-Module Posh-Git',
     'Set-PSReadLineOption -EditMode Windows'
@@ -62,3 +64,5 @@ Write-Host -ForegroundColor Green "Fill local database with help data.."
 
 Write-host -ForegroundColor Green "Running tests to see if everything works"
 & $PSScriptRoot/Tests/launch.ps1
+
+Write-host -ForegroundColor Green "Done"
