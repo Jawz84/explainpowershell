@@ -6,8 +6,19 @@ on:
   workflow_dispatch:
 
 jobs:
+  runTests:
+    name: Run tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Run Pester
+        shell: pwsh
+        run: Invoke-Pester -Path ./Tests -CI
+
   buildFrontend:
     name: Build Frontend
+    needs: runTests
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
@@ -18,6 +29,10 @@ jobs:
           $uri = "https://$("${{ secrets.FUNCTION_APP_NAME }}".trim()).azurewebsites.net/api/"
           Set-Content -Path ./explainpowershell.frontend/wwwroot/appsettings.json -Value (@{BaseAddress = $uri} | ConvertTo-Json)
           Get-Content -path ./explainpowershell.frontend/wwwroot/appsettings.json
+
+    - name: Run code generators
+      shell: pwsh
+      run: Get-ChildItem -Path ./explainpowershell.frontend/ -Recurse -Filter *_code_generator.ps1 | ForEach-Object { & $_.FullName }
 
     - name: Build with dotnet
       run: dotnet build --configuration Release explainpowershell.frontend
@@ -59,9 +74,14 @@ jobs:
 
   buildBackend:
     name: Build Backend api
+    needs: runTests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
+
+      - name: Run code generators
+        shell: pwsh
+        run: Get-ChildItem -Path ./explainpowershell.analysisservice/ -Recurse -Filter *_code_generator.ps1 | ForEach-Object { & $_.FullName }
 
       - name: Build with dotnet
         shell: pwsh
