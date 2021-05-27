@@ -19,7 +19,7 @@
 			}
 		},
 		{
-			"label": "startstorageemulator",
+			"label": "start storage emulator",
 			"command": "docker",
 			"args": [
 				"run", "-p", "10002:10002", "-v", "/azurite:/data", "mcr.microsoft.com/azure-storage/azurite"
@@ -65,24 +65,6 @@
 			],
 			"type": "process",
 			"problemMatcher": "$msCompile"
-		},
-		{
-			"label": "Deploy solution to Azure",
-			"type": "shell",
-			"command": "./deploy.ps1",
-			"presentation": {
-				"echo": true,
-				"reveal": "always",
-				"focus": true,
-				"panel": "shared",
-				"showReuseMessage": true,
-				"clear": false
-			},
-			"dependsOn": "run tests",
-			"promptOnClose": true,
-			"problemMatcher": [
-				"$msCompile"
-			]
 		},
 		{
 			"type": "func",
