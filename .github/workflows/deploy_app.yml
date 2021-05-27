@@ -26,10 +26,6 @@ jobs:
     - name: Build with dotnet
       run: dotnet build --configuration Release explainpowershell.frontend
 
-    - name: Run Pester
-      shell: pwsh
-      run: Invoke-Pester -Path ./Tests -CI
-
     - name: Publish with dotnet
       run: dotnet publish --configuration Release explainpowershell.frontend
 
@@ -53,11 +49,7 @@ jobs:
         shell: pwsh
         run: |
           Set-Location ./explainpowershell.analysisservice
-          dotnet build --configuration Release 
-
-      - name: Run Pester
-        shell: pwsh
-        run: Invoke-Pester -Path ./Tests -CI
+          dotnet build --configuration Release
 
       - name: Publish artifacts
         uses: actions/upload-artifact@master
