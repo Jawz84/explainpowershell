@@ -1,6 +1,6 @@
 using namespace Microsoft.PowerShell.Commands
 
-Describe "SyntaxAnalyzer" {
+Describe "Invoke-SyntaxAnalyzer" {
     BeforeAll {
         . $PSCommandPath.Replace('.Tests.ps1', '.ps1')
 
@@ -47,28 +47,28 @@ Describe "SyntaxAnalyzer" {
 
     It "Explains the While statement" {
         $code = 'while ($abc -lt 29) {$abc++}' 
-        [BasicHtmlWebResponseObject]$result = SyntaxAnalyzer -PowerShellCode $code
+        [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
         $content = $result.Content | ConvertFrom-Json
         $content.Explanations.Description.Count | Should -BeExactly 5 
     }
 
     It "In the explanation, should correctly show a splatted variable with an @ sign at the beginning" {
         $code = 'gci @splat' 
-        [BasicHtmlWebResponseObject]$result = SyntaxAnalyzer -PowerShellCode $code
+        [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
         $content = $result.Content | ConvertFrom-Json
         $content.Explanations[1].OriginalExtent | Should -BeExactly '@splat' 
     }
 
     It "Explains Try catch finally" {
         $code = 'try {gci -name} catch [ArgumentNullException], [ArgumentException]  {"blah"} catch {"foo"} finally {remove-variable a}'
-        [BasicHtmlWebResponseObject]$result = SyntaxAnalyzer -PowerShellCode $code
+        [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
         $content = $result.Content | ConvertFrom-Json
         $content.Explanations.Count | Should -BeExactly 9
     }
 
     It "Calculates Id and ParentId for Explanations" {
         $code = "if (`$abc -eq 123) {}";
-        [BasicHtmlWebResponseObject]$result = SyntaxAnalyzer -PowerShellCode $code
+        [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
         $content = $result.Content | ConvertFrom-Json
         $content.Explanations[0].Id | Should -Not -BeNullOrEmpty
         $content.Explanations[0].ParentId | Should -BeNullOrEmpty
@@ -77,7 +77,7 @@ Describe "SyntaxAnalyzer" {
 
     It "Gets help article links for known commands and About_.. articles" {
         $code = "if (`$abc -eq 123) {Get-ChildItem}";
-        [BasicHtmlWebResponseObject]$result = SyntaxAnalyzer -PowerShellCode $code
+        [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
         $content = $result.Content | ConvertFrom-Json
         $content.Explanations[0].HelpResult.DocumentationLink | Should -Match "about_If"
         $content.Explanations[3].HelpResult.DocumentationLink | Should -Match "get-childitem"
@@ -85,7 +85,7 @@ Describe "SyntaxAnalyzer" {
 
     It "Explains numeric constants" {
         $code = "0b0110; 0xAB234F; 12e-3";
-        [BasicHtmlWebResponseObject]$result = SyntaxAnalyzer -PowerShellCode $code
+        [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
         $content = $result.Content | ConvertFrom-Json
         $content.Explanations[0].Description | Should -BeExactly "Binary number (value: 6)"
         $content.Explanations[1].Description | Should -BeExactly "Hexadecimal number (value: 11215695)"
@@ -95,21 +95,21 @@ Describe "SyntaxAnalyzer" {
 
     It "Converts alias to full command name" {
         $code = 'gci'
-        [BasicHtmlWebResponseObject]$result = SyntaxAnalyzer -PowerShellCode $code
+        [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
         $content = $result.Content | ConvertFrom-Json
         $content.ExpandedCode | Should -BeExactly 'Get-ChildItem'
     }
 
     It "Converts multiple aliases to full command names" {
         $code = 'gps | select name | ? name -like dotnet'
-        [BasicHtmlWebResponseObject]$result = SyntaxAnalyzer -PowerShellCode $code
+        [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
         $content = $result.Content | ConvertFrom-Json
         $content.ExpandedCode | Should -BeExactly 'Get-Process | Select-Object name | Where-Object name -like dotnet'
     }
 
     It "Notifies user about detected syntax errors, while still explaining as much as possible" {
         $code = 'gps | ? {$_.id'
-        [BasicHtmlWebResponseObject]$result = SyntaxAnalyzer -PowerShellCode $code
+        [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
         $content = $result.Content | ConvertFrom-Json
         $result.StatusCode | Should -Be 200
         $content.ParseErrorMessage | Should -BeExactly "Missing closing '}' in statement block or type definition."
@@ -118,7 +118,7 @@ Describe "SyntaxAnalyzer" {
 
     It "works with if statements" {
         $code = 'if ($abc -eq 123) {gci -name}'
-        [BasicHtmlWebResponseObject]$result = SyntaxAnalyzer -PowerShellCode $code
+        [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
         $content = $result.Content | ConvertFrom-Json
         $result.StatusCode | Should -Be 200
         $content.ExpandedCode | Should -BeExactly 'if ($abc -eq 123) {Get-ChildItem -name}'
@@ -126,7 +126,7 @@ Describe "SyntaxAnalyzer" {
 
     It "Explains variables, even complex ones" {
         $code = '$abc ; $env:path ; @splatted ; $script:myVar'
-        [BasicHtmlWebResponseObject]$result = SyntaxAnalyzer -PowerShellCode $code
+        [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
         $content = $result.Content | ConvertFrom-Json
         $content.Explanations[0].Description | Should -BeExactly "A variable named 'abc'"
         $content.Explanations[1].Description | Should -BeExactly "An environment variable named 'path' (on PSDrive 'env:')"
@@ -140,7 +140,7 @@ Describe "SyntaxAnalyzer" {
     }
 
     It "Can handle all kinds of different oneliners without freaking out: <PowerShellCode>" -ForEach $testCase {
-            $result = SyntaxAnalyzer -PowerShellCode $PowerShellCode
+            $result = Invoke-SyntaxAnalyzer -PowerShellCode $PowerShellCode
             $result.StatusCode | Should -Be 200
     }
 

@@ -1,4 +1,4 @@
-function SyntaxAnalyzer ($PowershellCode){
+function Invoke-SyntaxAnalyzer ($PowershellCode){
     $body = @{
         PowershellCode=$PowershellCode
     } | convertto-json
