@@ -31,4 +31,4 @@ $generatedCode = $tokenKind | ForEach-Object {
 "@
 }
 
-$pre, $generatedCode, $post | Out-File -FilePath "$PSScriptRoot\TokenKind.cs" -Force
+$pre, $generatedCode, $post | Out-File -FilePath "$PSScriptRoot\..\Helpers\TokenKind.cs" -Force

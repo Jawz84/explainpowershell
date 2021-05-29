@@ -27,4 +27,4 @@ $body = Get-Alias | ForEach-Object {
 }
 
 
-$pre, $body, $post | Out-File -FilePath "$PSScriptRoot\Alias.cs" -Force
+$pre, $body, $post | Out-File -FilePath "$PSScriptRoot\..\Helpers\Alias.cs" -Force
