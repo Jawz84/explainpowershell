@@ -61,6 +61,12 @@ if ($null -eq $profileContents -or
         | Join-Path -ChildPath 'Microsoft.VSCode_profile.ps1') -Force
 }
 
+if (!(Test-Path '~/.local/share/powershell/Help/en-US/about_History.help.txt')) {
+    Write-Host -Foregroundcolor green "Updating local PowerShell Help files.."
+    Update-Help -Force -ErrorAction SilentlyContinue -ErrorVariable updateerrors
+    Write-Warning "$($updateerrors -join `"`n`")"
+}
+
 Write-Host -ForegroundColor Green "Fill local database with help data.."
 & $PSScriptRoot\explainpowershell.helpcollector\explainpowershell.helpwriter.ps1 -Force:$Force
 

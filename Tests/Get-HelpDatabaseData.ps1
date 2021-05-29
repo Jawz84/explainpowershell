@@ -5,6 +5,10 @@ function Get-HelpDatabaseData {
         [parameter(ParameterSetName="production")]
         [string]$RowKey,
 
+        [parameter(ParameterSetName="local")]
+        [parameter(ParameterSetName="production")]
+        [switch]$ReturnTable,
+
         [parameter(ParameterSetName="production")]
         [switch]$IsProduction,
 
@@ -13,6 +17,7 @@ function Get-HelpDatabaseData {
 
         [parameter(ParameterSetName ="production")]
         [String]$ResourceGroupName = 'explainpowershell'
+
     )
 
     $tableName = 'HelpData'
@@ -48,6 +53,11 @@ function Get-HelpDatabaseData {
         $storageCtx = New-AzStorageContext -ConnectionString $azuriteLocalConnectionString
     }
 
-    $table = Get-AzStorageTable -Context $storageCtx -Name $tableName
-    return Get-AzTableRow -Table $table.CloudTable -partitionKey $partitionKey -RowKey $rowKey
+    $table = (Get-AzStorageTable -Context $storageCtx -Name $tableName).CloudTable
+    if ($ReturnTable) {
+        return $table
+    }
+    else {
+        Get-AzTableRow -Table $table -partitionKey $partitionKey -RowKey $rowKey
+    }
 }

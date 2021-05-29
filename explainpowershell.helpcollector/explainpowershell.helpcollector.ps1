@@ -49,6 +49,12 @@ function Get-SynopsisFromUri ($uri) {
     }
 }
 
+if (!(Test-Path '~/.local/share/powershell/Help/en-US/about_History.help.txt')) {
+    Write-Host -Foregroundcolor green "Updating local PowerShell Help files.."
+    Update-Help -Force -ErrorAction SilentlyContinue -ErrorVariable updateerrors
+    Write-Warning "$($updateerrors -join `"`n`")"
+}
+
 Write-Host -ForegroundColor Green "Get help info for all detected commands, get synopis from internet if needed.."
 foreach ($cmd in $cmds.Keys) {
     $help = Get-Help $cmd
