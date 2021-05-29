@@ -45,23 +45,6 @@ Describe "SyntaxAnalyzer" {
         Write-Warning "OK - Function App and Azurite running" 
     }
 
-    It "Has help data in database" {
-        $tableName = 'HelpData'
-        $partitionKey = 'CommandHelp'
-
-        $azuriteLocalConnectionString = 'AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;DefaultEndpointsProtocol=http;TableEndpoint=http://127.0.0.1:10002/devstoreaccount1;'
-        $storageCtx = New-AzStorageContext -ConnectionString $azuriteLocalConnectionString
-        $table = Get-AzStorageTable -Context $storageCtx -Name $tableName
-        $gciData = Get-AzTableRow -Table $table.CloudTable -partitionKey $partitionKey -RowKey "get-childitem" 
-
-        $gciData.CommandName | Should -BeExactly 'Get-ChildItem'
-        $gciData.DocumentationLink | Should -match 'get-childitem'
-        $gciData.ModuleName | Should -BeExactly 'Microsoft.PowerShell.Management'
-        $gciData.Syntax | Should -Not -BeNullOrEmpty 
-        $gciData.Synopsis | Should -BeExactly 'Gets the items and child items in one or more specified locations.'
-
-    }
-
     It "Explains the While statement" {
         $code = 'while ($abc -lt 29) {$abc++}' 
         [BasicHtmlWebResponseObject]$result = SyntaxAnalyzer -PowerShellCode $code
