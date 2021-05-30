@@ -45,6 +45,15 @@ Describe "Invoke-SyntaxAnalyzer" {
         Write-Warning "OK - Function App and Azurite running" 
     }
 
+    It "Explains CmdletBinding attribute" {
+        $code = '[CmdletBinding()] param()' 
+        [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
+        $content = $result.Content | ConvertFrom-Json
+        $content.Explanations[1].Description | Should -BeExactly "The CmdletBinding attribute adds common parameters to your script or function, among other things."
+        $content.Explanations[1].CommandName | Should -BeExactly "CmdletBinding Attribute"
+        $content.Explanations[1].HelpResult.DocumentationLink | Should -Match "about_Functions_CmdletBindingAttribute"
+    }
+
     It "Explains type accelerators" {
         $code = '[string]$mytext = 123' 
         [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code

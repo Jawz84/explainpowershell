@@ -134,8 +134,23 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitAttribute(AttributeAst attributeAst)
         {
-            AstExplainer(attributeAst);
-            return base.VisitAttribute(attributeAst);
+            if (attributeAst.TypeName.Name.ToLower() == "cmdletbinding")
+            {
+                explanations.Add(
+                    new Explanation()
+                    {
+                        CommandName = "CmdletBinding Attribute",
+                        HelpResult = HelpTableQuery("about_Functions_CmdletBindingAttribute"),
+                        Description = "The CmdletBinding attribute adds common parameters to your script or function, among other things.",
+                    }.AddDefaults(attributeAst, explanations));
+
+                return AstVisitAction.Continue;
+            }
+            else
+            {
+                AstExplainer(attributeAst);
+                return base.VisitAttribute(attributeAst);
+            }
         }
 
         public override AstVisitAction VisitAttributedExpression(AttributedExpressionAst attributedExpressionAst)
