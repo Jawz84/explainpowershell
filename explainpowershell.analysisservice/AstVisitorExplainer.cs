@@ -172,7 +172,8 @@ namespace ExplainPowershell.SyntaxAnalyzer
         public override AstVisitAction VisitCatchClause(CatchClauseAst catchClauseAst)
         {
             var exceptionText = "";
-            if (! catchClauseAst.IsCatchAll) {
+            if (!catchClauseAst.IsCatchAll)
+            {
                 exceptionText = $"of type '{string.Join("', '", catchClauseAst.CatchTypes.Select(c => c.TypeName.Name))}' ";
             }
 
@@ -231,7 +232,8 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
             ExpandAliasesInExtent(commandAst, resolvedCmd);
 
-            if (commandAst.InvocationOperator != TokenKind.Unknown) {
+            if (commandAst.InvocationOperator != TokenKind.Unknown)
+            {
                 string invocationOperatorExplanation = commandAst.InvocationOperator == TokenKind.Dot ?
                     "The dot source invocation operator '.'" :
                     Helpers.TokenExplainer(commandAst.InvocationOperator);
@@ -504,7 +506,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
                     CommandName = "Pipeline",
                     HelpResult = HelpTableQuery("about_pipelines"),
                 }.AddDefaults(pipelineAst, explanations));
-                explanations.Last().OriginalExtent = "'|'"; 
+                explanations.Last().OriginalExtent = "'|'";
             }
             return AstVisitAction.Continue;
         }
@@ -529,9 +531,9 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitStatementBlock(StatementBlockAst statementBlockAst)
         {
-            if (statementBlockAst.Parent is TryStatementAst & 
+            if (statementBlockAst.Parent is TryStatementAst &
                 // Ugly hack. Finally block is undistinguisable from the Try block, except for textual position.
-                statementBlockAst.Extent.StartColumnNumber > statementBlockAst.Parent.Extent.StartColumnNumber + 5 )
+                statementBlockAst.Extent.StartColumnNumber > statementBlockAst.Parent.Extent.StartColumnNumber + 5)
             {
                 explanations.Add(new Explanation()
                 {
@@ -541,9 +543,9 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 }.AddDefaults(statementBlockAst, explanations));
                 explanations.Last().OriginalExtent = "Finally " + explanations.Last().OriginalExtent;
 
-            return AstVisitAction.Continue;
+                return AstVisitAction.Continue;
             }
-            
+
             //AstExplainer(statementBlockAst);
             return base.VisitStatementBlock(statementBlockAst);
         }
