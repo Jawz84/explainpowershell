@@ -11,6 +11,7 @@ using Microsoft.Azure.Cosmos.Table;
 using explainpowershell.models;
 using System.Linq;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace explainpowershell.analysisservice
 {
@@ -45,7 +46,8 @@ namespace explainpowershell.analysisservice
                 NumberOfAboutArticles = numAbout,
                 NumberOfCommands = tableQueryResult.Count() - numAbout,
                 NumberOfModules = moduleNames.Count(),
-                ModuleNames = moduleNames
+                ModuleNames = moduleNames,
+                LastPublished = Helpers.GetBuildDate(Assembly.GetExecutingAssembly()).ToLongDateString()
             };
 
             var json = JsonSerializer.Serialize(helpMetaData);
