@@ -42,6 +42,7 @@ $commandsToAddToProfile = @(
     'Import-UnixCompleters'
     '. ./Tests/Invoke-SyntaxAnalyzer.ps1'
     '. ./Tests/Get-HelpDatabaseData.ps1'
+    '. ./Tests/Get-MetaData.ps1'
 )
 
 if ( !(Test-Path -path $profile.CurrentUserAllHosts) ) {
@@ -73,4 +74,4 @@ Write-Host -ForegroundColor Green "Fill local database with help data.."
 Write-host -ForegroundColor Green "Running tests to see if everything works"
 & $PSScriptRoot/Tests/launch.ps1
 
-Write-host -ForegroundColor Green "Done. You now have the functions 'Get-HelpDatabaseData' and 'Invoke-SyntaxAnalyzer' available for ease of testing."
+Write-host -ForegroundColor Green "Done. You now have the functions 'Get-HelpDatabaseData', 'Invoke-SyntaxAnalyzer' and 'Get-MetaData' available for ease of testing."
