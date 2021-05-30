@@ -21,6 +21,8 @@
 		"ms-vscode.powershell",
 		"ms-dotnettools.vscode-dotnet-runtime",
 		"ms-dotnettools.blazorwasm-companion",
+		"github.vscode-pull-request-github",
+		"cschleiden.vscode-github-actions"
 	],
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
