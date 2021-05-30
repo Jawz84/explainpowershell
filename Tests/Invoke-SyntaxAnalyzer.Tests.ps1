@@ -45,6 +45,15 @@ Describe "Invoke-SyntaxAnalyzer" {
         Write-Warning "OK - Function App and Azurite running" 
     }
 
+    It "Explains type accelerators" {
+        $code = '[string]$mytext = 123' 
+        [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
+        $content = $result.Content | ConvertFrom-Json
+        $content.Explanations[2].Description | Should -BeExactly "Constrains the type to 'string', which is a type accelerator for 'System.String'"
+        $content.Explanations[2].CommandName | Should -BeExactly "Type accelerator"
+        $content.Explanations[2].HelpResult.DocumentationLink | Should -Match "about_type_accelerators"
+    }
+
     It "Explains the While statement" {
         $code = 'while ($abc -lt 29) {$abc++}' 
         [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code

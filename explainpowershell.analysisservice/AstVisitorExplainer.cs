@@ -305,7 +305,13 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitConvertExpression(ConvertExpressionAst convertExpressionAst)
         {
-            AstExplainer(convertExpressionAst);
+            explanations.Add(
+                new Explanation()
+                {
+                    Description = $"Converts or restricts the expression to the type '{convertExpressionAst.Type.TypeName.Name}'.",
+                    CommandName = "Convert expression"
+                }.AddDefaults(convertExpressionAst, explanations));
+
             return base.VisitConvertExpression(convertExpressionAst);
         }
 
@@ -626,8 +632,30 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitTypeConstraint(TypeConstraintAst typeConstraintAst)
         {
-            if(!(typeConstraintAst.Parent is CatchClauseAst))
-                AstExplainer(typeConstraintAst);
+            if (typeConstraintAst.Parent is CatchClauseAst)
+                return base.VisitTypeConstraint(typeConstraintAst);
+
+            var typeName = typeConstraintAst.TypeName.Name;
+            var accelerator = ".";
+            var cmdName = "Type constraint";
+            HelpEntity help = null;
+
+            var (acceleratorName, acceleratorFullTypeName) = Helpers.ResolveAccelerator(typeName);
+            if (acceleratorName != null)
+            {
+                typeName = acceleratorName;
+                accelerator = $", which is a type accelerator for '{acceleratorFullTypeName}'";
+                help = HelpTableQuery("about_type_accelerators");
+                cmdName = "Type accelerator";
+            }
+
+            explanations.Add(
+                new Explanation()
+                {
+                    Description = $"Constrains the type to '{typeName}'{accelerator}",
+                    CommandName = cmdName,
+                    HelpResult = help
+                }.AddDefaults(typeConstraintAst, explanations));
 
             return base.VisitTypeConstraint(typeConstraintAst);
         }
