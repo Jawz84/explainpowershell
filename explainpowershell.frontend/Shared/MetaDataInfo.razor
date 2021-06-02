@@ -1,0 +1,57 @@
+﻿@inject HttpClient Http
+
+<MudGrid Class="px-2" Justify="Justify.FlexStart">
+    <MudHidden IsHidden="@hasMetaData">
+        <MudItem>
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Small"/>
+            <MudListItem Typo="Typo.caption" >Warming up backend.. </MudListItem>
+        </MudItem>
+    </MudHidden>
+    <MudHidden IsHidden="@notHasMetaData">
+        <MudItem>
+            <MudList>
+                <MudListItem><b>Last published: </b></MudListItem>
+                <MudListItem>@metaData?.LastPublished</MudListItem>
+                <MudDivider DividerType="DividerType.Middle"/>
+                <MudListItem><b>Number of commands: </b></MudListItem>
+                <MudListItem>@metaData?.NumberOfCommands.ToString()</MudListItem>
+                <MudDivider DividerType="DividerType.Middle"/>
+                <MudListItem><b>Number of about-articles: </b></MudListItem>
+                <MudListItem>@metaData?.NumberOfAboutArticles.ToString()</MudListItem>
+                <MudDivider DividerType="DividerType.Middle"/>
+                <MudListItem><b>Number of modules: </b></MudListItem>
+                <MudListItem>@metaData?.NumberOfModules.ToString()</MudListItem>
+            </MudList>
+        </MudItem>
+        <MudItem>
+            <MudSelect T="string" Dense="true" MaxHeight="500" Text="Module names..">
+                @if(metaData != null) {
+                    @foreach (var module in metaData?.ModuleNames.OrderBy(name => name))
+                    {
+                        <MudSelectItem T="string" Value="@module">@module</MudSelectItem>
+                    }
+                }
+            </MudSelect>
+        </MudItem>
+    </MudHidden>
+</MudGrid>
+
+@code {
+    private bool hasMetaData { get;set; }
+    private bool notHasMetaData => ! hasMetaData;
+    private HelpMetaData metaData { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            metaData = await Http.GetFromJsonAsync<HelpMetaData>("MetaData");
+            hasMetaData = true;
+            StateHasChanged();
+        }
+        catch
+        {
+            return;
+        }
+    }
+}

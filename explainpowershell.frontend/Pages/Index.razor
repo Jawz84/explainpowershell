@@ -4,61 +4,10 @@
 @page "/"
 @inject HttpClient Http
 
-<MudGrid Justify="Justify.FlexEnd">
-    <MudHidden IsHidden="@hasMetaData">
-        <MudItem>
-            <MudText Typo="Typo.caption" >Warming up backend.. </MudText>
-            <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Small" Class="ml-auto"/>
-        </MudItem>
-    </MudHidden>
-    <MudHidden IsHidden="@notHasMetaData">
-        <MudItem>
-            <MudTooltip Text="MetaData" Placement="Placement.Start">
-                <MudIconButton ButtonType="ButtonType.Button" Icon="@Icons.Material.Filled.InfoOutline" OnClick="@(() => OpenDrawer(Anchor.Right))" ></MudIconButton>
-            </MudTooltip>
-            <MudDrawer @bind-Open="@open" Anchor="@anchor" Elevation="1" Variant="@DrawerVariant.Temporary">
-                <MudDrawerHeader>
-                    <MudText Typo="Typo.h6">MetaData</MudText>
-                </MudDrawerHeader>
-
-                <MudGrid Spacing="1" Class="ma-1">
-                    <MudItem>
-                        <MudText Typo="Typo.caption"><b>Last published: </b></MudText>
-                        <MudText Typo="Typo.caption">@metaData2?.LastPublished</MudText>
-                    </MudItem>
-                    <MudItem>
-                        <MudText Typo="Typo.caption"><b>Number of commands: </b></MudText>
-                        <MudText Typo="Typo.caption">@metaData2?.NumberOfCommands.ToString()</MudText>
-                    </MudItem>
-                    <MudItem>
-                        <MudText Typo="Typo.caption"><b>Number of about-articles: </b></MudText>
-                        <MudText Typo="Typo.caption">@metaData2?.NumberOfAboutArticles.ToString()</MudText>
-                    </MudItem>
-                    <MudItem>
-                        <MudText Typo="Typo.caption"><b>Number of modules: </b></MudText>
-                        <MudText Typo="Typo.caption">@metaData2?.NumberOfModules.ToString()</MudText>
-                    </MudItem>
-                    <MudItem>
-                        <MudText Typo="Typo.caption"><b>Module names: </b></MudText>
-                        <MudSelect T="string" Dense="true" MaxHeight="600" HelperText="Module names..">
-                            @if(metaData2 != null) {
-                                @foreach (var mod in metaData2?.ModuleNames.OrderBy(name => name))
-                                {
-                                    <MudSelectItem T="string" Value="@mod">@mod</MudSelectItem>
-                                }
-                            }
-                        </MudSelect>
-                    </MudItem>
-                </MudGrid>
-            </MudDrawer>
-        </MudItem>
-    </MudHidden>
-</MudGrid>
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-16">
-    <MudText Typo="Typo.h3" GutterBottom="true">Explain PowerShell</MudText>
-    <MudText Class="mb-4">Get explanation for PowerShell code oneliner</MudText>
-
     <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-10">
+        <MudText Typo="Typo.h3" GutterBottom="true">Explain PowerShell</MudText>
+        <MudText Class="mb-4">Get explanation for PowerShell code oneliner</MudText>
         <MudCard Elevation="2">
             <MudForm>
                 <MudCardContent>
@@ -108,13 +57,10 @@
 
 @code {
     private bool requestHasError {get;set;}
-    private bool hasMetaData {get;set;}
-    private bool notHasMetaData => ! hasMetaData;
     private string reasonPhrase {get;set;}
     private bool waiting {get;set;}
     private bool hideExpandedCode {get;set;}
     private string expandedCode {get; set;}
-    private HelpMetaData metaData2 {get; set;}
     private HashSet<TreeItem<Explanation>> TreeItems { get; set; } = new HashSet<TreeItem<Explanation>>();
     private bool hasNoExplanations {
         get {
@@ -126,7 +72,7 @@
             return _inputValue;
         }
         set {
-            // The web page can be overloaded with large amounts of text. prevent this with a hard string length limit.
+            // The MudTextField can be overloaded with large amounts of text. Prevent this with a hard string length limit.
             if (value.Length <= 255)
                 _inputValue = value;
         }
@@ -140,25 +86,8 @@
     protected override async Task OnInitializedAsync()
     {
         _ = DoSearch();
-
-        try {
-            metaData2 = await Http.GetFromJsonAsync<HelpMetaData>("MetaData");
-            hasMetaData = true;
-            StateHasChanged();
-        }
-        catch {
-            requestHasError = true;
-            waiting = false;
-            reasonPhrase = "oops!";
-            return;
-        }
     }
 
-    private void OpenDrawer(Anchor anchor)
-    {
-        open = true;
-        this.anchor = anchor;
-    }
     private async Task DoSearch()
     {
         hideExpandedCode = true;
@@ -207,6 +136,4 @@
     }
 
     private string _inputValue;
-    bool open;
-    Anchor anchor;
 }
