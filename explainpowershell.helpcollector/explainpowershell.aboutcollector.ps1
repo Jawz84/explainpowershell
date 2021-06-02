@@ -27,8 +27,13 @@ foreach ($about in $abouts) {
             $result = Invoke-WebRequest -ErrorAction SilentlyContinue -Uri ($baseUrl + $about.name)
         }
         catch {
-            $baseUrl = $baseUrl.replace("Microsoft.PowerShell.Security/About","microsoft.wsman.management/about")
-            $result = Invoke-WebRequest -ErrorAction SilentlyContinue -Uri ($baseUrl + $about.name)
+            try {
+                $baseUrl = $baseUrl.replace("Microsoft.PowerShell.Security/About","microsoft.wsman.management/about")
+                $result = Invoke-WebRequest -ErrorAction SilentlyContinue -Uri ($baseUrl + $about.name)
+            }
+            catch {
+                Write-Warning "Cannot find online help for about_.. article '$($about.name)'"
+            }
         }
     }
 
