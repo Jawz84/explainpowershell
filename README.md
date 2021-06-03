@@ -26,6 +26,8 @@ I envision something like this:
 
 This repo offers a development container, with a bootstrap script to get you fully up and running.
 - Clone repo
+- MAKE SURE THAT THE FILE `.devcontainer\library-scripts\azcli-debian.sh` HAS 'LF' LINE ENDINGS (NOT CRLF).
+  You can very easily convert them to LF in VSCode by opening the file, going to the statusbar in the bottom right, you will find it saying either LF or CRLF. If it says CRLF, change it to LF and save the file.
 - Open in VSCode, and accept the offer to open in development container
 - Container is built, and automatically runs the `bootstrap.ps1` script which will:
     - Check permissions on your repo so dotnet works without sudo
