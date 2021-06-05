@@ -1,0 +1,22 @@
+<MudCard Class="mb-2 px-3 py-2" Elevation="2" >
+    <MudHighlighter Text="@Context.OriginalExtent" HighlightedText="@Context.TextToHighlight" />
+    <MudText>@if(@Context.HelpResult != null) 
+        {
+            <MudLink Href="@(Context.HelpResult?.DocumentationLink#)" Target="_blank">@Context.CommandName</MudLink>
+        }
+        else {
+            @Context.CommandName
+        }
+    </MudText>
+    <MudText>@Context.Description</MudText>
+    @if(! string.IsNullOrEmpty(@Context.HelpResult?.ModuleName)) {
+        <MudText><b>Module:</b> @Context.HelpResult?.ModuleName</MudText>
+    }
+</MudCard>
+
+@code {
+    [Parameter]
+    public Explanation Context { get; set; }
+
+    private string link => Context.HelpResult?.DocumentationLink + "#" + Context.TextToHighlight;
+}

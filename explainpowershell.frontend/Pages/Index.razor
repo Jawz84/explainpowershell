@@ -1,6 +1,4 @@
-﻿@using System.Text.RegularExpressions
-@using System.ComponentModel.DataAnnotations
-@using System.Text.Json;
+﻿@using System.Text.Json
 @page "/"
 @inject HttpClient Http
 
@@ -33,21 +31,23 @@
                 <MudTreeViewItem @bind-Expanded="@context.IsExpanded" Items="@context.Children" >
                     <Content>
                         <MudTreeViewItemToggleButton @bind-Expanded="@context.IsExpanded" Visible="@context.HasChildren" /> 
-                        <MudCard Class="mb-2 px-3 py-2" Elevation="2" >
-                            <MudText Typo="Typo.h6" >@context.Item.OriginalExtent</MudText>
-                            <MudText>@if(@context.Item.HelpResult != null) 
-                                {
-                                    <MudLink Href="@context.Item.HelpResult?.DocumentationLink" Target="_blank">@context.Item.CommandName</MudLink>
-                                }
-                                else {
-                                    @context.Item.CommandName
-                                }
-                            </MudText>
-                            <MudText>@context.Item.Description</MudText>
-                            @if(! string.IsNullOrEmpty(@context.Item.HelpResult?.ModuleName)) {
-                                <MudText><b>Module:</b> @context.Item.HelpResult?.ModuleName</MudText>
-                            }
-                        </MudCard>
+                        @if(!string.IsNullOrEmpty(@context.Item.HelpResult?.Syntax)) 
+                        {
+                            @* <MudTooltip Placement="Placement.Bottom" Delay="500">
+                                <ChildContent> *@
+                                    <ExplainCard Context="@context.Item" />
+                                @* </ChildContent>
+                                <TooltipContent>
+                                    @foreach (var line in @context.Item.HelpResult?.Syntax.Split("\n")) {
+                                        <MudText>@line</MudText>
+                                    }
+                                </TooltipContent>
+                            </MudTooltip> *@
+                        }
+                        else
+                        {
+                            <ExplainCard Context="@context.Item" />
+                        }
                     </Content>
                 </MudTreeViewItem>
             </ItemTemplate>
