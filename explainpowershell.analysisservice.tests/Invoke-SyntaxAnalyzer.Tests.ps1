@@ -3,46 +3,8 @@ using namespace Microsoft.PowerShell.Commands
 Describe "Invoke-SyntaxAnalyzer" {
     BeforeAll {
         . $PSCommandPath.Replace('.Tests.ps1', '.ps1')
-
-        function Test-IsPrerequisitesRunning {
-            $result = $true
-            $ports = 7071, 10002
-
-            try {
-                foreach ($port in $ports) {
-                    $tcpClient = New-Object System.Net.Sockets.TcpClient
-                    $result = $result -and $tcpClient.ConnectAsync('127.0.0.1', $port).Wait(100)
-                }
-            }
-            catch {
-                return $false
-            }
-            finally {
-                $tcpClient.Dispose()
-            }
-
-            return $result
-        }
-
-        Write-Warning "Checking if function app and Azurite are running.."
-        if (-not (Test-IsPrerequisitesRunning)) {
-            try {
-                Write-Warning "Starting Function App.."
-                Start-ThreadJob -ArgumentList $PSScriptRoot {
-                    Push-Location "$($args[0])/../explainpowershell.analysisservice/"
-                    func host start
-                }
-
-                do {
-                    Start-Sleep -Seconds 2
-                } until (Test-IsPrerequisitesRunning)
-            }
-            catch {
-
-            }
-        }
-
-        Write-Warning "OK - Function App and Azurite running" 
+        . $PSScriptRoot/Start-FunctionApp.ps1
+        . $PSScriptRoot/Test-IsAzuriteUp.ps1
     }
 
     It "Explains CmdletBinding attribute" {

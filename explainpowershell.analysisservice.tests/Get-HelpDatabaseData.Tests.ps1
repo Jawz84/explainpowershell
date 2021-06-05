@@ -1,5 +1,6 @@
 BeforeAll {
     . $PSCommandPath.Replace('.Tests.ps1', '.ps1')
+    . $PSScriptRoot/Test-IsAzuriteUp.ps1
 }
 
 Describe 'Get-HelpDatabaseData' {
