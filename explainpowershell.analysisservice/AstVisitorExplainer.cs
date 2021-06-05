@@ -126,7 +126,8 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 {
                     CommandName = $"Assignment operator '{assignmentStatementAst.Operator.Text()}'",
                     HelpResult = HelpTableQuery("about_assignment_operators"),
-                    Description = $"{operatorExplanation} Assigns a value to '{assignmentStatementAst.Left.Extent.Text}'."
+                    Description = $"{operatorExplanation} Assigns a value to '{assignmentStatementAst.Left.Extent.Text}'.",
+                    TextToHighlight = assignmentStatementAst.Operator.Text()
                 }.AddDefaults(assignmentStatementAst, explanations));
 
             return AstVisitAction.Continue;
@@ -167,6 +168,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
                     CommandName = $"Operator",
                     HelpResult = HelpTableQuery("about_operators"),
                     Description = Helpers.TokenExplainer(binaryExpressionAst.Operator),
+                    TextToHighlight = binaryExpressionAst.Operator.Text()
                 }.AddDefaults(binaryExpressionAst, explanations));
 
             return AstVisitAction.Continue;
@@ -180,7 +182,16 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitBreakStatement(BreakStatementAst breakStatementAst)
         {
-            AstExplainer(breakStatementAst);
+            // I am ignoring .Label because it is hardly used.
+
+            explanations.Add(
+                new Explanation()
+                {
+                    CommandName = "break statement",
+                    HelpResult = HelpTableQuery("about_break"),
+                    Description = $"Breaks out of the current loop-like statement, switch statement or the current runspace."
+                }.AddDefaults(breakStatementAst, explanations));
+
             return base.VisitBreakStatement(breakStatementAst);
         }
 
@@ -198,6 +209,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
                     CommandName = $"Catch block, belongs to Try statement",
                     HelpResult = HelpTableQuery("about_try_catch_finally"),
                     Description = $"Executed when an exception {exceptionText}is thrown in the Try {{}} block.",
+                    TextToHighlight = "catch"
                 }.AddDefaults(catchClauseAst, explanations));
 
             return AstVisitAction.Continue;
@@ -261,7 +273,8 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 {
                     CommandName = resolvedCmd,
                     Description = description,
-                    HelpResult = helpResult
+                    HelpResult = helpResult,
+                    TextToHighlight = cmdName
                 }.AddDefaults(commandAst, explanations));
 
             return AstVisitAction.Continue;
@@ -316,7 +329,14 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitContinueStatement(ContinueStatementAst continueStatementAst)
         {
-            AstExplainer(continueStatementAst);
+            explanations.Add(
+                new Explanation()
+                {
+                    CommandName = "continue statement",
+                    HelpResult = HelpTableQuery("about_continue"),
+                    Description = $"Skips forward to the next iteration inside a loop."
+                }.AddDefaults(continueStatementAst, explanations));
+
             return base.VisitContinueStatement(continueStatementAst);
         }
 
@@ -334,19 +354,43 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitDataStatement(DataStatementAst dataStatementAst)
         {
-            AstExplainer(dataStatementAst);
+            explanations.Add(
+                new Explanation()
+                {
+                    CommandName = "data statement",
+                    HelpResult = HelpTableQuery("about_data_section"),
+                    Description = $"A PowerShell data section, stored in the variable '${dataStatementAst.Variable}'",
+                    TextToHighlight = "data"
+                }.AddDefaults(dataStatementAst, explanations));
+
             return base.VisitDataStatement(dataStatementAst);
         }
 
         public override AstVisitAction VisitDoUntilStatement(DoUntilStatementAst doUntilStatementAst)
         {
-            AstExplainer(doUntilStatementAst);
+             explanations.Add(
+                new Explanation()
+                {
+                    CommandName = "do-until statement",
+                    HelpResult = HelpTableQuery("about_do"),
+                    Description = $"A loop that runs until '{doUntilStatementAst.Condition.Extent.Text}' evaluates to true",
+                    TextToHighlight = "until"
+                }.AddDefaults(doUntilStatementAst, explanations));
+
             return base.VisitDoUntilStatement(doUntilStatementAst);
         }
 
         public override AstVisitAction VisitDoWhileStatement(DoWhileStatementAst doWhileStatementAst)
         {
-            AstExplainer(doWhileStatementAst);
+            explanations.Add(
+                new Explanation()
+                {
+                    CommandName = "do-while statement",
+                    HelpResult = HelpTableQuery("about_do"),
+                    Description = $"A loop that runs as long as '{doWhileStatementAst.Condition.Extent.Text}' evaluates to true",
+                    TextToHighlight = "while"
+                }.AddDefaults(doWhileStatementAst, explanations));
+
             return base.VisitDoWhileStatement(doWhileStatementAst);
         }
 
@@ -364,7 +408,18 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitExitStatement(ExitStatementAst exitStatementAst)
         {
-            AstExplainer(exitStatementAst);
+            var returning = string.IsNullOrEmpty(exitStatementAst.Pipeline?.Extent?.Text) ?
+                "." :
+                $", with an exit code of '{exitStatementAst.Pipeline.Extent.Text}'.";
+
+            explanations.Add(
+                new Explanation()
+                {
+                    CommandName = "exit statement",
+                    HelpResult = HelpTableQuery("about_language_keywords"),
+                    Description = $"Causes PowerShell to exit a script or a PowerShell instance{returning}",
+                }.AddDefaults(exitStatementAst, explanations));
+
             return base.VisitExitStatement(exitStatementAst);
         }
 
@@ -376,7 +431,8 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 {
                     Description = $"String with expandable elements: {items}",
                     CommandName = expandableStringExpressionAst.StringConstantType.ToString(),
-                    HelpResult = HelpTableQuery("about_quoting_rules")
+                    HelpResult = HelpTableQuery("about_quoting_rules"),
+                    TextToHighlight = "\""
                 }.AddDefaults(expandableStringExpressionAst, explanations));
 
             return AstVisitAction.Continue;
@@ -419,7 +475,8 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 {
                     Description = "if-statement, run statement lists based on the results of one or more conditional tests",
                     CommandName = "if-statement",
-                    HelpResult = HelpTableQuery("about_if")
+                    HelpResult = HelpTableQuery("about_if"),
+                    TextToHighlight = "if"
                 }.AddDefaults(ifStmtAst, explanations));
 
             return AstVisitAction.Continue;
@@ -520,6 +577,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
                     Description = Helpers.TokenExplainer(TokenKind.Pipe) + $" Takes each element that results from the left hand side code, and passes it to the right hand side one by one.",
                     CommandName = "Pipeline",
                     HelpResult = HelpTableQuery("about_pipelines"),
+                    TextToHighlight = "|"
                 }.AddDefaults(pipelineAst, explanations));
                 explanations.Last().OriginalExtent = "'|'";
             }
@@ -642,6 +700,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 CommandName = "Try statement",
                 HelpResult = HelpTableQuery("about_try_catch_finally"),
                 Description = "If an exception is thrown in a Try block, it can be handled in a Catch block, and/or a cleanup can be done in a Finally block.",
+                TextToHighlight = "try"
             }.AddDefaults(tryStatementAst, explanations));
 
             return AstVisitAction.Continue;
@@ -690,6 +749,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 Description = Helpers.TokenExplainer(unaryExpressionAst.TokenKind),
                 CommandName = "Unary operator",
                 HelpResult = HelpTableQuery("about_operators"),
+                TextToHighlight = unaryExpressionAst.TokenKind.Text()
             }.AddDefaults(unaryExpressionAst, explanations));
 
             return AstVisitAction.Continue;
@@ -811,6 +871,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 Description = $"While '{whileStatementAst.Condition.Extent.Text}' evaluates to true, execute the code in the block {{}}.",
                 CommandName = "While loop",
                 HelpResult = HelpTableQuery("about_while"),
+                TextToHighlight = "while"
             }.AddDefaults(whileStatementAst, explanations));
 
             return AstVisitAction.Continue;
