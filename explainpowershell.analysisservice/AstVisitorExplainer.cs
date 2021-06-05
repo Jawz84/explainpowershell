@@ -412,12 +412,16 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 "." :
                 $", with an exit code of '{exitStatementAst.Pipeline.Extent.Text}'.";
 
+            var helpResult = HelpTableQuery("about_language_keywords");
+            helpResult.DocumentationLink += "#exit";
+
             explanations.Add(
                 new Explanation()
                 {
                     CommandName = "exit statement",
-                    HelpResult = HelpTableQuery("about_language_keywords"),
+                    HelpResult = helpResult,
                     Description = $"Causes PowerShell to exit a script or a PowerShell instance{returning}",
+                    TextToHighlight = "exit"
                 }.AddDefaults(exitStatementAst, explanations));
 
             return base.VisitExitStatement(exitStatementAst);

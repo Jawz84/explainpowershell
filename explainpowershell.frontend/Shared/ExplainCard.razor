@@ -1,8 +1,14 @@
 <MudCard Class="mb-2 px-3 py-2" Elevation="2" >
-    <MudHighlighter Text="@Context.OriginalExtent" HighlightedText="@Context.TextToHighlight" />
+    <MudItem Style="font-size: var(--mud-typography-h6-size);
+        font-family: var(--mud-typography-h6-family);
+        font-weight: var(--mud-typography-h6-weight);
+        line-height: var(--mud-typography-h6-lineheight);
+        letter-spacing: var(--mud-typography-h6-letterspacing);" >
+        <MudHighlighter Text="@Context.OriginalExtent" HighlightedText="@Context.TextToHighlight" />
+    </MudItem>
     <MudText>@if(@Context.HelpResult != null) 
         {
-            <MudLink Href="@(Context.HelpResult?.DocumentationLink#)" Target="_blank">@Context.CommandName</MudLink>
+            <MudLink Href="@Context.HelpResult?.DocumentationLink" Target="_blank">@Context.CommandName</MudLink>
         }
         else {
             @Context.CommandName
@@ -17,6 +23,4 @@
 @code {
     [Parameter]
     public Explanation Context { get; set; }
-
-    private string link => Context.HelpResult?.DocumentationLink + "#" + Context.TextToHighlight;
 }
