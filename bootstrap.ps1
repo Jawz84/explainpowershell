@@ -40,9 +40,9 @@ $commandsToAddToProfile = @(
     'Set-PSReadLineKeyHandler -Chord tab -Function MenuComplete'
     'Set-UnixCompleter -ShellType Bash'
     'Import-UnixCompleters'
-    '. ./explainpowershell.analysisservice.tests/Invoke-SyntaxAnalyzer.ps1'
-    '. ./explainpowershell.analysisservice.tests/Get-HelpDatabaseData.ps1'
-    '. ./explainpowershell.analysisservice.tests/Get-MetaData.ps1'
+    ". $PSScriptRoot/explainpowershell.analysisservice.tests/Invoke-SyntaxAnalyzer.ps1"
+    ". $PSScriptRoot/explainpowershell.analysisservice.tests/Get-HelpDatabaseData.ps1"
+    ". $PSScriptRoot/explainpowershell.analysisservice.tests/Get-MetaData.ps1"
 )
 
 if ( !(Test-Path -path $profile.CurrentUserAllHosts) ) {
