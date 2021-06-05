@@ -33,16 +33,19 @@
                         <MudTreeViewItemToggleButton @bind-Expanded="@context.IsExpanded" Visible="@context.HasChildren" /> 
                         @if(!string.IsNullOrEmpty(@context.Item.HelpResult?.Syntax)) 
                         {
-                            @* <MudTooltip Placement="Placement.Bottom" Delay="500">
-                                <ChildContent> *@
-                                    <ExplainCard Context="@context.Item" />
-                                @* </ChildContent>
-                                <TooltipContent>
-                                    @foreach (var line in @context.Item.HelpResult?.Syntax.Split("\n")) {
-                                        <MudText>@line</MudText>
+                            @code {
+                                private bool syntaxPopoverIsOpen;
+                            }
+                            <ExplainCard Context="@context.Item" />
+                            <MudButton OnClick="@(() => syntaxPopoverIsOpen = true)">Syntax</MudButton>
+                            <MudPopover Direction="Direction.Bottom" Open="@syntaxPopoverIsOpen">
+                                @foreach (var line in @context.Item.HelpResult?.Syntax.Split("\n")) {
+                                    @foreach (var param in line.Replace("] [","]\n[").Replace("[-", "\n[-").Replace(" -","\n-").Replace("[\n","[").Split("\n")) {
+                                        <MudText>@param</MudText>
                                     }
-                                </TooltipContent>
-                            </MudTooltip> *@
+                                }
+                                <MudButton OnClick="@(() => syntaxPopoverIsOpen = false)">Ok</MudButton>
+                            </MudPopover>
                         }
                         else
                         {
