@@ -1,8 +1,8 @@
 function Get-HelpDatabaseData {
     [CmdletBinding(DefaultParameterSetName="local")]
     param(
-        [parameter(ParameterSetName="local")]
-        [parameter(ParameterSetName="production")]
+        [parameter(ParameterSetName="local", Position="0")]
+        [parameter(ParameterSetName="production", Position="0")]
         [string]$RowKey,
 
         [parameter(ParameterSetName="local")]
