@@ -83,6 +83,13 @@ jobs:
       run: |
           az storage blob upload-batch --account-name "${{ secrets.STORAGE_ACCOUNT_NAME }}".trim() --source ./ --destination `$web
 
+    - name: Purge Azure CDN
+      shell: pwsh
+      run: |
+        if (${{ secrets.AZURE_CDN_ENDPOINT }}) {
+          az cdn endpoint purge -n ${{ secrets.AZURE_CDN_ENDPOINT }} --profile-name ${{ secrets.RESOURCE_GROUP_NAME }} --content-paths "/*" --resource-group ${{ secrets.RESOURCE_GROUP_NAME }} --no-wait
+        }
+
   deployBackend:
     needs: buildBackend
     name: Deploy Backend api
