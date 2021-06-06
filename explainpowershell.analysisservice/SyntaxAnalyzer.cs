@@ -35,6 +35,9 @@ namespace ExplainPowershell.SyntaxAnalyzer
             var code = JsonConvert
                 .DeserializeObject<Code>(requestBody)
                 ?.PowershellCode;
+
+            log.LogInformation("PowerShell code sent: " + code); // LogAnalytics does not log the body of requests, so we have to log this ourselves.
+
             ScriptBlockAst ast = Parser.ParseInput(code, out _, out ParseError[] parseErrors);
 
             if (string.IsNullOrEmpty(ast.Extent.Text))
