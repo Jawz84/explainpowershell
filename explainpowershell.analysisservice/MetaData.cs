@@ -22,8 +22,7 @@ namespace explainpowershell.analysisservice
         [FunctionName("MetaData")]
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequest req,
-            [Table(HelpTableName)] CloudTable cloudTable,
-            ILogger log)
+            [Table(HelpTableName)] CloudTable cloudTable)
         {
             TableQuery<HelpEntity> query = new TableQuery<HelpEntity>()
                 .Select(new string[] { "CommandName", "ModuleName" });
