@@ -86,7 +86,7 @@ jobs:
     - name: Purge Azure CDN
       shell: pwsh
       run: |
-        if (${{ secrets.AZURE_CDN_ENDPOINT }}) {
+        if ( "${{ secrets.AZURE_CDN_ENDPOINT }}".trim() ) {
           az cdn endpoint purge -n "${{ secrets.AZURE_CDN_ENDPOINT }}".trim() --profile-name "${{ secrets.AZURE_CDN_ENDPOINT }}".trim() --content-paths "/*" --resource-group "${{ secrets.RESOURCE_GROUP_NAME }}".trim() --no-wait
         }
 
