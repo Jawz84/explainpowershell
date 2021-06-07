@@ -87,7 +87,7 @@ jobs:
       shell: pwsh
       run: |
         if (${{ secrets.AZURE_CDN_ENDPOINT }}) {
-          az cdn endpoint purge -n ${{ secrets.AZURE_CDN_ENDPOINT }} --profile-name ${{ secrets.AZURE_CDN_ENDPOINT }} --content-paths "/*" --resource-group ${{ secrets.RESOURCE_GROUP_NAME }} --no-wait
+          az cdn endpoint purge --% -n ${{ secrets.AZURE_CDN_ENDPOINT }} --profile-name ${{ secrets.AZURE_CDN_ENDPOINT }} --content-paths "/*" --resource-group ${{ secrets.RESOURCE_GROUP_NAME }} --no-wait
         }
 
   deployBackend:
