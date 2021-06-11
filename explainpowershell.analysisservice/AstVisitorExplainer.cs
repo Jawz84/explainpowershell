@@ -368,14 +368,14 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitDoUntilStatement(DoUntilStatementAst doUntilStatementAst)
         {
-             explanations.Add(
-                new Explanation()
-                {
-                    CommandName = "do-until statement",
-                    HelpResult = HelpTableQuery("about_do"),
-                    Description = $"A loop that runs until '{doUntilStatementAst.Condition.Extent.Text}' evaluates to true",
-                    TextToHighlight = "until"
-                }.AddDefaults(doUntilStatementAst, explanations));
+            explanations.Add(
+               new Explanation()
+               {
+                   CommandName = "do-until statement",
+                   HelpResult = HelpTableQuery("about_do"),
+                   Description = $"A loop that runs until '{doUntilStatementAst.Condition.Extent.Text}' evaluates to true",
+                   TextToHighlight = "until"
+               }.AddDefaults(doUntilStatementAst, explanations));
 
             return base.VisitDoUntilStatement(doUntilStatementAst);
         }
@@ -925,15 +925,52 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitTypeDefinition(TypeDefinitionAst typeDefinitionAst)
         {
-            AstExplainer(typeDefinitionAst);
+            var highlight = "";
+            var about = "";
+            var attributes = ".";
+            var synopsis = "";
+
+            if (typeDefinitionAst.Attributes.Count > 0)
+            {
+                attributes = $", with the attributes '{string.Join(", ", typeDefinitionAst.Attributes.Select(a => a.TypeName.Name))}'.";
+            }
+
+            if (typeDefinitionAst.IsClass)
+            {
+                highlight = "class";
+                about = "about_classes";
+                synopsis = $"A class is a blueprint for a type. Create a new instance of this type with [{typeDefinitionAst.Name}]::new().";
+
+            }
+            else if (typeDefinitionAst.IsEnum)
+            {
+                highlight = "enum";
+                about = "about_enum";
+                synopsis = "Enum is short for enumeration. An enumeration is a distinct type that consists of a set of named labels called the enumerator list.";
+            }
+
+            explanations.Add(new Explanation()
+            {
+                Description = $"Defines a '{highlight}', with the name '{typeDefinitionAst.Name}'{attributes} {synopsis}",
+                CommandName = "Type definition",
+                HelpResult = HelpTableQuery(about),
+                TextToHighlight = highlight
+            }.AddDefaults(typeDefinitionAst, explanations));
+
             return base.VisitTypeDefinition(typeDefinitionAst);
         }
 
         public override AstVisitAction VisitUsingStatement(UsingStatementAst usingStatementAst)
         {
-            AstExplainer(usingStatementAst);
+            explanations.Add(new Explanation()
+            {
+                Description = $"The using statement allows you to specify which namespaces are used in the session. Adding namespaces simplifies usage of .NET classes and member and allows you to import classes from script modules and assemblies. In this case a {usingStatementAst.UsingStatementKind} is loaded.",
+                CommandName = "using statement",
+                HelpResult = HelpTableQuery("about_using"),
+                TextToHighlight = "using"
+            }.AddDefaults(usingStatementAst, explanations));
+
             return base.VisitUsingStatement(usingStatementAst);
         }
     }
-
 }

@@ -7,8 +7,44 @@ Describe "Invoke-SyntaxAnalyzer" {
         . $PSScriptRoot/Test-IsAzuriteUp.ps1
     }
 
+    It "Explains class declaration" {
+        $code = 'class foo {}'
+        [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
+        $content = $result.Content | ConvertFrom-Json
+        $content.Explanations[0].Description | Should -Match "'class'.*'foo'\..*\[foo\]::new\(\)"
+        $content.Explanations[0].CommandName | Should -BeExactly "Type definition"
+        $content.Explanations[0].HelpResult.DocumentationLink | Should -Match "about_classes"
+    }
+
+    It "Explains enum declaration" {
+        $code = 'enum foo {bar = 1}'
+        [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
+        $content = $result.Content | ConvertFrom-Json
+        $content.Explanations[0].Description | Should -Match "'enum'.*'foo'\..*enumeration"
+        $content.Explanations[0].CommandName | Should -BeExactly "Type definition"
+        $content.Explanations[0].HelpResult.DocumentationLink | Should -Match "about_enum"
+    }
+
+    It "Explains enum declaration" {
+        $code = '[flags()] enum foo {bar = 1}'
+        [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
+        $content = $result.Content | ConvertFrom-Json
+        $content.Explanations[0].Description | Should -Match "'enum'.*'foo'.*'flags'.*enumeration"
+        $content.Explanations[0].CommandName | Should -BeExactly "Type definition"
+        $content.Explanations[0].HelpResult.DocumentationLink | Should -Match "about_enum"
+    }
+
+    It "Explains using statements" {
+        $code = 'using namespace system.text'
+        [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
+        $content = $result.Content | ConvertFrom-Json
+        $content.Explanations[0].Description | Should -Match "a namespace"
+        $content.Explanations[0].CommandName | Should -BeExactly "using statement"
+        $content.Explanations[0].HelpResult.DocumentationLink | Should -Match "about_using"
+    }
+
     It "Explains CmdletBinding attribute" {
-        $code = '[CmdletBinding()] param()' 
+        $code = '[CmdletBinding()] param()'
         [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
         $content = $result.Content | ConvertFrom-Json
         $content.Explanations[1].Description | Should -BeExactly "The CmdletBinding attribute adds common parameters to your script or function, among other things."
