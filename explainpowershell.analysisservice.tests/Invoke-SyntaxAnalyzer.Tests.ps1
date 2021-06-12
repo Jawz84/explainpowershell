@@ -7,11 +7,47 @@ Describe "Invoke-SyntaxAnalyzer" {
         . $PSScriptRoot/Test-IsAzuriteUp.ps1
     }
 
-    It "Explains ternary operator" {
+    It "Explains a function member" {
+        $code = 'class foo { hidden [string] func() {return "bar"} }'
+        [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
+        $content = $result.Content | ConvertFrom-Json
+        $content.Explanations[1].Description | Should -BeExactly "A hidden method 'func' that returns type 'string'."
+        $content.Explanations[1].CommandName | Should -BeExactly "Method member"
+        $content.Explanations[1].HelpResult.DocumentationLink | Should -Match "about_classes#class-methods"
+    }
+
+    It "Explains a pipeline chain" {
+        $code = '123 && "sdfs"'
+        [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
+        $content = $result.Content | ConvertFrom-Json
+        $content.Explanations[0].Description | Should -BeExactly "The '&&' operator executes the right-hand pipeline, if the left-hand pipeline succeeded."
+        $content.Explanations[0].CommandName | Should -BeExactly "Pipeline chain"
+        $content.Explanations[0].HelpResult.DocumentationLink | Should -Match "about_Pipeline_Chain_Operators"
+    }
+
+    It "Explains a property member" {
+        $code = 'class foo { [validatenotnull()] [string] $bar }'
+        [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
+        $content = $result.Content | ConvertFrom-Json
+        $content.Explanations[1].Description | Should -BeExactly "Property 'bar' of type 'string', with attributes 'validatenotnull'."
+        $content.Explanations[1].CommandName | Should -BeExactly "Property member"
+        $content.Explanations[1].HelpResult.DocumentationLink | Should -Match "about_classes#class-properties"
+    }
+
+    It "Explains enum declaration" {
+        $code = 'enum foo {bar = 1}'
+        [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
+        $content = $result.Content | ConvertFrom-Json
+        $content.Explanations[1].Description | Should -Match "Enum label 'bar', with value '1'."
+        $content.Explanations[1].CommandName | Should -BeExactly "Property member"
+        $content.Explanations[1].HelpResult.DocumentationLink | Should -Match "about_enum"
+    }
+
+    It "Explains the ternary operator" {
         $code = '42 ? "true" : "false"'
         [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
         $content = $result.Content | ConvertFrom-Json
-        $content.Explanations[0].Description | Should -BeExactly "A condensed if else construct, used for simple situations."
+        $content.Explanations[0].Description | Should -BeExactly "A condensed if-else construct, used for simple situations."
         $content.Explanations[0].CommandName | Should -BeExactly "Ternary expression"
         $content.Explanations[0].HelpResult.DocumentationLink | Should -Match "about_if#using-the-ternary-operator-syntax"
     }

@@ -901,19 +901,72 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitFunctionMember(FunctionMemberAst functionMemberAst)
         {
-            AstExplainer(functionMemberAst);
+            var helpResult = HelpTableQuery("about_classes");
+            helpResult.DocumentationLink += "#class-methods";
+
+            var attributes = functionMemberAst.Attributes.Count > 0 ?
+                $", with attributes '{string.Join(", ", functionMemberAst.Attributes.Select(m => m.TypeName.Name))}'." :
+                ".";
+
+            var modifier = "M";
+            modifier = functionMemberAst.IsHidden ? "A hidden m" : modifier;
+            modifier = functionMemberAst.IsStatic ? "A static m" : modifier;
+
+            explanations.Add(new Explanation()
+            {
+                Description = $"{modifier}ethod '{functionMemberAst.Name}' that returns type '{functionMemberAst.ReturnType.TypeName.FullName}'{attributes}",
+                CommandName = "Method member",
+                HelpResult = helpResult,
+                TextToHighlight = functionMemberAst.Name
+            }.AddDefaults(functionMemberAst, explanations));
+
             return base.VisitFunctionMember(functionMemberAst);
         }
 
         public override AstVisitAction VisitPipelineChain(PipelineChainAst statementChain)
         {
-            AstExplainer(statementChain);
+            var operatorString = statementChain.Operator.ToString() == "AndAnd" ? "&&" : "||";
+
+            explanations.Add(new Explanation()
+            {
+                Description = $"The '{operatorString}' operator executes the right-hand pipeline, if the left-hand pipeline succeeded.",
+                CommandName = "Pipeline chain",
+                HelpResult = HelpTableQuery("about_Pipeline_Chain_Operators"),
+                TextToHighlight = operatorString
+            }.AddDefaults(statementChain, explanations));
+
             return base.VisitPipelineChain(statementChain);
         }
 
         public override AstVisitAction VisitPropertyMember(PropertyMemberAst propertyMemberAst)
         {
-            AstExplainer(propertyMemberAst);
+            HelpEntity helpResult = null;
+            var description = "";
+
+            if ((propertyMemberAst.Parent as TypeDefinitionAst).IsClass)
+            {
+                var attributes = propertyMemberAst.Attributes.Count >= 0 ?
+                    $", with attributes '{string.Join(", ", propertyMemberAst.Attributes.Select(p => p.TypeName.Name))}'." :
+                    ".";
+                description = $"Property '{propertyMemberAst.Name}' of type '{propertyMemberAst.PropertyType.TypeName.FullName}'{attributes}";
+                helpResult = HelpTableQuery("about_classes");
+                helpResult.DocumentationLink += "#class-properties";
+            }
+
+            if ((propertyMemberAst.Parent as TypeDefinitionAst).IsEnum)
+            {
+                description = $"Enum label '{propertyMemberAst.Name}', with value '{propertyMemberAst.InitialValue}'.";
+                helpResult = HelpTableQuery("about_enum");
+            }
+
+            explanations.Add(new Explanation()
+            {
+                Description = description,
+                CommandName = "Property member",
+                HelpResult = helpResult,
+                TextToHighlight = propertyMemberAst.Name
+            }.AddDefaults(propertyMemberAst, explanations));
+
             return base.VisitPropertyMember(propertyMemberAst);
         }
 
