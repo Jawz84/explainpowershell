@@ -883,18 +883,32 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitBaseCtorInvokeMemberExpression(BaseCtorInvokeMemberExpressionAst baseCtorInvokeMemberExpressionAst)
         {
+            // SKIP
+            // Throws exception in DevContainer when for example trying:
+            // PowerShell code sent: class Person {[int]$age ; Person($a) {$this.age = $a}}; class Child : Person {[string]$School   ;   Child([int]$a, [string]$s ) : base($a) {         $this.School = $s     } }
+            // #34
             AstExplainer(baseCtorInvokeMemberExpressionAst);
             return base.VisitBaseCtorInvokeMemberExpression(baseCtorInvokeMemberExpressionAst);
         }
 
         public override AstVisitAction VisitConfigurationDefinition(ConfigurationDefinitionAst configurationDefinitionAst)
         {
+            // SKIP
+            // configuration MyDscConfig {..} -> throws exception in devcontainer, just works in cloud.
+            // Example to test: Configuration cnf { Import-DscResource -Module nx; Node 'lx.a.com' { nxFile ExampleFile { DestinationPath = '/tmp/example'; Contents = "hello world `n"; Ensure = 'Present'; Type = 'File'; } } }; cnf -OutputPath:'C:\temp'
+            // #35
             AstExplainer(configurationDefinitionAst);
             return base.VisitConfigurationDefinition(configurationDefinitionAst);
         }
 
         public override AstVisitAction VisitDynamicKeywordStatement(DynamicKeywordStatementAst dynamicKeywordStatementAst)
         {
+            // SKIP
+            // Apparently one can add keywords with [System.Management.Automation.Language.DynamicKeyword]::AddKeyword.
+            // This won't work in static analysis.
+            // I've never seen a dynamic keyword in the wild yet anyway.
+            // Update: it appears in DSC, dynamic keywords are used: 
+            // Example to test: Configuration cnf { Import-DscResource -Module nx; Node 'lx.a.com' { nxFile ExampleFile { DestinationPath = '/tmp/example'; Contents = "hello world `n"; Ensure = 'Present'; Type = 'File'; } } }; cnf -OutputPath:'C:\temp'
             AstExplainer(dynamicKeywordStatementAst);
             return base.VisitDynamicKeywordStatement(dynamicKeywordStatementAst);
         }
