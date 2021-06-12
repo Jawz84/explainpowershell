@@ -919,7 +919,17 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitTernaryExpression(TernaryExpressionAst ternaryExpressionAst)
         {
-            AstExplainer(ternaryExpressionAst);
+            var helpResult = HelpTableQuery("about_if");
+            helpResult.DocumentationLink += "#using-the-ternary-operator-syntax";
+
+            explanations.Add(new Explanation()
+            {
+                Description = $"A condensed if-else construct, used for simple situations.",
+                CommandName = "Ternary expression",
+                HelpResult = helpResult,
+                TextToHighlight = "?"
+            }.AddDefaults(ternaryExpressionAst, explanations));
+
             return base.VisitTernaryExpression(ternaryExpressionAst);
         }
 

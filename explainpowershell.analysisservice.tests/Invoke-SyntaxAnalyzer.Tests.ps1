@@ -7,6 +7,15 @@ Describe "Invoke-SyntaxAnalyzer" {
         . $PSScriptRoot/Test-IsAzuriteUp.ps1
     }
 
+    It "Explains ternary operator" {
+        $code = '42 ? "true" : "false"'
+        [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
+        $content = $result.Content | ConvertFrom-Json
+        $content.Explanations[0].Description | Should -BeExactly "A condensed if else construct, used for simple situations."
+        $content.Explanations[0].CommandName | Should -BeExactly "Ternary expression"
+        $content.Explanations[0].HelpResult.DocumentationLink | Should -Match "about_if#using-the-ternary-operator-syntax"
+    }
+
     It "Explains class declaration" {
         $code = 'class foo {}'
         [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
