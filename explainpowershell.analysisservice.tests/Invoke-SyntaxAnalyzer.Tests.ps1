@@ -7,6 +7,16 @@ Describe "Invoke-SyntaxAnalyzer" {
         . $PSScriptRoot/Test-IsAzuriteUp.ps1
     }
 
+    It "Explains stream redirection all streams" {
+        $code = '"foo" *>&1'
+        [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
+        $content = $result.Content | ConvertFrom-Json
+        $content.Explanations[1].Description | Should -BeExactly "Redirects output from stream 'All' to stream 'Output'."
+        $content.Explanations[1].CommandName | Should -BeExactly "Stream redirection operator"
+        $content.Explanations[1].HelpResult.DocumentationLink | Should -Match "about_redirection"
+    }
+
+
     It "Explains file redirection all streams" {
         $code = '"foo" > .\file.txt'
         [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code

@@ -574,8 +574,15 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitMergingRedirection(MergingRedirectionAst redirectionAst)
         {
-            // TODO
-            AstExplainer(redirectionAst);
+            explanations.Add(
+                new Explanation()
+                {
+                    Description = $"Redirects output from stream '{redirectionAst.FromStream}' to stream '{redirectionAst.ToStream}'.",
+                    CommandName = "Stream redirection operator",
+                    HelpResult = HelpTableQuery("about_redirection"),
+                    TextToHighlight = ">&"
+                }.AddDefaults(redirectionAst, explanations));
+
             return base.VisitMergingRedirection(redirectionAst);
         }
 
