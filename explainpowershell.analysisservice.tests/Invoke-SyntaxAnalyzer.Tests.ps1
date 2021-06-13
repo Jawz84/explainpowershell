@@ -7,6 +7,42 @@ Describe "Invoke-SyntaxAnalyzer" {
         . $PSScriptRoot/Test-IsAzuriteUp.ps1
     }
 
+    It "Explains file redirection all streams" {
+        $code = '"foo" > .\file.txt'
+        [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
+        $content = $result.Content | ConvertFrom-Json
+        $content.Explanations[1].Description | Should -BeExactly "Redirects output to location '.\file.txt'."
+        $content.Explanations[1].CommandName | Should -BeExactly "File redirection operator"
+        $content.Explanations[1].HelpResult.DocumentationLink | Should -Match "about_redirection"
+    }
+
+    It "Explains file redirection all streams" {
+        $code = '"foo" >> .\file.txt'
+        [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
+        $content = $result.Content | ConvertFrom-Json
+        $content.Explanations[1].Description | Should -BeExactly "Appends output to location '.\file.txt'."
+        $content.Explanations[1].CommandName | Should -BeExactly "File redirection operator"
+        $content.Explanations[1].HelpResult.DocumentationLink | Should -Match "about_redirection"
+    }
+
+    It "Explains file redirection error stream" {
+        $code = '"foo" 2> .\file.txt'
+        [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
+        $content = $result.Content | ConvertFrom-Json
+        $content.Explanations[1].Description | Should -BeExactly "Redirects output from stream 'Error' to location '.\file.txt'."
+        $content.Explanations[1].CommandName | Should -BeExactly "File redirection operator"
+        $content.Explanations[1].HelpResult.DocumentationLink | Should -Match "about_redirection"
+    }
+
+    It "Explains file redirection error stream" {
+        $code = '"foo" *> .\file.txt'
+        [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
+        $content = $result.Content | ConvertFrom-Json
+        $content.Explanations[1].Description | Should -BeExactly "Redirects output from stream 'All' to location '.\file.txt'."
+        $content.Explanations[1].CommandName | Should -BeExactly "File redirection operator"
+        $content.Explanations[1].HelpResult.DocumentationLink | Should -Match "about_redirection"
+    }
+
     It "Explains array expression" {
         $code = '@(123, gci)'
         [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code

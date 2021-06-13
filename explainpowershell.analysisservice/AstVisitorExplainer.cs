@@ -9,7 +9,7 @@ using explainpowershell.SyntaxAnalyzer.ExtensionMethods;
 using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.Logging;
 
-// find '// TODO(?!:)'
+// find 'TODO(?!:)'
 
 namespace ExplainPowershell.SyntaxAnalyzer
 {
@@ -170,7 +170,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitAttributedExpression(AttributedExpressionAst attributedExpressionAst)
         {
-            // TODO
+            // SKIP, because the Attribute will be listed separately also.
             AstExplainer(attributedExpressionAst);
             return base.VisitAttributedExpression(attributedExpressionAst);
         }
@@ -191,14 +191,14 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitBlockStatement(BlockStatementAst blockStatementAst)
         {
-            // TODO
+            // SKIP, because there is not much to explain.
             AstExplainer(blockStatementAst);
             return base.VisitBlockStatement(blockStatementAst);
         }
 
         public override AstVisitAction VisitBreakStatement(BreakStatementAst breakStatementAst)
         {
-            // I am ignoring .Label because it is hardly used.
+            // I am ignoring '.Label' because it is hardly used.
 
             explanations.Add(
                 new Explanation()
@@ -298,7 +298,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitCommandExpression(CommandExpressionAst commandExpressionAst)
         {
-            // TODO: document _why_ this is commented out
+            // IGNORE because commandExpressionAst will only have '.Expression' which resolves to one of the actual expressions.
             //AstExplainer(commandExpressionAst);
             return base.VisitCommandExpression(commandExpressionAst);
         }
@@ -306,6 +306,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
         public override AstVisitAction VisitCommandParameter(CommandParameterAst commandParameterAst)
         {
             // TODO
+            // #36
             AstExplainer(commandParameterAst);
             return base.VisitCommandParameter(commandParameterAst);
         }
@@ -464,8 +465,19 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitFileRedirection(FileRedirectionAst redirectionAst)
         {
-            // TODO
-            AstExplainer(redirectionAst);
+            var redirectsOrAppends = redirectionAst.Append ? "Appends" : "Redirects";
+            var fromStream = redirectionAst.FromStream == RedirectionStream.Output ? "" :
+                $"from stream '{redirectionAst.FromStream}' ";
+
+            explanations.Add(
+                new Explanation()
+                {
+                    Description = $"{redirectsOrAppends} output {fromStream}to location '{redirectionAst.Location}'.",
+                    CommandName = "File redirection operator",
+                    HelpResult = HelpTableQuery("about_redirection"),
+                    TextToHighlight = ">"
+                }.AddDefaults(redirectionAst, explanations));
+
             return base.VisitFileRedirection(redirectionAst);
         }
 
