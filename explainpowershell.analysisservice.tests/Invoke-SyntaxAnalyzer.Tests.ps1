@@ -7,6 +7,15 @@ Describe "Invoke-SyntaxAnalyzer" {
         . $PSScriptRoot/Test-IsAzuriteUp.ps1
     }
 
+    It "Explains array expression" {
+        $code = '@(123, gci)'
+        [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
+        $content = $result.Content | ConvertFrom-Json
+        $content.Explanations[0].Description | Should -BeExactly "The array sub-expression operator creates an array from the statements inside it. Whatever the statement inside the operator produces, the operator will place it in an array. Even if there is zero or one object."
+        $content.Explanations[0].CommandName | Should -BeExactly "Array expression"
+        $content.Explanations[0].HelpResult.DocumentationLink | Should -Match "about_arrays#the-array-sub-expression-operator"
+    }
+
     It "Explains a function member" {
         $code = 'class foo { hidden [string] func() {return "bar"} }'
         [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code

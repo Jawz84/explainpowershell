@@ -9,6 +9,8 @@ using explainpowershell.SyntaxAnalyzer.ExtensionMethods;
 using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.Logging;
 
+// find '// TODO(?!:)'
+
 namespace ExplainPowershell.SyntaxAnalyzer
 {
     class AstVisitorExplainer : AstVisitor2
@@ -108,12 +110,24 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitArrayExpression(ArrayExpressionAst arrayExpressionAst)
         {
-            AstExplainer(arrayExpressionAst);
+            var helpResult = HelpTableQuery("about_arrays");
+            helpResult.DocumentationLink += "#the-array-sub-expression-operator";
+
+            explanations.Add(
+                new Explanation()
+                {
+                    Description = "The array sub-expression operator creates an array from the statements inside it. Whatever the statement inside the operator produces, the operator will place it in an array. Even if there is zero or one object.",
+                    CommandName = "Array expression",
+                    HelpResult = helpResult,
+                    TextToHighlight = "@(",
+                }.AddDefaults(arrayExpressionAst, explanations));
+
             return base.VisitArrayExpression(arrayExpressionAst);
         }
 
         public override AstVisitAction VisitArrayLiteral(ArrayLiteralAst arrayLiteralAst)
         {
+            // SKIP
             AstExplainer(arrayLiteralAst);
             return base.VisitArrayLiteral(arrayLiteralAst);
         }
@@ -156,6 +170,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitAttributedExpression(AttributedExpressionAst attributedExpressionAst)
         {
+            // TODO
             AstExplainer(attributedExpressionAst);
             return base.VisitAttributedExpression(attributedExpressionAst);
         }
@@ -176,6 +191,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitBlockStatement(BlockStatementAst blockStatementAst)
         {
+            // TODO
             AstExplainer(blockStatementAst);
             return base.VisitBlockStatement(blockStatementAst);
         }
@@ -282,12 +298,14 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitCommandExpression(CommandExpressionAst commandExpressionAst)
         {
+            // TODO: document _why_ this is commented out
             //AstExplainer(commandExpressionAst);
             return base.VisitCommandExpression(commandExpressionAst);
         }
 
         public override AstVisitAction VisitCommandParameter(CommandParameterAst commandParameterAst)
         {
+            // TODO
             AstExplainer(commandParameterAst);
             return base.VisitCommandParameter(commandParameterAst);
         }
@@ -396,12 +414,14 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitErrorExpression(ErrorExpressionAst errorExpressionAst)
         {
+            // SKIP
             AstExplainer(errorExpressionAst);
             return base.VisitErrorExpression(errorExpressionAst);
         }
 
         public override AstVisitAction VisitErrorStatement(ErrorStatementAst errorStatementAst)
         {
+            // SKIP
             AstExplainer(errorStatementAst);
             return base.VisitErrorStatement(errorStatementAst);
         }
@@ -444,30 +464,35 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitFileRedirection(FileRedirectionAst redirectionAst)
         {
+            // TODO
             AstExplainer(redirectionAst);
             return base.VisitFileRedirection(redirectionAst);
         }
 
         public override AstVisitAction VisitForEachStatement(ForEachStatementAst forEachStatementAst)
         {
+            // TODO
             AstExplainer(forEachStatementAst);
             return base.VisitForEachStatement(forEachStatementAst);
         }
 
         public override AstVisitAction VisitForStatement(ForStatementAst forStatementAst)
         {
+            // TODO
             AstExplainer(forStatementAst);
             return base.VisitForStatement(forStatementAst);
         }
 
         public override AstVisitAction VisitFunctionDefinition(FunctionDefinitionAst functionDefinitionAst)
         {
+            // TODO
             AstExplainer(functionDefinitionAst);
             return base.VisitFunctionDefinition(functionDefinitionAst);
         }
 
         public override AstVisitAction VisitHashtable(HashtableAst hashtableAst)
         {
+            // TODO
             AstExplainer(hashtableAst);
             return base.VisitHashtable(hashtableAst);
         }
@@ -537,36 +562,42 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitMergingRedirection(MergingRedirectionAst redirectionAst)
         {
+            // TODO
             AstExplainer(redirectionAst);
             return base.VisitMergingRedirection(redirectionAst);
         }
 
         public override AstVisitAction VisitNamedAttributeArgument(NamedAttributeArgumentAst namedAttributeArgumentAst)
         {
+            // TODO
             AstExplainer(namedAttributeArgumentAst);
             return base.VisitNamedAttributeArgument(namedAttributeArgumentAst);
         }
 
         public override AstVisitAction VisitNamedBlock(NamedBlockAst namedBlockAst)
         {
+            // TODO: document why commented out
             //AstExplainer(namedBlockAst);
             return base.VisitNamedBlock(namedBlockAst);
         }
 
         public override AstVisitAction VisitParamBlock(ParamBlockAst paramBlockAst)
         {
+            // TODO
             AstExplainer(paramBlockAst);
             return base.VisitParamBlock(paramBlockAst);
         }
 
         public override AstVisitAction VisitParameter(ParameterAst parameterAst)
         {
+            // TODO
             AstExplainer(parameterAst);
             return base.VisitParameter(parameterAst);
         }
 
         public override AstVisitAction VisitParenExpression(ParenExpressionAst parenExpressionAst)
         {
+            // TODO: document why
             //AstExplainer(parenExpressionAst);
             return base.VisitParenExpression(parenExpressionAst);
         }
@@ -590,18 +621,21 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitReturnStatement(ReturnStatementAst returnStatementAst)
         {
+            // TODO
             AstExplainer(returnStatementAst);
             return base.VisitReturnStatement(returnStatementAst);
         }
 
         public override AstVisitAction VisitScriptBlock(ScriptBlockAst scriptBlockAst)
         {
+            // TODO: document why
             //AstExplainer(scriptBlockAst);
             return base.VisitScriptBlock(scriptBlockAst);
         }
 
         public override AstVisitAction VisitScriptBlockExpression(ScriptBlockExpressionAst scriptBlockExpressionAst)
         {
+            // TODO: document why
             //AstExplainer(scriptBlockExpressionAst);
             return base.VisitScriptBlockExpression(scriptBlockExpressionAst);
         }
@@ -675,24 +709,28 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitSubExpression(SubExpressionAst subExpressionAst)
         {
+            // SKIP
             AstExplainer(subExpressionAst);
             return base.VisitSubExpression(subExpressionAst);
         }
 
         public override AstVisitAction VisitSwitchStatement(SwitchStatementAst switchStatementAst)
         {
+            // TODO
             AstExplainer(switchStatementAst);
             return base.VisitSwitchStatement(switchStatementAst);
         }
 
         public override AstVisitAction VisitThrowStatement(ThrowStatementAst throwStatementAst)
         {
+            // TODO
             AstExplainer(throwStatementAst);
             return base.VisitThrowStatement(throwStatementAst);
         }
 
         public override AstVisitAction VisitTrap(TrapStatementAst trapStatementAst)
         {
+            // TODO
             AstExplainer(trapStatementAst);
             return base.VisitTrap(trapStatementAst);
         }
@@ -742,6 +780,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitTypeExpression(TypeExpressionAst typeExpressionAst)
         {
+            // TODO: document why
             // AstExplainer(typeExpressionAst);
             return base.VisitTypeExpression(typeExpressionAst);
         }
@@ -761,6 +800,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitUsingExpression(UsingExpressionAst usingExpressionAst)
         {
+            // TODO
             AstExplainer(usingExpressionAst);
             return base.VisitUsingExpression(usingExpressionAst);
         }
