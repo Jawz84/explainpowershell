@@ -5,11 +5,11 @@
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-16">
     <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-10">
         <MudText Typo="Typo.h3" GutterBottom="true">Explain PowerShell</MudText>
-        <MudText Class="mb-4">Get explanation for PowerShell code oneliner</MudText>
+        <MudText Class="mb-4">Get explanation for PowerShell code oneliner, inspired by <MudLink Href="https://explainshell.com/">explainshell.com</MudLink> and <MudLink Href="http://showthedocs.com/">showthedocs.com</MudLink>.</MudText>
         <MudCard Elevation="2">
             <MudForm>
                 <MudCardContent>
-                    <MudTextField @bind-Value="InputValue" Immediate="true" T="string" Label="PowerShell oneliner to analyze" AutoFocus="true" />
+                    <MudTextField @bind-Value="InputValue" Immediate="true" T="string" Label="PowerShell oneliner to explain" AutoFocus="true" />
                     @if (requestHasError) {<MudAlert class="mt-2" OnClick="@acknowledgeAlert" Severity="Severity.Error">@reasonPhrase</MudAlert>}
                 </MudCardContent>
                 <MudCardActions>
@@ -17,7 +17,7 @@
                     {
                         <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Small" Class="ml-auto"/>
                     }
-                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="@DoSearch" Disabled="@waiting" >Submit</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="@DoSearch" Disabled="@waiting" >Explain</MudButton>
                 </MudCardActions>
             </MudForm>
         </MudCard>
@@ -33,19 +33,33 @@
                         <MudTreeViewItemToggleButton @bind-Expanded="@context.IsExpanded" Visible="@context.HasChildren" /> 
                         @if(!string.IsNullOrEmpty(@context.Item.HelpResult?.Syntax)) 
                         {
-                            @code {
-                                private bool syntaxPopoverIsOpen;
-                            }
-                            <ExplainCard Context="@context.Item" />
-                            <MudButton OnClick="@(() => syntaxPopoverIsOpen = true)">Syntax</MudButton>
-                            <MudPopover Direction="Direction.Bottom" Open="@syntaxPopoverIsOpen">
-                                @foreach (var line in @context.Item.HelpResult?.Syntax.Split("\n")) {
-                                    @foreach (var param in line.Replace("] [","]\n[").Replace("[-", "\n[-").Replace(" -","\n-").Replace("[\n","[").Split("\n")) {
-                                        <MudText>@param</MudText>
-                                    }
-                                }
-                                <MudButton OnClick="@(() => syntaxPopoverIsOpen = false)">Ok</MudButton>
-                            </MudPopover>
+                            <MudGrid Spacing="0">
+                                <MudItem>
+                                    <ExplainCard Context="@context.Item" />
+                                </MudItem>
+                                <MudItem>
+                                    <MudButton Class="ma-2" OnClick="@(() => ToggleSyntaxPopoverIsOpen(context.Item.Id))">Syntax</MudButton>
+                                </MudItem>
+                                <MudItem>
+                                    <MudPopover MaxHeight="600" Class="pa-4" Style="width:auto; position:relative;" Direction="Direction.Right" Open="@SyntaxPopoverIsOpen[context.Item.Id]">
+                                        @foreach (var line in @context.Item.HelpResult?.Syntax.Split("\n")) {
+                                            @foreach (var param in line
+                                                .Replace(context.Item.CommandName,$"{context.Item.CommandName}\n")
+                                                .Replace("] [","]\n[")
+                                                .Replace("[-", "\n[-")
+                                                .Replace(" -","\n-")
+                                                .Replace("[\n","[")
+                                                .Replace($"\n{context.Item.CommandName}",$"\n--\n{context.Item.CommandName}")
+                                                .Split("\n")) {
+                                                <MudItem>
+                                                    <MudHighlighter Text="@param" HighlightedText="@context.Item.CommandName" />
+                                                </MudItem>
+                                            }
+                                        }
+                                        <MudButton OnClick="@(() => ToggleSyntaxPopoverIsOpen(context.Item.Id))">Ok</MudButton>
+                                    </MudPopover>
+                                </MudItem>
+                            </MudGrid>
                         }
                         else
                         {
@@ -59,6 +73,7 @@
 </MudContainer>
 
 @code {
+    private Dictionary<string, bool> SyntaxPopoverIsOpen = new Dictionary<string, bool>();
     private bool requestHasError {get;set;}
     private string reasonPhrase {get;set;}
     private bool waiting {get;set;}
@@ -92,6 +107,11 @@
         return Task.FromResult("");
     }
 
+    private void ToggleSyntaxPopoverIsOpen(string id)
+    {
+        SyntaxPopoverIsOpen[id] = !SyntaxPopoverIsOpen[id];
+    }
+
     private async Task DoSearch()
     {
         hideExpandedCode = true;
@@ -116,7 +136,7 @@
             return;
         }
 
-        if (!temp.IsSuccessStatusCode) 
+        if (!temp.IsSuccessStatusCode)
         {
             requestHasError = true;
             waiting = false;
@@ -134,6 +154,12 @@
 
         waiting = false;
         hideExpandedCode = false;
+
+        SyntaxPopoverIsOpen.Clear();
+        foreach (var syntaxedExplanation in analysisResult.Explanations.Where(i => i.HelpResult?.Syntax != null))
+        {
+            SyntaxPopoverIsOpen.Add(syntaxedExplanation.Id, false);
+        }
 
         TreeItems = analysisResult.Explanations.GenerateTree(expl => expl.Id, expl => expl.ParentId);
         expandedCode = analysisResult.ExpandedCode;
