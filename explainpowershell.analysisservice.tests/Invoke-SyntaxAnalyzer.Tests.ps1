@@ -7,6 +7,14 @@ Describe "Invoke-SyntaxAnalyzer" {
         . $PSScriptRoot/Test-IsAzuriteUp.ps1
     }
 
+
+    It "Should not generate identical explanationIds" {
+        $code = 'Get-aduser -Filter { $_.SamAccountName -like "*demo*" -and $_.PasswordNeverExpires -eq $true }'
+        [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
+        $content = $result.Content | ConvertFrom-Json
+        ($content.Explanations.Id | Sort-Object -Unique ).Count | Should -BeExactly $content.Explanations.Id.Count
+    }
+
     It "Explains stream redirection all streams" {
         $code = '"foo" *>&1'
         [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
