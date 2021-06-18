@@ -19,8 +19,6 @@ param(
 
     [parameter(ParameterSetName ="Production")]
     [String]$ResourceGroupName = 'explainpowershell'
-
-
 )
 
 Push-Location $PSScriptRoot\
@@ -75,6 +73,12 @@ if ($null -eq ($table = Get-AzStorageTable -Context $storageCtx -Name $tableName
     $table = New-AzStorageTable -Context $storageCtx -Name $tableName
 }
 
+if (!(Test-Path '~/.local/share/powershell/Help/en-US/about_History.help.txt')) {
+    Write-Host -ForegroundColor green 'Updating local PowerShell Help files..'
+    Update-Help -Force -ErrorAction SilentlyContinue -ErrorVariable updateerrors
+    Write-Warning "$($updateerrors -join `"`n`")"
+}
+
 if ($Force -or !(Test-Path $PSScriptRoot\about$helpDataCacheFilename)) {
     Write-Host -Foregroundcolor green "Collecting about_.. article data and saving to cache file 'about$helpDataCacheFilename'.."
     .\explainpowershell.aboutcollector.ps1 | ConvertTo-Json | Set-Content -Path $PSScriptRoot/about$helpDataCacheFilename -Force
@@ -83,9 +87,16 @@ else {
     Write-Host "Detected cache file 'about$helpDataCacheFilename', skipping collecting about_.. data. Use '-Force' or remove cache file to refresh about_.. data."
 }
 
+$modulesToProcess = Get-Module -ListAvailable
+
+$modulesToProcess += @{
+    Name       = 'Microsoft.PowerShell.Core'
+    ProjectUri = 'https://docs.microsoft.com/en-us/powershell/'
+}
+
 if ($Force -or !(Test-Path $PSScriptRoot\$helpDataCacheFilename)) {
     Write-Host -ForegroundColor Green "Collecting help data.."
-    $tmp = .\explainpowershell.helpcollector.ps1
+    $tmp = .\explainpowershell.helpcollector.ps1 -ModulesToProcess $modulesToProcess
     Write-Host -ForegroundColor Green "Converting help data to JSON ($($tmp.Count) items).."
     $tmp = ConvertTo-Json -Depth 5 -InputObject $tmp
     Write-Host -ForegroundColor Green "Saving data to cache file '$helpDataCacheFilename'.."

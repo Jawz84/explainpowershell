@@ -504,8 +504,18 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitHashtable(HashtableAst hashtableAst)
         {
-            // TODO
-            AstExplainer(hashtableAst);
+            var keys = string.Join(", ", hashtableAst.KeyValuePairs.Select(p => p.Item1.ToString()));
+            var keysString = keys == null ? "" : $" This hash table has the following keys: '{keys}'";
+
+            explanations.Add(
+                new Explanation()
+                {
+                    Description = $"An object that holds key-value pairs, optimized for hash-searching for keys.{keysString}",
+                    CommandName = "Hash table",
+                    HelpResult = HelpTableQuery("about_hash_tables"),
+                    TextToHighlight = "@{"
+                }.AddDefaults(hashtableAst, explanations));
+
             return base.VisitHashtable(hashtableAst);
         }
 
@@ -769,7 +779,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitTypeConstraint(TypeConstraintAst typeConstraintAst)
         {
-            if (typeConstraintAst.Parent is CatchClauseAst)
+            if (typeConstraintAst.Parent is CatchClauseAst | typeConstraintAst.Parent is ConvertExpressionAst)
                 return base.VisitTypeConstraint(typeConstraintAst);
 
             var typeName = typeConstraintAst.TypeName.Name;

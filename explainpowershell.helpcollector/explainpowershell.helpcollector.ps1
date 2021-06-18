@@ -1,39 +1,17 @@
-using namespace Microsoft.PowerShell.Commands
 
-. .\classes.ps1
+# Do parameterset calculations based on this with: 
+# $a = ./explainpowershell.helpcollector.ps1 | select -first 1
+# $n = 2; $a.parameters | ? {$_.parameterSets.Keys -eq '__AllParameterSets' -or $_.parameterSets.Keys -contains $a.ParameterSetNames[$n] } | select name, {$_.parametersets.keys}, {$_.parametersets[$a.ParameterSetNames[$n]].IsMandatory}
+# In this, `$a.ParameterSetNames[$n]` is the parameterSetName.
 
-$cmds = New-Object -TypeName 'System.Collections.Generic.Dictionary[[string],[HelpData]]'
+#using namespace Microsoft.PowerShell.Commands
 
-$modulesToProcess = Get-Module -ListAvailable
+[cmdletbinding()]
+param(
+    $ModulesToProcess
+)
 
-$modulesToProcess += @{
-    Name = "Microsoft.PowerShell.Core"
-    ProjectUri = "https://docs.microsoft.com/en-us/powershell/"
-}
-
-Write-Host -ForegroundColor Green "Get raw command info for commands in all installed modules.."
-$modulesToProcess
-| Sort-Object -Unique -Property Name
-| ForEach-Object {
-    $moduleProjectUri = $_.ProjectUri
-    Get-Command -Module $_.name | ForEach-Object {
-        try {
-            $cmds.Add(
-                $_.Name,
-                [HelpData]@{
-                    ModuleName        = $_.ModuleName
-                    CommandName       = $_.Name
-                    #RawCommandInfo    = $_
-                    Syntax            = (Get-Command $_.Name -Syntax).trim()
-                    DocumentationLink = $moduleProjectUri
-                }
-            )
-        }
-        catch {
-            # suppress duplicate key errors
-        }
-    }
-} 
+#. .\classes.ps1
 
 function Get-SynopsisFromUri ($uri) {
     try {
@@ -49,61 +27,61 @@ function Get-SynopsisFromUri ($uri) {
     }
 }
 
-if (!(Test-Path '~/.local/share/powershell/Help/en-US/about_History.help.txt')) {
-    Write-Host -Foregroundcolor green "Updating local PowerShell Help files.."
-    Update-Help -Force -ErrorAction SilentlyContinue -ErrorVariable updateerrors
-    Write-Warning "$($updateerrors -join `"`n`")"
-}
+$ModulesToProcess = $ModulesToProcess | Sort-Object -Unique -Property Name
+$total = $ModulesToProcess.Count
 
-Write-Host -ForegroundColor Green "Get help info for all detected commands, get synopis from internet if needed.."
-foreach ($cmd in $cmds.Keys) {
-    $help = Get-Help $cmd
-    $relatedLinks = $help.relatedLinks.navigationLink.where{ $_.uri -match '^http' }.uri
-    if ($null -eq $relatedLinks) {
-        $relatedLinks = $cmds[$cmd].RawCommandInfo.HelpUri
-    }
+Write-Host -ForegroundColor Green 'Get raw command info for commands in all installed modules..'
+$(
+    foreach ($mod in $ModulesToProcess) {
+        write-host "Processing module '$($mod.Name)' (total: $($ModulesToProcess.IndexOf($mod)+1)/$total)"
+        [string]$moduleProjectUri = $mod.ProjectUri
 
-    $synopsis = $help.synopsis.trim()
+        foreach ($cmd in Get-Command -Module $mod.name) {
+            $help = Get-Help $cmd.Name
 
-    if ($synopsis.startswith($cmd)) {
-        $uri = $relatedLinks | Select-Object -First 1
-        if (-not ($synopsis = Get-SynopsisFromUri $uri)) {
-            $synopsis = 'Not found'
+            $relatedLinks = $help.relatedLinks.navigationLink.where{ $_.uri -match '^http' }.uri ?? $cmd.HelpUri ?? $moduleProjectUri
+            $DocumentationLink = $relatedLinks | Select-Object -First 1
+    
+            $synopsis = $help.synopsis.trim()
+
+            if ($synopsis.startswith($cmd.Name)) {
+                $synopsis = Get-SynopsisFromUri $DocumentationLink ?? $synopsis
+            }
+
+            $parameterData = $help.parameters.parameter.foreach{
+                $cmdParam = $cmd.Parameters[$_.name]
+                [pscustomobject]@{
+                    Aliases         = $_.aliases ?? $cmdParam.Aliases
+                    DefaultValue    = $_.defaultValue
+                    Description     = $_.Description.Text -join ''
+                    Globbing        = $_.globbing
+                    IsDynamic       = $cmdParam.IsDynamic
+                    Name            = $_.name
+                    ParameterSets   = $cmdParam.ParameterSets
+                    PipelineInput   = $_.pipelineInput
+                    Position        = $_.position
+                    Required        = $_.required
+                    SwitchParameter = $cmdParam.SwitchParameter
+                    TypeName        = $_.parameterValue ?? $cmdParam.ParameterType.FullName
+                }
+            }
+
+            [pscustomobject]@{
+                Aliases             = $help.Aliases
+                CommandName         = $cmd.Name
+                DefaultParameterSet = $cmd.DefaultParameterSet
+                Description         = $help.Description.Text -join ''
+                DocumentationLink   = $DocumentationLink
+                InputTypes          = $help.InputTypes.inputType.type.name
+                ModuleName          = $cmd.ModuleName
+                ModuleProjectUri    = $moduleProjectUri
+                Parameters          = $parameterData
+                ParameterSetNames   = $parameterData.ParameterSets.Keys | Where-Object {$_ -ne '__AllParameterSets' } | Sort-Object -Unique
+                RelatedLinks        = $relatedLinks
+                ReturnValues        = $help.ReturnValues.returnValue.type.name
+                Synopsis            = $synopsis
+                Syntax              = (Get-Command $cmd.Name -Syntax).Trim()
+            }
         }
     }
-
-    $parameterData = $help.parameters.parameter | ForEach-Object {
-        [RawHelpParameterData]@{
-            aliases          = $_.aliases
-            defaultValue     = $_.defaultValue
-            Description      = $_.Description.text
-            name             = $_.name
-            parameterSetName = $_.parameterSetName
-            parameterValue   = $_.parameterValue
-            pipelineInput    = $_.pipelineInput
-            position         = $_.position
-            required         = $_.required
-            typeName         = $_.typeName
-        }
-    }
-
-    $link = $relatedLinks | Select-Object -First 1
-
-    if (-not [string]::IsNullOrEmpty($link)) {
-        $cmds[$cmd].DocumentationLink = $link
-    }
-    $cmds[$cmd].Synopsis = $synopsis
-    $cmds[$cmd].Parameters = $cmds[$cmd].RawCommandInfo.Parameters.Keys
-    $cmds[$cmd].RawCmdletHelp = [RawHelpData]@{
-        Aliases      = $help.Aliases
-        Description  = $help.Description
-        InputTypes   = [PSTypeName[]]$help.InputTypes.inputType.type.name
-        Parameters   = $parameterData
-        RelatedLinks = $relatedLinks
-        ReturnValues = [PSTypeName[]]$help.ReturnValues.returnValue.type.name
-        Synopsis     = $help.synopsis.trim()
-        Syntax       = $help.syntax
-    }
-
-    $cmds[$cmd]
-}
+)
