@@ -5,15 +5,14 @@ on:
     branches: [ wip/helpformodules ]
   workflow_dispatch:
 
-env:
-  MODULE_NAME: 'dbatools'
 
 jobs:
   moduleHelpAdd:
-    name: "Add help for module '${{ env.MODULE_NAME }}'"
     runs-on: windows-latest
+    env:
+      MODULE_NAME: 'dbatools'
+    name: "Add help for module '${{ env.MODULE_NAME }}'"
     steps:
-
     - name: install module
       shell: pwsh
       run: |
