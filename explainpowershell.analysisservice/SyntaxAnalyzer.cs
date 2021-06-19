@@ -5,16 +5,13 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Management.Automation;
 using System.Management.Automation.Language;
 using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using System.Text.RegularExpressions;
 
 using explainpowershell.models;
 
@@ -35,6 +32,9 @@ namespace ExplainPowershell.SyntaxAnalyzer
             var code = JsonConvert
                 .DeserializeObject<Code>(requestBody)
                 ?.PowershellCode;
+
+            log.LogInformation("PowerShell code sent: " + code); // LogAnalytics does not log the body of requests, so we have to log this ourselves.
+
             ScriptBlockAst ast = Parser.ParseInput(code, out _, out ParseError[] parseErrors);
 
             if (string.IsNullOrEmpty(ast.Extent.Text))

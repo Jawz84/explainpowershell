@@ -17,7 +17,7 @@ namespace explainpowershell.SyntaxAnalyzer.ExtensionMethods
 
         private static string GenerateId(this Ast ast)
         {
-            return ast.Extent.StartLineNumber + ast.Extent.StartColumnNumber + ast.GetType().Name;
+            return ast.Extent.StartLineNumber + ast.Extent.StartColumnNumber + ast.Extent.EndColumnNumber + ast.GetType().Name;
         }
 
         public static string TryFindParentExplanation(Ast ast, List<Explanation> explanations, int level = 0)

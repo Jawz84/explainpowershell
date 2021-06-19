@@ -41,9 +41,9 @@ $commandsToAddToProfile = @(
     'Set-PSReadLineKeyHandler -Chord tab -Function MenuComplete'
     'Set-UnixCompleter -ShellType Bash'
     'Import-UnixCompleters'
-    '. ./Tests/Invoke-SyntaxAnalyzer.ps1'
-    '. ./Tests/Get-HelpDatabaseData.ps1'
-    '. ./Tests/Get-MetaData.ps1'
+    ". $PSScriptRoot/explainpowershell.analysisservice.tests/Invoke-SyntaxAnalyzer.ps1"
+    ". $PSScriptRoot/explainpowershell.analysisservice.tests/Get-HelpDatabaseData.ps1"
+    ". $PSScriptRoot/explainpowershell.analysisservice.tests/Get-MetaData.ps1"
 )
 
 if ( !(Test-Path -path $profile.CurrentUserAllHosts) ) {
@@ -70,9 +70,9 @@ if (!(Test-Path '~/.local/share/powershell/Help/en-US/about_History.help.txt')) 
 }
 
 Write-Host -ForegroundColor Green "Fill local database with help data.."
-& $PSScriptRoot\explainpowershell.helpcollector\explainpowershell.helpwriter.ps1 -Force:$Force
+& $PSScriptRoot/explainpowershell.helpcollector/explainpowershell.helpwriter.ps1 -Force:$Force
 
 Write-host -ForegroundColor Green "Running tests to see if everything works"
-& $PSScriptRoot/Tests/launch.ps1
+& $PSScriptRoot/explainpowershell.analysisservice.tests/Start-BackendIntegrationTests.ps1
 
 Write-host -ForegroundColor Green "Done. You now have the functions 'Get-HelpDatabaseData', 'Invoke-SyntaxAnalyzer' and 'Get-MetaData' available for ease of testing."

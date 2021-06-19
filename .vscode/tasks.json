@@ -8,7 +8,7 @@
 				"isDefault": true
 			},
 			"type": "shell",
-			"command": "Invoke-Pester -Path ./Tests -Output Detailed -CI",
+			"command": "Invoke-Pester -Path ./explainpowershell.analysisservice.tests -Output Detailed -CI",
 			"presentation": {
 				"echo": true,
 				"reveal": "always",

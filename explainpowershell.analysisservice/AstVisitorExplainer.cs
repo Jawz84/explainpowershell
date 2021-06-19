@@ -9,6 +9,8 @@ using explainpowershell.SyntaxAnalyzer.ExtensionMethods;
 using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.Logging;
 
+// find 'TODO(?!:)'
+
 namespace ExplainPowershell.SyntaxAnalyzer
 {
     class AstVisitorExplainer : AstVisitor2
@@ -108,12 +110,24 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitArrayExpression(ArrayExpressionAst arrayExpressionAst)
         {
-            AstExplainer(arrayExpressionAst);
+            var helpResult = HelpTableQuery("about_arrays");
+            helpResult.DocumentationLink += "#the-array-sub-expression-operator";
+
+            explanations.Add(
+                new Explanation()
+                {
+                    Description = "The array sub-expression operator creates an array from the statements inside it. Whatever the statement inside the operator produces, the operator will place it in an array. Even if there is zero or one object.",
+                    CommandName = "Array expression",
+                    HelpResult = helpResult,
+                    TextToHighlight = "@(",
+                }.AddDefaults(arrayExpressionAst, explanations));
+
             return base.VisitArrayExpression(arrayExpressionAst);
         }
 
         public override AstVisitAction VisitArrayLiteral(ArrayLiteralAst arrayLiteralAst)
         {
+            // SKIP
             AstExplainer(arrayLiteralAst);
             return base.VisitArrayLiteral(arrayLiteralAst);
         }
@@ -126,7 +140,8 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 {
                     CommandName = $"Assignment operator '{assignmentStatementAst.Operator.Text()}'",
                     HelpResult = HelpTableQuery("about_assignment_operators"),
-                    Description = $"{operatorExplanation} Assigns a value to '{assignmentStatementAst.Left.Extent.Text}'."
+                    Description = $"{operatorExplanation} Assigns a value to '{assignmentStatementAst.Left.Extent.Text}'.",
+                    TextToHighlight = assignmentStatementAst.Operator.Text()
                 }.AddDefaults(assignmentStatementAst, explanations));
 
             return AstVisitAction.Continue;
@@ -155,6 +170,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitAttributedExpression(AttributedExpressionAst attributedExpressionAst)
         {
+            // SKIP, because the Attribute will be listed separately also.
             AstExplainer(attributedExpressionAst);
             return base.VisitAttributedExpression(attributedExpressionAst);
         }
@@ -167,6 +183,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
                     CommandName = $"Operator",
                     HelpResult = HelpTableQuery("about_operators"),
                     Description = Helpers.TokenExplainer(binaryExpressionAst.Operator),
+                    TextToHighlight = binaryExpressionAst.Operator.Text()
                 }.AddDefaults(binaryExpressionAst, explanations));
 
             return AstVisitAction.Continue;
@@ -174,13 +191,23 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitBlockStatement(BlockStatementAst blockStatementAst)
         {
+            // SKIP, because there is not much to explain.
             AstExplainer(blockStatementAst);
             return base.VisitBlockStatement(blockStatementAst);
         }
 
         public override AstVisitAction VisitBreakStatement(BreakStatementAst breakStatementAst)
         {
-            AstExplainer(breakStatementAst);
+            // I am ignoring '.Label' because it is hardly used.
+
+            explanations.Add(
+                new Explanation()
+                {
+                    CommandName = "break statement",
+                    HelpResult = HelpTableQuery("about_break"),
+                    Description = $"Breaks out of the current loop-like statement, switch statement or the current runspace."
+                }.AddDefaults(breakStatementAst, explanations));
+
             return base.VisitBreakStatement(breakStatementAst);
         }
 
@@ -198,6 +225,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
                     CommandName = $"Catch block, belongs to Try statement",
                     HelpResult = HelpTableQuery("about_try_catch_finally"),
                     Description = $"Executed when an exception {exceptionText}is thrown in the Try {{}} block.",
+                    TextToHighlight = "catch"
                 }.AddDefaults(catchClauseAst, explanations));
 
             return AstVisitAction.Continue;
@@ -261,7 +289,8 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 {
                     CommandName = resolvedCmd,
                     Description = description,
-                    HelpResult = helpResult
+                    HelpResult = helpResult,
+                    TextToHighlight = cmdName
                 }.AddDefaults(commandAst, explanations));
 
             return AstVisitAction.Continue;
@@ -269,12 +298,15 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitCommandExpression(CommandExpressionAst commandExpressionAst)
         {
+            // IGNORE because commandExpressionAst will only have '.Expression' which resolves to one of the actual expressions.
             //AstExplainer(commandExpressionAst);
             return base.VisitCommandExpression(commandExpressionAst);
         }
 
         public override AstVisitAction VisitCommandParameter(CommandParameterAst commandParameterAst)
         {
+            // TODO
+            // #36
             AstExplainer(commandParameterAst);
             return base.VisitCommandParameter(commandParameterAst);
         }
@@ -316,7 +348,14 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitContinueStatement(ContinueStatementAst continueStatementAst)
         {
-            AstExplainer(continueStatementAst);
+            explanations.Add(
+                new Explanation()
+                {
+                    CommandName = "continue statement",
+                    HelpResult = HelpTableQuery("about_continue"),
+                    Description = $"Skips forward to the next iteration inside a loop."
+                }.AddDefaults(continueStatementAst, explanations));
+
             return base.VisitContinueStatement(continueStatementAst);
         }
 
@@ -334,37 +373,78 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitDataStatement(DataStatementAst dataStatementAst)
         {
-            AstExplainer(dataStatementAst);
+            explanations.Add(
+                new Explanation()
+                {
+                    CommandName = "data statement",
+                    HelpResult = HelpTableQuery("about_data_section"),
+                    Description = $"A PowerShell data section, stored in the variable '${dataStatementAst.Variable}'",
+                    TextToHighlight = "data"
+                }.AddDefaults(dataStatementAst, explanations));
+
             return base.VisitDataStatement(dataStatementAst);
         }
 
         public override AstVisitAction VisitDoUntilStatement(DoUntilStatementAst doUntilStatementAst)
         {
-            AstExplainer(doUntilStatementAst);
+            explanations.Add(
+               new Explanation()
+               {
+                   CommandName = "do-until statement",
+                   HelpResult = HelpTableQuery("about_do"),
+                   Description = $"A loop that runs until '{doUntilStatementAst.Condition.Extent.Text}' evaluates to true",
+                   TextToHighlight = "until"
+               }.AddDefaults(doUntilStatementAst, explanations));
+
             return base.VisitDoUntilStatement(doUntilStatementAst);
         }
 
         public override AstVisitAction VisitDoWhileStatement(DoWhileStatementAst doWhileStatementAst)
         {
-            AstExplainer(doWhileStatementAst);
+            explanations.Add(
+                new Explanation()
+                {
+                    CommandName = "do-while statement",
+                    HelpResult = HelpTableQuery("about_do"),
+                    Description = $"A loop that runs as long as '{doWhileStatementAst.Condition.Extent.Text}' evaluates to true",
+                    TextToHighlight = "while"
+                }.AddDefaults(doWhileStatementAst, explanations));
+
             return base.VisitDoWhileStatement(doWhileStatementAst);
         }
 
         public override AstVisitAction VisitErrorExpression(ErrorExpressionAst errorExpressionAst)
         {
+            // SKIP
             AstExplainer(errorExpressionAst);
             return base.VisitErrorExpression(errorExpressionAst);
         }
 
         public override AstVisitAction VisitErrorStatement(ErrorStatementAst errorStatementAst)
         {
+            // SKIP
             AstExplainer(errorStatementAst);
             return base.VisitErrorStatement(errorStatementAst);
         }
 
         public override AstVisitAction VisitExitStatement(ExitStatementAst exitStatementAst)
         {
-            AstExplainer(exitStatementAst);
+            var returning = string.IsNullOrEmpty(exitStatementAst.Pipeline?.Extent?.Text) ?
+                "." :
+                $", with an exit code of '{exitStatementAst.Pipeline.Extent.Text}'.";
+
+            var helpResult = HelpTableQuery("about_language_keywords");
+            helpResult.DocumentationLink += "#exit";
+
+            explanations.Add(
+                new Explanation()
+                {
+                    CommandName = "exit statement",
+                    HelpResult = helpResult,
+                    Description = $"Causes PowerShell to exit a script or a PowerShell instance{returning}",
+                    TextToHighlight = "exit"
+                }.AddDefaults(exitStatementAst, explanations));
+
             return base.VisitExitStatement(exitStatementAst);
         }
 
@@ -376,7 +456,8 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 {
                     Description = $"String with expandable elements: {items}",
                     CommandName = expandableStringExpressionAst.StringConstantType.ToString(),
-                    HelpResult = HelpTableQuery("about_quoting_rules")
+                    HelpResult = HelpTableQuery("about_quoting_rules"),
+                    TextToHighlight = "\""
                 }.AddDefaults(expandableStringExpressionAst, explanations));
 
             return AstVisitAction.Continue;
@@ -384,30 +465,46 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitFileRedirection(FileRedirectionAst redirectionAst)
         {
-            AstExplainer(redirectionAst);
+            var redirectsOrAppends = redirectionAst.Append ? "Appends" : "Redirects";
+            var fromStream = redirectionAst.FromStream == RedirectionStream.Output ? "" :
+                $"from stream '{redirectionAst.FromStream}' ";
+
+            explanations.Add(
+                new Explanation()
+                {
+                    Description = $"{redirectsOrAppends} output {fromStream}to location '{redirectionAst.Location}'.",
+                    CommandName = "File redirection operator",
+                    HelpResult = HelpTableQuery("about_redirection"),
+                    TextToHighlight = ">"
+                }.AddDefaults(redirectionAst, explanations));
+
             return base.VisitFileRedirection(redirectionAst);
         }
 
         public override AstVisitAction VisitForEachStatement(ForEachStatementAst forEachStatementAst)
         {
+            // TODO
             AstExplainer(forEachStatementAst);
             return base.VisitForEachStatement(forEachStatementAst);
         }
 
         public override AstVisitAction VisitForStatement(ForStatementAst forStatementAst)
         {
+            // TODO
             AstExplainer(forStatementAst);
             return base.VisitForStatement(forStatementAst);
         }
 
         public override AstVisitAction VisitFunctionDefinition(FunctionDefinitionAst functionDefinitionAst)
         {
+            // TODO
             AstExplainer(functionDefinitionAst);
             return base.VisitFunctionDefinition(functionDefinitionAst);
         }
 
         public override AstVisitAction VisitHashtable(HashtableAst hashtableAst)
         {
+            // TODO
             AstExplainer(hashtableAst);
             return base.VisitHashtable(hashtableAst);
         }
@@ -419,7 +516,8 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 {
                     Description = "if-statement, run statement lists based on the results of one or more conditional tests",
                     CommandName = "if-statement",
-                    HelpResult = HelpTableQuery("about_if")
+                    HelpResult = HelpTableQuery("about_if"),
+                    TextToHighlight = "if"
                 }.AddDefaults(ifStmtAst, explanations));
 
             return AstVisitAction.Continue;
@@ -476,36 +574,49 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitMergingRedirection(MergingRedirectionAst redirectionAst)
         {
-            AstExplainer(redirectionAst);
+            explanations.Add(
+                new Explanation()
+                {
+                    Description = $"Redirects output from stream '{redirectionAst.FromStream}' to stream '{redirectionAst.ToStream}'.",
+                    CommandName = "Stream redirection operator",
+                    HelpResult = HelpTableQuery("about_redirection"),
+                    TextToHighlight = ">&"
+                }.AddDefaults(redirectionAst, explanations));
+
             return base.VisitMergingRedirection(redirectionAst);
         }
 
         public override AstVisitAction VisitNamedAttributeArgument(NamedAttributeArgumentAst namedAttributeArgumentAst)
         {
+            // TODO
             AstExplainer(namedAttributeArgumentAst);
             return base.VisitNamedAttributeArgument(namedAttributeArgumentAst);
         }
 
         public override AstVisitAction VisitNamedBlock(NamedBlockAst namedBlockAst)
         {
+            // TODO: document why commented out
             //AstExplainer(namedBlockAst);
             return base.VisitNamedBlock(namedBlockAst);
         }
 
         public override AstVisitAction VisitParamBlock(ParamBlockAst paramBlockAst)
         {
+            // TODO
             AstExplainer(paramBlockAst);
             return base.VisitParamBlock(paramBlockAst);
         }
 
         public override AstVisitAction VisitParameter(ParameterAst parameterAst)
         {
+            // TODO
             AstExplainer(parameterAst);
             return base.VisitParameter(parameterAst);
         }
 
         public override AstVisitAction VisitParenExpression(ParenExpressionAst parenExpressionAst)
         {
+            // TODO: document why
             //AstExplainer(parenExpressionAst);
             return base.VisitParenExpression(parenExpressionAst);
         }
@@ -520,6 +631,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
                     Description = Helpers.TokenExplainer(TokenKind.Pipe) + $" Takes each element that results from the left hand side code, and passes it to the right hand side one by one.",
                     CommandName = "Pipeline",
                     HelpResult = HelpTableQuery("about_pipelines"),
+                    TextToHighlight = "|"
                 }.AddDefaults(pipelineAst, explanations));
                 explanations.Last().OriginalExtent = "'|'";
             }
@@ -528,18 +640,21 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitReturnStatement(ReturnStatementAst returnStatementAst)
         {
+            // TODO
             AstExplainer(returnStatementAst);
             return base.VisitReturnStatement(returnStatementAst);
         }
 
         public override AstVisitAction VisitScriptBlock(ScriptBlockAst scriptBlockAst)
         {
+            // TODO: document why
             //AstExplainer(scriptBlockAst);
             return base.VisitScriptBlock(scriptBlockAst);
         }
 
         public override AstVisitAction VisitScriptBlockExpression(ScriptBlockExpressionAst scriptBlockExpressionAst)
         {
+            // TODO: document why
             //AstExplainer(scriptBlockExpressionAst);
             return base.VisitScriptBlockExpression(scriptBlockExpressionAst);
         }
@@ -613,24 +728,28 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitSubExpression(SubExpressionAst subExpressionAst)
         {
+            // SKIP
             AstExplainer(subExpressionAst);
             return base.VisitSubExpression(subExpressionAst);
         }
 
         public override AstVisitAction VisitSwitchStatement(SwitchStatementAst switchStatementAst)
         {
+            // TODO
             AstExplainer(switchStatementAst);
             return base.VisitSwitchStatement(switchStatementAst);
         }
 
         public override AstVisitAction VisitThrowStatement(ThrowStatementAst throwStatementAst)
         {
+            // TODO
             AstExplainer(throwStatementAst);
             return base.VisitThrowStatement(throwStatementAst);
         }
 
         public override AstVisitAction VisitTrap(TrapStatementAst trapStatementAst)
         {
+            // TODO
             AstExplainer(trapStatementAst);
             return base.VisitTrap(trapStatementAst);
         }
@@ -642,6 +761,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 CommandName = "Try statement",
                 HelpResult = HelpTableQuery("about_try_catch_finally"),
                 Description = "If an exception is thrown in a Try block, it can be handled in a Catch block, and/or a cleanup can be done in a Finally block.",
+                TextToHighlight = "try"
             }.AddDefaults(tryStatementAst, explanations));
 
             return AstVisitAction.Continue;
@@ -679,6 +799,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitTypeExpression(TypeExpressionAst typeExpressionAst)
         {
+            // TODO: document why
             // AstExplainer(typeExpressionAst);
             return base.VisitTypeExpression(typeExpressionAst);
         }
@@ -690,6 +811,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 Description = Helpers.TokenExplainer(unaryExpressionAst.TokenKind),
                 CommandName = "Unary operator",
                 HelpResult = HelpTableQuery("about_operators"),
+                TextToHighlight = unaryExpressionAst.TokenKind.Text()
             }.AddDefaults(unaryExpressionAst, explanations));
 
             return AstVisitAction.Continue;
@@ -697,6 +819,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitUsingExpression(UsingExpressionAst usingExpressionAst)
         {
+            // TODO
             AstExplainer(usingExpressionAst);
             return base.VisitUsingExpression(usingExpressionAst);
         }
@@ -811,6 +934,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 Description = $"While '{whileStatementAst.Condition.Extent.Text}' evaluates to true, execute the code in the block {{}}.",
                 CommandName = "While loop",
                 HelpResult = HelpTableQuery("about_while"),
+                TextToHighlight = "while"
             }.AddDefaults(whileStatementAst, explanations));
 
             return AstVisitAction.Continue;
@@ -818,57 +942,171 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitBaseCtorInvokeMemberExpression(BaseCtorInvokeMemberExpressionAst baseCtorInvokeMemberExpressionAst)
         {
+            // SKIP
+            // Throws exception in DevContainer when for example trying:
+            // PowerShell code sent: class Person {[int]$age ; Person($a) {$this.age = $a}}; class Child : Person {[string]$School   ;   Child([int]$a, [string]$s ) : base($a) {         $this.School = $s     } }
+            // #34
             AstExplainer(baseCtorInvokeMemberExpressionAst);
             return base.VisitBaseCtorInvokeMemberExpression(baseCtorInvokeMemberExpressionAst);
         }
 
         public override AstVisitAction VisitConfigurationDefinition(ConfigurationDefinitionAst configurationDefinitionAst)
         {
+            // SKIP
+            // configuration MyDscConfig {..} -> throws exception in devcontainer, just works in cloud.
+            // Example to test: Configuration cnf { Import-DscResource -Module nx; Node 'lx.a.com' { nxFile ExampleFile { DestinationPath = '/tmp/example'; Contents = "hello world `n"; Ensure = 'Present'; Type = 'File'; } } }; cnf -OutputPath:'C:\temp'
+            // #35
             AstExplainer(configurationDefinitionAst);
             return base.VisitConfigurationDefinition(configurationDefinitionAst);
         }
 
         public override AstVisitAction VisitDynamicKeywordStatement(DynamicKeywordStatementAst dynamicKeywordStatementAst)
         {
+            // SKIP
+            // Apparently one can add keywords with [System.Management.Automation.Language.DynamicKeyword]::AddKeyword.
+            // This won't work in static analysis.
+            // I've never seen a dynamic keyword in the wild yet anyway.
+            // Update: it appears in DSC, dynamic keywords are used: 
+            // Example to test: Configuration cnf { Import-DscResource -Module nx; Node 'lx.a.com' { nxFile ExampleFile { DestinationPath = '/tmp/example'; Contents = "hello world `n"; Ensure = 'Present'; Type = 'File'; } } }; cnf -OutputPath:'C:\temp'
             AstExplainer(dynamicKeywordStatementAst);
             return base.VisitDynamicKeywordStatement(dynamicKeywordStatementAst);
         }
 
         public override AstVisitAction VisitFunctionMember(FunctionMemberAst functionMemberAst)
         {
-            AstExplainer(functionMemberAst);
+            var helpResult = HelpTableQuery("about_classes");
+            helpResult.DocumentationLink += "#class-methods";
+
+            var attributes = functionMemberAst.Attributes.Count > 0 ?
+                $", with attributes '{string.Join(", ", functionMemberAst.Attributes.Select(m => m.TypeName.Name))}'." :
+                ".";
+
+            var modifier = "M";
+            modifier = functionMemberAst.IsHidden ? "A hidden m" : modifier;
+            modifier = functionMemberAst.IsStatic ? "A static m" : modifier;
+
+            explanations.Add(new Explanation()
+            {
+                Description = $"{modifier}ethod '{functionMemberAst.Name}' that returns type '{functionMemberAst.ReturnType.TypeName.FullName}'{attributes}",
+                CommandName = "Method member",
+                HelpResult = helpResult,
+                TextToHighlight = functionMemberAst.Name
+            }.AddDefaults(functionMemberAst, explanations));
+
             return base.VisitFunctionMember(functionMemberAst);
         }
 
         public override AstVisitAction VisitPipelineChain(PipelineChainAst statementChain)
         {
-            AstExplainer(statementChain);
+            var operatorString = statementChain.Operator.ToString() == "AndAnd" ? "&&" : "||";
+
+            explanations.Add(new Explanation()
+            {
+                Description = $"The '{operatorString}' operator executes the right-hand pipeline, if the left-hand pipeline succeeded.",
+                CommandName = "Pipeline chain",
+                HelpResult = HelpTableQuery("about_Pipeline_Chain_Operators"),
+                TextToHighlight = operatorString
+            }.AddDefaults(statementChain, explanations));
+
             return base.VisitPipelineChain(statementChain);
         }
 
         public override AstVisitAction VisitPropertyMember(PropertyMemberAst propertyMemberAst)
         {
-            AstExplainer(propertyMemberAst);
+            HelpEntity helpResult = null;
+            var description = "";
+
+            if ((propertyMemberAst.Parent as TypeDefinitionAst).IsClass)
+            {
+                var attributes = propertyMemberAst.Attributes.Count >= 0 ?
+                    $", with attributes '{string.Join(", ", propertyMemberAst.Attributes.Select(p => p.TypeName.Name))}'." :
+                    ".";
+                description = $"Property '{propertyMemberAst.Name}' of type '{propertyMemberAst.PropertyType.TypeName.FullName}'{attributes}";
+                helpResult = HelpTableQuery("about_classes");
+                helpResult.DocumentationLink += "#class-properties";
+            }
+
+            if ((propertyMemberAst.Parent as TypeDefinitionAst).IsEnum)
+            {
+                description = $"Enum label '{propertyMemberAst.Name}', with value '{propertyMemberAst.InitialValue}'.";
+                helpResult = HelpTableQuery("about_enum");
+            }
+
+            explanations.Add(new Explanation()
+            {
+                Description = description,
+                CommandName = "Property member",
+                HelpResult = helpResult,
+                TextToHighlight = propertyMemberAst.Name
+            }.AddDefaults(propertyMemberAst, explanations));
+
             return base.VisitPropertyMember(propertyMemberAst);
         }
 
         public override AstVisitAction VisitTernaryExpression(TernaryExpressionAst ternaryExpressionAst)
         {
-            AstExplainer(ternaryExpressionAst);
+            var helpResult = HelpTableQuery("about_if");
+            helpResult.DocumentationLink += "#using-the-ternary-operator-syntax";
+
+            explanations.Add(new Explanation()
+            {
+                Description = $"A condensed if-else construct, used for simple situations.",
+                CommandName = "Ternary expression",
+                HelpResult = helpResult,
+                TextToHighlight = "?"
+            }.AddDefaults(ternaryExpressionAst, explanations));
+
             return base.VisitTernaryExpression(ternaryExpressionAst);
         }
 
         public override AstVisitAction VisitTypeDefinition(TypeDefinitionAst typeDefinitionAst)
         {
-            AstExplainer(typeDefinitionAst);
+            var highlight = "";
+            var about = "";
+            var attributes = ".";
+            var synopsis = "";
+
+            if (typeDefinitionAst.Attributes.Count > 0)
+            {
+                attributes = $", with the attributes '{string.Join(", ", typeDefinitionAst.Attributes.Select(a => a.TypeName.Name))}'.";
+            }
+
+            if (typeDefinitionAst.IsClass)
+            {
+                highlight = "class";
+                about = "about_classes";
+                synopsis = $"A class is a blueprint for a type. Create a new instance of this type with [{typeDefinitionAst.Name}]::new().";
+
+            }
+            else if (typeDefinitionAst.IsEnum)
+            {
+                highlight = "enum";
+                about = "about_enum";
+                synopsis = "Enum is short for enumeration. An enumeration is a distinct type that consists of a set of named labels called the enumerator list.";
+            }
+
+            explanations.Add(new Explanation()
+            {
+                Description = $"Defines a '{highlight}', with the name '{typeDefinitionAst.Name}'{attributes} {synopsis}",
+                CommandName = "Type definition",
+                HelpResult = HelpTableQuery(about),
+                TextToHighlight = highlight
+            }.AddDefaults(typeDefinitionAst, explanations));
+
             return base.VisitTypeDefinition(typeDefinitionAst);
         }
 
         public override AstVisitAction VisitUsingStatement(UsingStatementAst usingStatementAst)
         {
-            AstExplainer(usingStatementAst);
+            explanations.Add(new Explanation()
+            {
+                Description = $"The using statement allows you to specify which namespaces are used in the session. Adding namespaces simplifies usage of .NET classes and member and allows you to import classes from script modules and assemblies. In this case a {usingStatementAst.UsingStatementKind} is loaded.",
+                CommandName = "using statement",
+                HelpResult = HelpTableQuery("about_using"),
+                TextToHighlight = "using"
+            }.AddDefaults(usingStatementAst, explanations));
+
             return base.VisitUsingStatement(usingStatementAst);
         }
     }
-
 }

@@ -1,0 +1,26 @@
+<MudCard Class="mb-2 px-3 py-2" Elevation="2" >
+    <MudItem Style="font-size: var(--mud-typography-h6-size);
+        font-family: var(--mud-typography-h6-family);
+        font-weight: var(--mud-typography-h6-weight);
+        line-height: var(--mud-typography-h6-lineheight);
+        letter-spacing: var(--mud-typography-h6-letterspacing);" >
+        <MudHighlighter Text="@Context.OriginalExtent" HighlightedText="@Context.TextToHighlight" />
+    </MudItem>
+    <MudText>@if(@Context.HelpResult != null) 
+        {
+            <MudLink Href="@Context.HelpResult?.DocumentationLink" Target="_blank">@Context.CommandName</MudLink>
+        }
+        else {
+            @Context.CommandName
+        }
+    </MudText>
+    <MudText>@Context.Description</MudText>
+    @if(! string.IsNullOrEmpty(@Context.HelpResult?.ModuleName)) {
+        <MudText><b>Module:</b> @Context.HelpResult?.ModuleName</MudText>
+    }
+</MudCard>
+
+@code {
+    [Parameter]
+    public Explanation Context { get; set; }
+}
