@@ -41,7 +41,7 @@ $(
 
             $relatedLinks = $help.relatedLinks.navigationLink.where{ $_.uri -match '^http' }.uri ?? $cmd.HelpUri ?? $moduleProjectUri
             $DocumentationLink = $relatedLinks | Select-Object -First 1
-    
+
             $synopsis = $help.synopsis.trim()
 
             if ($synopsis.startswith($cmd.Name)) {
