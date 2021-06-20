@@ -8,13 +8,13 @@ on:
 
 jobs:
   moduleHelpAdd:
+    name: "Add help for module"
     runs-on: windows-latest
     env:
       MODULE_NAME: 'dbatools'
-    name: "Add help for module '${{ env.MODULE_NAME }}'"
     steps:
     - name: install module
       shell: pwsh
       run: |
-        install-module -force ${{ env.MODULE_NAME }} 
+        install-module -force $env:MODULE_NAME
    # - uses: actions/checkout@v1
