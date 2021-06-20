@@ -17,4 +17,6 @@ jobs:
       shell: pwsh
       run: |
         install-module -force $env:MODULE_NAME
-   # - uses: actions/checkout@v1
+        gmo -li "$env:MODULE_NAME"
+        write-output "|$env:MODULE_NAME|"
+    - uses: actions/checkout@v1
