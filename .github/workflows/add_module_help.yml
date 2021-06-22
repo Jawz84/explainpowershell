@@ -25,7 +25,7 @@ jobs:
     - name: get help info
       shell: pwsh
       run: |
-        ./explainpowerhell.helpwriter/explainpowershell.helpcollector/explainpowershell.helpcollector.ps1 -ModulesToProcess $env:MODULE_NAME -verbose | ConvertTo-Json | Out-File -path "./help.$env:MODULE_NAME.cache.json"
+        & "./explainpowerhell.helpwriter/explainpowershell.helpcollector/explainpowershell.helpcollector.ps1" -ModulesToProcess $env:MODULE_NAME -verbose | ConvertTo-Json | Out-File -path "./help.$env:MODULE_NAME.cache.json"
 
     - name: Publish artifacts
       uses: actions/upload-artifact@master
