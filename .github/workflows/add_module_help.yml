@@ -41,4 +41,4 @@ jobs:
     - name: write help info
       shell: pwsh
       run: |
-        (Get-Item "./explainpowershell.helpcollector/help.$env:MODULE_NAME.cache.json").Lenght /1MB
+        (Get-Item "./help.$env:MODULE_NAME.cache.json").Lenght /1MB
