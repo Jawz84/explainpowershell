@@ -27,19 +27,7 @@ jobs:
       run: |
         ./explainpowershell.helpcollector/explainpowershell.helpcollector.ps1 -ModulesToProcess @(Get-Module -ListAvailable $env:MODULE_NAME) -verbose | ConvertTo-Json | Out-File -path "./explainpowershell.helpcollector/help.$env:MODULE_NAME.cache.json"
 
-    - name: Publish artifacts
-      uses: actions/upload-artifact@master
-      with:
-        name: modulehelp
-        path: "./explainpowershell.helpcollector/"
-
-    - name: Download artifacts
-      uses: actions/download-artifact@master
-      with:
-        name: modulehelp
-
     - name: write help info
       shell: pwsh
       run: |
-        Get-childitem -filter *.json -recurse -path ./
-        (Get-Item "./help.$env:MODULE_NAME.cache.json").Lenght /1MB
+        (Get-Item "./explainpowershell.helpcollector/help.$env:MODULE_NAME.cache.json").Length /1MB
