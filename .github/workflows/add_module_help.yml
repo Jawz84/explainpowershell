@@ -11,7 +11,7 @@ jobs:
     name: "Add help for module"
     runs-on: ubuntu-latest
     env:
-      MODULE_NAME: 'dbatools'
+      MODULE_NAME: 'posh-git'
     steps:
 
     - name: install module
@@ -25,13 +25,13 @@ jobs:
     - name: get help info
       shell: pwsh
       run: |
-        ./explainpowershell.helpcollector/explainpowershell.helpcollector.ps1 -ModulesToProcess @(Get-Module -ListAvailable $env:MODULE_NAME) -verbose | ConvertTo-Json | Out-File -path "./help.$env:MODULE_NAME.cache.json"
+        ./explainpowershell.helpcollector/explainpowershell.helpcollector.ps1 -ModulesToProcess @(Get-Module -ListAvailable $env:MODULE_NAME) -verbose | ConvertTo-Json | Out-File -path "./explainpowershell.helpcollector/help.$env:MODULE_NAME.cache.json"
 
     - name: Publish artifacts
       uses: actions/upload-artifact@master
       with:
         name: modulehelp
-        path: "./help.$env:MODULE_NAME.cache.json"
+        path: "./explainpowershell.helpcollector/"
 
     - name: Download artifacts
       uses: actions/download-artifact@master
@@ -41,4 +41,4 @@ jobs:
     - name: write help info
       shell: pwsh
       run: |
-        (Get-Item "./help.$env:MODULE_NAME.cache.json").Lenght /1MB
+        (Get-Item "./explainpowershell.helpcollector/help.$env:MODULE_NAME.cache.json").Lenght /1MB
