@@ -9,14 +9,38 @@ on:
 jobs:
   moduleHelpAdd:
     name: "Add help for module"
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     env:
       MODULE_NAME: 'dbatools'
     steps:
+
     - name: install module
       shell: pwsh
       run: |
-        install-module -force $env:MODULE_NAME
-        gmo -li "$env:MODULE_NAME"
-        write-output "|$env:MODULE_NAME|"
+        Install-Module -Force $env:MODULE_NAME
+        Write-Output "Module '$env:MODULE_NAME' installed"
+        Update-Help -Module $env:MODULE_NAME
+        Write-Output "Help for Module '$env:MODULE_NAME' updated"
+
     - uses: actions/checkout@v1
+
+    - name: get help info
+      shell: pwsh
+      run: |
+        ./explainpowerhell.helpwriter/explainpowershell.helpcollector/explainpowershell.helpcollector.ps1 -ModulesToProcess $env:MODULE_NAME -verbose | ConvertTo-Json | Out-File -path "./help.$env:MODULE_NAME.cache.json"
+
+    - name: Publish artifacts
+      uses: actions/upload-artifact@master
+      with:
+        name: modulehelp
+        path: "./help.$env:MODULE_NAME.cache.json"
+
+    - name: Download artifacts
+      uses: actions/download-artifact@master
+      with:
+        name: modulehelp
+
+    - name: write help info
+      shell: pwsh
+      run: |
+        (Get-Item "./help.$env:MODULE_NAME.cache.json").Lenght /1MB
