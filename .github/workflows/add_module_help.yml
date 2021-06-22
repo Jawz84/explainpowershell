@@ -19,8 +19,6 @@ jobs:
       run: |
         Install-Module -Force $env:MODULE_NAME
         Write-Output "Module '$env:MODULE_NAME' installed"
-        Update-Help -Module $env:MODULE_NAME
-        Write-Output "Help for Module '$env:MODULE_NAME' updated"
 
     - uses: actions/checkout@v1
 
