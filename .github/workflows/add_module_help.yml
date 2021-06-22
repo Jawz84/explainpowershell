@@ -41,4 +41,5 @@ jobs:
     - name: write help info
       shell: pwsh
       run: |
+        Get-childitem -filter *.json -recurse -path ./
         (Get-Item "./help.$env:MODULE_NAME.cache.json").Lenght /1MB
