@@ -42,4 +42,5 @@ jobs:
     - name: write help info
       shell: pwsh
       run: |
+        import-module Az.Storage
         ./explainpowershell.helpcollector/helpwriter.ps1 -HelpDataCacheFilename "./explainpowershell.helpcollector/help.$env:MODULE_NAME.cache.json"
