@@ -27,6 +27,12 @@ jobs:
       run: |
         ./explainpowershell.helpcollector/explainpowershell.helpcollector.ps1 -ModulesToProcess @(Get-Module -ListAvailable $env:MODULE_NAME) -verbose | ConvertTo-Json | Out-File -path "./explainpowershell.helpcollector/help.$env:MODULE_NAME.cache.json"
 
+    - name: Authenticate with Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_SERVICE_PRINCIPAL }}
+        enable-AzPSSession: true
+
     - name: write help info
       shell: pwsh
       run: |
