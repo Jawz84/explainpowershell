@@ -18,7 +18,7 @@ jobs:
       shell: pwsh
       run: |
         if (-not (Get-Module -ListAvailable -Name $env:MODULE_NAME)) {
-          Install-Module -Force $env:MODULE_NAME
+          Install-Module -Force $env:MODULE_NAME.replace('*','')
         }
         Write-Output "Module '$env:MODULE_NAME' installed"
 
