@@ -122,6 +122,9 @@ foreach ($mod in $ModulesToProcess) {
 
         try {
             $syntax = ($help.syntax | Out-String).Trim()
+            if ($syntax -like '*syntaxItem*') {
+                $syntax = Get-Command $cmd.Name -Syntax
+            }
         }
         catch {
             Write-Warning "!!$($cmd.name) - Something went wrong getting syntax info: $_"
@@ -151,7 +154,7 @@ foreach ($mod in $ModulesToProcess) {
         }
 
         [pscustomobject]@{
-            Aliases             = $help.Aliases
+            Aliases             = $help.Aliases | ConvertTo-Json
             CommandName         = $cmd.Name
             DefaultParameterSet = $cmd.DefaultParameterSet
             Description         = $help.Description.Text -join ''
@@ -160,12 +163,14 @@ foreach ($mod in $ModulesToProcess) {
             ModuleName          = $cmd.ModuleName
             ModuleVersion       = $cmd.Module.Version.ToString()
             ModuleProjectUri    = $moduleProjectUri
-            Parameters          = $parameterData
-            ParameterSetNames   = $parameterData.ParameterSets.Keys | Where-Object { $_ -ne '__AllParameterSets' } | Sort-Object -Unique
+            Parameters          = $parameterData | ConvertTo-Json -depth 4
+            ParameterSetNames   = $parameterData.ParameterSets.Keys | Where-Object { $_ -ne '__AllParameterSets' } | Sort-Object -Unique | ConvertTo-Json
             RelatedLinks        = $relatedLinks
             ReturnValues        = $help.ReturnValues.returnValue.type.name
             Synopsis            = $synopsis
             Syntax              = $syntax
         }
     }
+    Write-Progress -ParentId 1 -Activity "Processing '$($commandsToProcess.Count)' commands" -CurrentOperation "Completed" -Completed
+    Write-Progress -Id 1 -Activity "Processing '$($ModulesToProcess.Count)' modules." -CurrentOperation "Completed" -Completed
 }
