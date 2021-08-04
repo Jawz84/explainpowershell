@@ -17,7 +17,9 @@ jobs:
     - name: install module
       shell: pwsh
       run: |
-        Install-Module -Force $env:MODULE_NAME
+        if (-not (Get-Module -ListAvailable -Name $env:MODULE_NAME)) {
+          Install-Module -Force $env:MODULE_NAME
+        }
         Write-Output "Module '$env:MODULE_NAME' installed"
 
     - uses: actions/checkout@v1
@@ -39,8 +41,9 @@ jobs:
         creds: ${{ secrets.AZURE_SERVICE_PRINCIPAL }}
         enable-AzPSSession: true
 
-    - name: write help info
-      shell: pwsh
-      run: |
-        import-module Az.Storage
-        ./explainpowershell.helpcollector/helpwriter.ps1 -HelpDataCacheFilename "./explainpowershell.helpcollector/help.$env:MODULE_NAME.cache.json"
+    - name: Write help info
+      uses: azure/powershell@v1
+      with:
+        inlineScript: |
+          ./explainpowershell.helpcollector/helpwriter.ps1 -HelpDataCacheFilename "./explainpowershell.helpcollector/help.$env:MODULE_NAME.cache.json"
+        azPSVersion: '6.1.0'
