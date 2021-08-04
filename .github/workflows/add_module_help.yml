@@ -11,10 +11,10 @@ jobs:
     name: "Add help for module"
     runs-on: ubuntu-latest
     env:
-      MODULE_NAME: 'posh-git'
+      MODULE_NAME: 'az'
     steps:
 
-    - name: install module
+    - name: install module if necessary
       shell: pwsh
       run: |
         Install-Module -Force $env:MODULE_NAME
