@@ -11,7 +11,7 @@ jobs:
     name: "Add help for module"
     runs-on: ubuntu-latest
     env:
-      MODULE_NAME: 'pester'
+      MODULE_NAME: 'az*'
     steps:
 
     - name: install module if necessary
