@@ -779,7 +779,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitTypeConstraint(TypeConstraintAst typeConstraintAst)
         {
-            if (typeConstraintAst.Parent is CatchClauseAst | typeConstraintAst.Parent is ConvertExpressionAst)
+            if (typeConstraintAst.Parent is CatchClauseAst)
                 return base.VisitTypeConstraint(typeConstraintAst);
 
             var typeName = typeConstraintAst.TypeName.Name;
