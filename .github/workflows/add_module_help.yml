@@ -11,7 +11,7 @@ jobs:
     name: "Add help for module"
     runs-on: ubuntu-latest
     env:
-      MODULE_NAME: 'az*'
+      MODULE_NAME: 'Microsoft.PowerShell.Management'
     steps:
 
     - name: install module if necessary
@@ -31,7 +31,7 @@ jobs:
           ModulesToProcess = @(Get-Module -ListAvailable $env:MODULE_NAME)
           verbose = $true
         }
-        ./explainpowershell.helpcollector/explainpowershell.helpcollector.ps1 @helpCollectorSplat
+        ./explainpowershell.helpcollector/helpcollector.ps1 @helpCollectorSplat
         | ConvertTo-Json
         | Out-File -path "./explainpowershell.helpcollector/help.$env:MODULE_NAME.cache.json"
 
