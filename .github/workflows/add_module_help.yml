@@ -17,7 +17,9 @@ jobs:
     - name: install module if necessary
       shell: pwsh
       run: |
-        Install-Module -Force $env:MODULE_NAME
+        if (-not (Get-Module -ListAvailable -Name $env:MODULE_NAME)) {
+          Install-Module -Force $env:MODULE_NAME.replace('*','')
+        }
         Write-Output "Module '$env:MODULE_NAME' installed"
 
     - uses: actions/checkout@v1
@@ -25,7 +27,13 @@ jobs:
     - name: get help info
       shell: pwsh
       run: |
-        ./explainpowershell.helpcollector/explainpowershell.helpcollector.ps1 -ModulesToProcess @(Get-Module -ListAvailable $env:MODULE_NAME) -verbose | ConvertTo-Json | Out-File -path "./explainpowershell.helpcollector/help.$env:MODULE_NAME.cache.json"
+        $helpCollectorSplat = @{
+          ModulesToProcess = @(Get-Module -ListAvailable $env:MODULE_NAME)
+          verbose = $true
+        }
+        ./explainpowershell.helpcollector/explainpowershell.helpcollector.ps1 @helpCollectorSplat
+        | ConvertTo-Json
+        | Out-File -path "./explainpowershell.helpcollector/help.$env:MODULE_NAME.cache.json"
 
     - name: Authenticate with Azure
       uses: azure/login@v1
@@ -33,7 +41,9 @@ jobs:
         creds: ${{ secrets.AZURE_SERVICE_PRINCIPAL }}
         enable-AzPSSession: true
 
-    - name: write help info
-      shell: pwsh
-      run: |
-        (Get-Item "./explainpowershell.helpcollector/help.$env:MODULE_NAME.cache.json").Length /1MB
+    - name: Write help info
+      uses: azure/powershell@v1
+      with:
+        inlineScript: |
+          ./explainpowershell.helpcollector/helpwriter.ps1 -HelpDataCacheFilename "./explainpowershell.helpcollector/help.$env:MODULE_NAME.cache.json"
+        azPSVersion: '6.1.0'
