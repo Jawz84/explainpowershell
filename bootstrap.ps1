@@ -69,6 +69,9 @@ if (!(Test-Path '~/.local/share/powershell/Help/en-US/about_History.help.txt')) 
     Write-Warning "$($updateerrors -join `"`n`")"
 }
 
+# TODO:
+# Add explainpowershell.aboutcollector.ps1
+
 $modulesToProcess = Get-Content "$PSScriptRoot/explainpowershell.metadata/defaultModules.json"
 | ConvertFrom-Json
 
@@ -86,7 +89,7 @@ foreach ($module in $modulesToProcess) {
     }
 
     Write-Host "Writing help for module '$($module.Name)' to local Azurite table.."
-    ./explainpowershell.helpcollector/helpwriter.ps1 -helpDataCacheFilename $fileName
+    ./explainpowershell.helpcollector/helpwriter.ps1 -HelpDataCacheFilename $fileName
 }
 
 Write-host -ForegroundColor Green "Running tests to see if everything works"

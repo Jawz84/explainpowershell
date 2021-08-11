@@ -1,11 +1,10 @@
 # TODO
 
-- zoek uit waar Get-ParameterSetNames.ps1 precies voor dient, en of deze nog nodig is.
-- zorg dat module help pipeline ook Az-module kan doen. Dit lukt momenteel niet.
-- zorg dat module help pipeline ook Microsoft.PowerShell.Core module kan doen. HIer is nog geen manier voor
-- zorg dat er ook een versie komt die naar Azurite kan schrijven voor lokaal testen
-- zorg dat oude rommel opgeruimd wordt: 
-    - 'classes.ps1' kan ws weg
-    - 'explainpowershell.helpwriter.ps1' kan ws weg als alle functionaliteit er in óf overgenomen is in bootstrapper óf in 'helpwriter.ps1'
-- pas rest van de code aan op de nieuwe database properties, maak gebruik van de nieuwe gegevens
-- doe database migratie (tablenaam goed zettten)
+- find out if `Get-ParameterSetNames.ps1` will be usefull
+- check the `add_module_help.yml` pipeline 
+    - can it handle 'microsoft.powershell.core' module?
+    - make it handle 'Az' module, this is not currently working
+- refactor `explainpowershell.aboutcollector.ps1`, make sure its output is also written to db.
+- cleanup old code:
+    - `classes.ps1` can be removed once refactor is complete
+- add new features to the `VisitCommand()` method in [AstVisitorExplainer.cs](/workspace/explainpowershell.analysisservice/AstVisitorExplainer.cs)
