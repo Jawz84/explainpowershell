@@ -1,3 +1,5 @@
+using namespace Microsoft.Azure.Cosmos.Table
+
 function Get-HelpDatabaseData {
     [CmdletBinding(DefaultParameterSetName="local")]
     param(
@@ -17,7 +19,6 @@ function Get-HelpDatabaseData {
 
         [parameter(ParameterSetName ="production")]
         [String]$ResourceGroupName = 'explainpowershell'
-
     )
 
     $tableName = 'HelpData'
@@ -39,6 +40,22 @@ function Get-HelpDatabaseData {
         return $table
     }
     else {
-        Get-AzTableRow -Table $table -partitionKey $partitionKey -RowKey $rowKey
+        $query = [TableQuery]@{
+            FilterString = [TableQuery]::CombineFilters(
+                [TableQuery]::GenerateFilterCondition(
+                    'PartitionKey',
+                    [QueryComparisons]::Equal,
+                    $partitionKey
+                ),
+                'and',
+                [TableQuery]::GenerateFilterCondition(
+                    'RowKey',
+                    [QueryComparisons]::Equal,
+                    $rowKey
+                )
+            )
+        }
+
+        return $table.ExecuteQuery($query)
     }
 }

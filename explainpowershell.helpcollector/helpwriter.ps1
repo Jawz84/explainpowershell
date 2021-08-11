@@ -1,27 +1,33 @@
 using namespace Microsoft.Azure.Cosmos.Table
 
-[cmdletbinding()]
+[CmdletBinding()]
 param(
-    $HelpDataCacheFilename = '../explainpowershell.helpcollector/help.az.accounts.cache.json'
+    [string] $HelpDataCacheFilename,
+    [switch] $IsProduction
 )
+
+$tableName = 'HelpData'
+$partitionKey = 'CommandHelp'
+$StorageAccountName = 'explainpowershell'
+$ResourceGroupName = 'powershellexplainer'
 
 if (-not $PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent) {
     Write-Progress -id 2 -Activity "Upload help information.." -CurrentOperation "Preparing..." -PercentComplete 0
 }
 
-Write-Verbose "Preparing to upload data to Azure table.."
-
-$tableName = 'TestHelpData'
-$partitionKey = 'CommandHelp'
-$StorageAccountName = 'explainpowershell'
-$ResourceGroupName = 'powershellexplainer'
-
-Push-Location $PSScriptRoot
-. ./New-SasToken.ps1
-Pop-Location
-
-$sasToken = New-SasToken -ResourceGroupName $ResourceGroupName -StorageAccountName $storageAccountName
-$storageCtx = New-AzStorageContext -StorageAccountName $storageAccountName -SasToken $sasToken
+if ($IsProduction) {
+    Write-Verbose "Preparing to upload data to Azure table.."
+    Push-Location $PSScriptRoot
+    . ./New-SasToken.ps1
+    Pop-Location
+    $sasToken = New-SasToken -ResourceGroupName $ResourceGroupName -StorageAccountName $storageAccountName
+    $storageCtx = New-AzStorageContext -StorageAccountName $storageAccountName -SasToken $sasToken
+}
+else {
+    Write-Verbose "Preparing to upload data to local Azurite table.."
+    $azuriteLocalConnectionString = 'AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;DefaultEndpointsProtocol=http;BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;QueueEndpoint=http://127.0.0.1:10001/devstoreaccount1;TableEndpoint=http://127.0.0.1:10002/devstoreaccount1;'
+    $storageCtx = New-AzStorageContext -ConnectionString $azuriteLocalConnectionString
+}
 
 $table = Get-AzStorageTable -Context $storageCtx -Name $tableName -ErrorAction SilentlyContinue
 if ($null -eq $table) {

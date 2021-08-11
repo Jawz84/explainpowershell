@@ -45,5 +45,5 @@ jobs:
       uses: azure/powershell@v1
       with:
         inlineScript: |
-          ./explainpowershell.helpcollector/helpwriter.ps1 -HelpDataCacheFilename "./explainpowershell.helpcollector/help.$env:MODULE_NAME.cache.json"
+          ./explainpowershell.helpcollector/helpwriter.ps1 -HelpDataCacheFilename "./explainpowershell.helpcollector/help.$env:MODULE_NAME.cache.json" -IsProduction
         azPSVersion: '6.1.0'

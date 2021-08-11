@@ -1,0 +1,30 @@
+[
+    {
+        "Name": "Microsoft.PowerShell.Archive",
+        "ProjectUri": "https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.archive"
+    },
+    {
+        "Name": "Microsoft.PowerShell.Host",
+        "ProjectUri": "https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.host"
+    },
+    {
+        "Name": "Microsoft.PowerShell.Management",
+        "ProjectUri": "https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.management"
+    },
+    {
+        "Name": "Microsoft.PowerShell.Security",
+        "ProjectUri": "https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.security"
+    },
+    {
+        "Name": "Microsoft.PowerShell.Utility",
+        "ProjectUri": "https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.utility"
+    },
+    {
+        "Name": "Microsoft.PowerShell.Core",
+        "ProjectUri": "https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core"
+    },
+    {
+        "Name": "PSReadLine",
+        "ProjectUri": "https://docs.microsoft.com/en-us/powershell/module/psreadline"
+    }
+]
