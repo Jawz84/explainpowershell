@@ -1,17 +1,14 @@
 using namespace Microsoft.PowerShell.Commands
 
-. .\classes.ps1
-
 if (!(Test-Path '~/.local/share/powershell/Help/en-US/about_History.help.txt')) {
     Write-Host -Foregroundcolor green "Updating local PowerShell Help files.."
     Update-Help -Force -ErrorAction SilentlyContinue -ErrorVariable updateerrors
     Write-Warning "$($updateerrors -join `"`n`")"
 }
 
-# about_.. articles
-
 Write-Host -Foregroundcolor green "Get all built-in 'about_..' articles, and get missing short descriptions from text.."
 $aboutArticles = Get-Help About_*
+
 # filter only Microsoft built-in ones
 $abouts = $aboutArticles | Where-Object {-not $_.synopsis} 
 
@@ -54,7 +51,7 @@ foreach ($about in $abouts) {
         }
     }
 
-    [HelpData]@{
+    [PSCustomObject]@{
         CommandName = $about.name
         DocumentationLink = if ($null -ne $result) {$baseUrl + $about.name}
         Synopsis = $synopsis

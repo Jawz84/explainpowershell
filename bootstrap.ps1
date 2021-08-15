@@ -69,8 +69,19 @@ if (!(Test-Path '~/.local/share/powershell/Help/en-US/about_History.help.txt')) 
     Write-Warning "$($updateerrors -join `"`n`")"
 }
 
-# TODO:
-# Add explainpowershell.aboutcollector.ps1
+$fileName = "$PSScriptRoot/explainpowershell.helpcollector/help.about_articles.cache.user"
+if ($Force -or !(Test-Path $fileName)) {
+    Write-Host -Foregroundcolor green "Collecting about_.. article data and saving to cache file '$fileName'.."
+    .\aboutcollector.ps1
+    | ConvertTo-Json
+    | Set-Content -Path $fileName -Force
+}
+else {
+    Write-Host "Detected cache file '$fileName', skipping collecting about_.. data. Use '-Force' or remove cache file to refresh about_.. data."
+}
+
+Write-Host "Writing about_.. help article data to local Azurite table.."
+./explainpowershell.helpcollector/helpwriter.ps1 -HelpDataCacheFilename $fileName
 
 $modulesToProcess = Get-Content "$PSScriptRoot/explainpowershell.metadata/defaultModules.json"
 | ConvertFrom-Json
