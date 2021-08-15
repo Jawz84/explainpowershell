@@ -11,7 +11,7 @@ jobs:
     name: "Add help for module"
     runs-on: ubuntu-latest
     env:
-      MODULE_NAME: 'AWSPowerShell'
+      MODULE_NAME: 'dbatools'
     steps:
 
     - name: install module if necessary
