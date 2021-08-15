@@ -11,7 +11,7 @@ jobs:
     name: "Add help for module"
     runs-on: ubuntu-latest
     env:
-      MODULE_NAME: 'Microsoft.PowerShell.Management'
+      MODULE_NAME: 'SqlServer'
     steps:
 
     - name: install module if necessary
