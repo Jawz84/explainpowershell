@@ -11,7 +11,7 @@ jobs:
     name: "Add help for module"
     runs-on: ubuntu-latest
     env:
-      MODULE_NAME: 'dbatools'
+      MODULE_NAME: 'dbachecks'
     steps:
 
     - name: install module if necessary
