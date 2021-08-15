@@ -1,0 +1,49 @@
+name: module help add|windows
+
+on:
+  push:
+    branches: [ wip/helpformodules ]
+  workflow_dispatch:
+
+
+jobs:
+  moduleHelpAdd:
+    name: "Add help for module"
+    runs-on: ubuntu-latest
+    env:
+      MODULE_NAME: 'Microsoft.PowerShell.Management'
+    steps:
+
+    - name: install module if necessary
+      shell: pwsh
+      run: |
+        if (-not (Get-Module -ListAvailable -Name $env:MODULE_NAME)) {
+          Install-Module -Force $env:MODULE_NAME.replace('*','')
+        }
+        Write-Output "Module '$env:MODULE_NAME' installed"
+
+    - uses: actions/checkout@v1
+
+    - name: get help info
+      shell: pwsh
+      run: |
+        $helpCollectorSplat = @{
+          ModulesToProcess = @(Get-Module -ListAvailable $env:MODULE_NAME)
+          verbose = $true
+        }
+        ./explainpowershell.helpcollector/helpcollector.ps1 @helpCollectorSplat
+        | ConvertTo-Json
+        | Out-File -path "./explainpowershell.helpcollector/help.$env:MODULE_NAME.cache.json"
+
+    - name: Authenticate with Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_SERVICE_PRINCIPAL }}
+        enable-AzPSSession: true
+
+    - name: Write help info
+      uses: azure/powershell@v1
+      with:
+        inlineScript: |
+          ./explainpowershell.helpcollector/helpwriter.ps1 -HelpDataCacheFilename "./explainpowershell.helpcollector/help.$env:MODULE_NAME.cache.json" -IsProduction
+        azPSVersion: '6.1.0'

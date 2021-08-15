@@ -1,3 +1,5 @@
+using namespace Microsoft.Azure.Cosmos.Table
+
 function Get-HelpDatabaseData {
     [CmdletBinding(DefaultParameterSetName="local")]
     param(
@@ -17,34 +19,14 @@ function Get-HelpDatabaseData {
 
         [parameter(ParameterSetName ="production")]
         [String]$ResourceGroupName = 'explainpowershell'
-
     )
 
     $tableName = 'HelpData'
     $partitionKey = 'CommandHelp'
 
-    function New-SasToken {
-        param(
-            $ResourceGroupName,
-            $StorageAccountName
-        )
-
-        $context = (Get-AzStorageAccount -ResourceGroupName $ResourceGroupName -AccountName $StorageAccountName).context
-
-        $sasSplat = @{
-            Service = 'Table'
-            ResourceType = 'Service', 'Container', 'Object'
-            Permission = 'racwdlup' # https://docs.microsoft.com/en-us/powershell/module/az.storage/new-azstorageaccountsastoken
-            StartTime  = (Get-Date)
-            ExpiryTime = (Get-Date).AddMinutes(30)
-            Context    = $context
-        }
-
-        return New-AzStorageAccountSASToken @sasSplat
-    }
-
     if ($IsProduction) {
         Get-AzContext
+        . ../explainpowershell.helpcollector/New-SasToken.ps1
         $sasToken = New-SasToken -ResourceGroupName $ResourceGroupName -StorageAccountName $storageAccountName
         $storageCtx = New-AzStorageContext -StorageAccountName $storageAccountName -SasToken $sasToken
     }
@@ -58,6 +40,22 @@ function Get-HelpDatabaseData {
         return $table
     }
     else {
-        Get-AzTableRow -Table $table -partitionKey $partitionKey -RowKey $rowKey
+        $query = [TableQuery]@{
+            FilterString = [TableQuery]::CombineFilters(
+                [TableQuery]::GenerateFilterCondition(
+                    'PartitionKey',
+                    [QueryComparisons]::Equal,
+                    $partitionKey
+                ),
+                'and',
+                [TableQuery]::GenerateFilterCondition(
+                    'RowKey',
+                    [QueryComparisons]::Equal,
+                    $rowKey
+                )
+            )
+        }
+
+        return $table.ExecuteQuery($query)
     }
 }

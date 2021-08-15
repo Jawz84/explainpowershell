@@ -7,6 +7,15 @@ Describe "Invoke-SyntaxAnalyzer" {
         . $PSScriptRoot/Test-IsAzuriteUp.ps1
     }
 
+    It "Explains a hash table" {
+        $code = '[ordered]@{key1 = "value"}'
+        [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
+        $content = $result.Content | ConvertFrom-Json
+        $content.Explanations[2].Description | Should -BeExactly "An object that holds key-value pairs, optimized for hash-searching for keys. This hash table has the following keys: 'key1'"
+        $content.Explanations[2].CommandName | Should -BeExactly "Hash table"
+        $content.Explanations[2].HelpResult.DocumentationLink | Should -Match "about_hash_tables"
+    }
+
 
     It "Should not generate identical explanationIds" {
         $code = 'Get-aduser -Filter { $_.SamAccountName -like "*demo*" -and $_.PasswordNeverExpires -eq $true }'

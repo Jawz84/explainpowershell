@@ -18,7 +18,7 @@ $env:DOTNET_NOLOGO='true'
 dotnet restore
 
 Write-Host -ForegroundColor Green "Checking PowerShell modules.."
-$modules = 'Pester', 'Az', 'AzTable', 'Posh-Git', 'Microsoft.PowerShell.UnixCompleters'
+$modules = 'Pester', 'Az', 'Posh-Git', 'Microsoft.PowerShell.UnixCompleters'
 foreach ($module in $modules) {
     if (($m = Get-Module -ListAvailable $module)) {
         Write-Host "Module '$module' version $($m.Version) already installed. Use -Force to update."
@@ -69,8 +69,39 @@ if (!(Test-Path '~/.local/share/powershell/Help/en-US/about_History.help.txt')) 
     Write-Warning "$($updateerrors -join `"`n`")"
 }
 
-Write-Host -ForegroundColor Green "Fill local database with help data.."
-& $PSScriptRoot/explainpowershell.helpcollector/explainpowershell.helpwriter.ps1 -Force:$Force
+$fileName = "$PSScriptRoot/explainpowershell.helpcollector/help.about_articles.cache.user"
+if ($Force -or !(Test-Path $fileName)) {
+    Write-Host -Foregroundcolor green "Collecting about_.. article data and saving to cache file '$fileName'.."
+    ./explainpowershell.helpcollector/aboutcollector.ps1
+    | ConvertTo-Json
+    | Set-Content -Path $fileName -Force
+}
+else {
+    Write-Host "Detected cache file '$fileName', skipping collecting about_.. data. Use '-Force' or remove cache file to refresh about_.. data."
+}
+
+Write-Host "Writing about_.. help article data to local Azurite table.."
+./explainpowershell.helpcollector/helpwriter.ps1 -HelpDataCacheFilename $fileName
+
+$modulesToProcess = Get-Content "$PSScriptRoot/explainpowershell.metadata/defaultModules.json"
+| ConvertFrom-Json
+
+foreach ($module in $modulesToProcess) {
+    $fileName = "$PSScriptRoot/explainpowershell.helpcollector/help.$($module.Name).cache.user"
+
+    if ($Force -or !(Test-Path $fileName) -or ((Get-Item $fileName).Length -eq 0)) {
+        Write-Host -ForegroundColor Green "Collecting help data for module '$($module.Name)'.."
+        ./explainpowershell.helpcollector/helpcollector.ps1 -ModulesToProcess $module
+        | ConvertTo-Json
+        | Out-File -path $fileName -Force:$Force
+    }
+    else {
+        Write-Host "Detected cache file '$fileName', skipping collecting help data. Use '-Force' or remove cache file to refresh help data."
+    }
+
+    Write-Host "Writing help for module '$($module.Name)' to local Azurite table.."
+    ./explainpowershell.helpcollector/helpwriter.ps1 -HelpDataCacheFilename $fileName
+}
 
 Write-host -ForegroundColor Green "Running tests to see if everything works"
 & $PSScriptRoot/explainpowershell.analysisservice.tests/Start-BackendIntegrationTests.ps1
