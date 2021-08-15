@@ -4,7 +4,11 @@
         font-weight: var(--mud-typography-h6-weight);
         line-height: var(--mud-typography-h6-lineheight);
         letter-spacing: var(--mud-typography-h6-letterspacing);" >
-        <MudHighlighter Text="@Context.OriginalExtent" HighlightedText="@Context.TextToHighlight" />
+        <MudHighlighter 
+            Class="mud-primary-text"
+            Style="background-color:transparent;font-weight:bold"
+            Text="@Context.OriginalExtent" 
+            HighlightedText="@Context.TextToHighlight"/>
     </MudItem>
     <MudText>@if(@Context.HelpResult != null) 
         {
@@ -16,11 +20,19 @@
     </MudText>
     <MudText>@Context.Description</MudText>
     @if(! string.IsNullOrEmpty(@Context.HelpResult?.ModuleName)) {
-        <MudText><b>Module:</b> @Context.HelpResult?.ModuleName</MudText>
+        <MudText>@if(! string.IsNullOrEmpty(@Context.HelpResult?.ModuleProjectUri)) {
+                <MudLink Href="@Context.HelpResult?.ModuleProjectUri" Target="_blank"><b>Module:</b> @moduleInfo</MudLink>
+            }
+            else {
+                <b>Module:</b> @moduleInfo
+            }
+        </MudText>
     }
 </MudCard>
 
 @code {
     [Parameter]
     public Explanation Context { get; set; }
+
+    string moduleInfo => string.Join(" ", Context.HelpResult?.ModuleName, Context.HelpResult?.ModuleVersion);
 }

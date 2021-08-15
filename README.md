@@ -60,3 +60,5 @@ Alternatively, you can retrieve it with `az`:
 $myStorageAccountName = ".."
 (az storage account show --name $myStorageAccountName | convertfrom-json).primaryEndpoints.web
 ```
+
+In the current production environment, I also have App Insights enabled, and set up an Azure CDN, DNS zone and an App Service Domain. This is enough to set up a `www.explainpowershell.com` website, also set up HTTPS through CDN manged HTTPS in Azure. To also allow access to the naked domain `explainpowerhell.com` (without the `www.`), I followed [Onboard a root or apex domain](https://docs.microsoft.com/en-us/azure/cdn/onboard-apex-domain). Alas, CDN managed HTTPS support for apex domains is no more. See #40.

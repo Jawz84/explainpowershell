@@ -158,19 +158,19 @@ foreach ($mod in $ModulesToProcess) {
         }
 
         [pscustomobject]@{
-            Aliases             = $help.Aliases | ConvertTo-Json
+            Aliases             = @($help.Aliases) -join ", "
             CommandName         = $cmd.Name
             DefaultParameterSet = $cmd.DefaultParameterSet
             Description         = $help.Description.Text -join ''
             DocumentationLink   = $documentationLink
-            InputTypes          = $help.InputTypes.inputType.type.name
+            InputTypes          = $help.InputTypes.inputType.type.name -join ", "
             ModuleName          = $cmd.ModuleName
             ModuleVersion       = "$($cmd.Module.Version)"
             ModuleProjectUri    = $moduleProjectUri
             Parameters          = $parameterData | ConvertTo-Json -Depth 4
-            ParameterSetNames   = $parameterData.ParameterSets.Keys | Where-Object { $_ -ne '__AllParameterSets' } | Sort-Object -Unique | ConvertTo-Json
-            RelatedLinks        = $relatedLinks
-            ReturnValues        = $help.ReturnValues.returnValue.type.name
+            ParameterSetNames   = @($parameterData.ParameterSets.Keys | Where-Object { $_ -ne '__AllParameterSets' } | Sort-Object -Unique) -join ", "
+            RelatedLinks        = $relatedLinks -join ", "
+            ReturnValues        = $help.ReturnValues.returnValue.type.name -join ", "
             Synopsis            = $synopsis
             Syntax              = $syntax
         }
