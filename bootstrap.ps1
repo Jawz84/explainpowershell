@@ -72,7 +72,7 @@ if (!(Test-Path '~/.local/share/powershell/Help/en-US/about_History.help.txt')) 
 $fileName = "$PSScriptRoot/explainpowershell.helpcollector/help.about_articles.cache.user"
 if ($Force -or !(Test-Path $fileName)) {
     Write-Host -Foregroundcolor green "Collecting about_.. article data and saving to cache file '$fileName'.."
-    .\aboutcollector.ps1
+    ./explainpowershell.helpcollector/aboutcollector.ps1
     | ConvertTo-Json
     | Set-Content -Path $fileName -Force
 }
