@@ -3,9 +3,9 @@
 PowerShell version of [explainshell.com](explainshell.com)
 
 On ExplainShell.com, you can enter a Linux terminal oneliner, and the site will analyze it, and return snippets from the proper man-pages, in an effort to explain the oneliner. 
-I would like to create the same thing but for PowerShell. 
 
-I have a [proof of concept running here](https://explainpowershell.z6.web.core.windows.net/).
+On https://www.explainpowershell.com you can do the same, but for PowerShell :)
+Currently all basic commands are supported, as wel as a lot of mainstream modules. You can request support for your module [via this issue](https://github.com/Jawz84/explainpowershell/issues/43).
 
 ## Goal
 
