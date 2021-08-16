@@ -15,7 +15,7 @@ jobs:
     if: ${{ github.event.issue.number == 43 }}
     runs-on: ubuntu-latest
     env:
-      MODULE_NAME: ${{ github.event.comment }}
+      MODULE_NAME: ${{ github.event.comment.body }}
     steps:
 
     - name: install module if necessary
