@@ -12,10 +12,10 @@ on:
 jobs:
   moduleHelpAdd:
     name: "Add help for module"
-    #if: ${{ github.event.issue.number == 43 }}
+    if: ${{ github.event.issue.number == 43 }}
     runs-on: ubuntu-latest
     env:
-      MODULE_NAME: ${{ github.event.issue.body }}
+      MODULE_NAME: ${{ github.event.issue.comments }}
     steps:
 
     - name: install module if necessary
