@@ -15,13 +15,12 @@ jobs:
     if: ${{ github.event.issue.number == 43 }}
     runs-on: ubuntu-latest
     env:
-      MODULE_NAME: ${{ github.event.issue.comments }}
+      MODULE_NAME: ${{ github.event.comment }}
     steps:
 
     - name: install module if necessary
       shell: pwsh
       run: |
-        "${{ github.event.issue.number }}"
         if (-not (Get-Module -ListAvailable -Name $env:MODULE_NAME)) {
           Install-Module -Force $env:MODULE_NAME.replace('*','')
         }
