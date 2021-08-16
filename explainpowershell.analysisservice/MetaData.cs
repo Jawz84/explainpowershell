@@ -20,7 +20,7 @@ namespace explainpowershell.analysisservice
         private const string HelpTableName = "HelpData";
 
         [FunctionName("MetaData")]
-        public static async Task<IActionResult> Run(
+        public static IActionResult Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequest req,
             [Table(HelpTableName)] CloudTable cloudTable)
         {
