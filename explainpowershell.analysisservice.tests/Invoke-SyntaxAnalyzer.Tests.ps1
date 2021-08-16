@@ -7,6 +7,22 @@ Describe "Invoke-SyntaxAnalyzer" {
         . $PSScriptRoot/Test-IsAzuriteUp.ps1
     }
 
+    It "Provides descriptions for parameters" {
+        $code = 'get-childitem -path "foo"'
+        [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
+        $content = $result.Content | ConvertFrom-Json
+        $content.Explanations[1].Description | Should -BeExactly 'Specifies a path to one or more locations. Wildcards are accepted. The default location is the current directory (`.`).'
+        $content.Explanations[1].CommandName | Should -BeExactly "Command Parameter"
+    }
+
+    It "Does not provide descriptions for non-existing parameters" {
+        $code = 'get-childitem -bar "foo"'
+        [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
+        $content = $result.Content | ConvertFrom-Json
+        $content.Explanations[1].Description | Should -BeNullOrEmpty
+        $content.Explanations[1].CommandName | Should -BeExactly "Command Parameter"
+    }
+
     It "Explains a hash table" {
         $code = '[ordered]@{key1 = "value"}'
         [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code

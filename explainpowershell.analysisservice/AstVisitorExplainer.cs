@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Management.Automation.Language;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using explainpowershell.models;
 using explainpowershell.SyntaxAnalyzer.ExtensionMethods;
@@ -305,9 +306,34 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitCommandParameter(CommandParameterAst commandParameterAst)
         {
-            // TODO
-            // #36
-            AstExplainer(commandParameterAst);
+            var exp = new Explanation() {
+                    CommandName = "Command Parameter",
+                    TextToHighlight = commandParameterAst.ParameterName,
+                }.AddDefaults(commandParameterAst, explanations);
+
+            var parentCommandExplanation = explanations.FirstOrDefault(e => e.Id == exp.ParentId);
+
+            try {
+                JsonDocument paramData = JsonSerializer.Deserialize<JsonDocument>(parentCommandExplanation.HelpResult?.Parameters);
+                JsonElement currentParamData = paramData
+                    .RootElement
+                    .EnumerateArray()
+                    .FirstOrDefault(
+                        p =>  p
+                            .GetProperty("Name")
+                            .GetString()
+                            .ToLower() == commandParameterAst
+                                .ParameterName
+                                .ToLower());
+
+                var paramDescription = currentParamData.EnumerateObject().FirstOrDefault(p => p.Name == "Description").Value.GetString();
+                exp.Description = paramDescription;
+            }
+            catch {
+                log.LogWarning($"Failed to get Description for parameter '{commandParameterAst.ParameterName}' on command '{parentCommandExplanation.CommandName}'");
+            }
+
+            explanations.Add(exp);
             return base.VisitCommandParameter(commandParameterAst);
         }
 
