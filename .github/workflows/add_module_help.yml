@@ -1,17 +1,21 @@
 name: module help add|windows
 
 on:
-  push:
-    branches: [ wip/helpformodules ]
-  workflow_dispatch:
-
+  # workflow_dispatch:
+  #   inputs:
+  #     moduleName:
+  #       description: 'Name of PowerShell module to add help for:'
+  #       required: true
+  issue_comment:
+    types: [created, edited]
 
 jobs:
   moduleHelpAdd:
     name: "Add help for module"
+    if: ${{ github.event.issue.number == 43 }}
     runs-on: ubuntu-latest
     env:
-      MODULE_NAME: 'Microsoft.PowerShell.Management'
+      MODULE_NAME: ${{ github.event.issue.body }}
     steps:
 
     - name: install module if necessary
