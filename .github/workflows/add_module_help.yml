@@ -1,17 +1,12 @@
-name: module help add|windows
+name: Check if we need to automatically add help for a module
 
 on:
-  # workflow_dispatch:
-  #   inputs:
-  #     moduleName:
-  #       description: 'Name of PowerShell module to add help for:'
-  #       required: true
   issue_comment:
     types: [created, edited]
 
 jobs:
   moduleHelpAdd:
-    name: "Add help for module"
+    name: Add help for module '${{ github.event.comment.body }}'
     if: ${{ github.event.issue.number == 43 }}
     runs-on: ubuntu-latest
     env:
