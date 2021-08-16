@@ -12,7 +12,7 @@ on:
 jobs:
   moduleHelpAdd:
     name: "Add help for module"
-    if: ${{ github.event.issue.number == 43 }}
+    #if: ${{ github.event.issue.number == 43 }}
     runs-on: ubuntu-latest
     env:
       MODULE_NAME: ${{ github.event.issue.body }}
@@ -21,6 +21,7 @@ jobs:
     - name: install module if necessary
       shell: pwsh
       run: |
+        "${{ github.event.issue.number }}"
         if (-not (Get-Module -ListAvailable -Name $env:MODULE_NAME)) {
           Install-Module -Force $env:MODULE_NAME.replace('*','')
         }
