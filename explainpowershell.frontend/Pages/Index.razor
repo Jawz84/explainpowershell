@@ -92,7 +92,13 @@
                                                 {
                                                     <tr>
                                                         <td>RelatedLinks</td>
-                                                        <td>@context.Item.HelpResult?.RelatedLinks</td>
+                                                        <td>
+                                                            <ul style="list-style:disc">
+                                                                @foreach(var link in context.Item.HelpResult?.RelatedLinks.Split(", ")) {
+                                                                    <li><MudLink Href="@link" Target="_blank">@link</MudLink></li>
+                                                                }
+                                                            </ul>
+                                                        </td>
                                                     </tr>
                                                 }
                                             </tbody>
