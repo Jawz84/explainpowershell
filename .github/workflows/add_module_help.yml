@@ -21,7 +21,7 @@ jobs:
     - name: install module if necessary
       shell: pwsh
       run: |
-        $env:MODULE_NAME = $env.MODULE_NAME.Trim()
+        $env:MODULE_NAME = $env:MODULE_NAME.Trim()
         if (-not (Get-Module -ListAvailable -Name $env:MODULE_NAME)) {
           Install-Module -Force $env:MODULE_NAME.replace('*','')
         }
