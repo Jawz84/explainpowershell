@@ -12,7 +12,12 @@ $opp = $ProgressPreference
 $ProgressPreference = 'SilentlyContinue'
 
 Push-Location $PSScriptRoot
-Invoke-Pester -Configuration $c
+    # Integration Tests
+    Write-Host -ForegroundColor Cyan "`n####`n#### Starting Integration tests`n"
+    Invoke-Pester -Configuration $c
+    # Unit Tests
+    Write-Host -ForegroundColor Cyan "`n####`n#### Starting Unit tests`n"
+    dotnet test --no-build --nologo
 Pop-Location
 
 $ProgressPreference = $opp

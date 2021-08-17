@@ -5,7 +5,7 @@ using System.Management.Automation.Language;
 
 namespace ExplainPowershell.SyntaxAnalyzer
 {
-    static partial class Helpers {
+    public static partial class Helpers {
         public static string TokenExplainer(TokenKind tokenKind)
         {
             var suffix = "";

@@ -1,0 +1,466 @@
+[
+  {
+    "Aliases": "none",
+    "DefaultValue": "None",
+    "Description": "Gets files and folders with the specified attributes. This parameter supports all attributes and lets you specify complex combinations of attributes.\nFor example, to get non-system files (not directories) that are encrypted or compressed, type:\n`Get-ChildItem -Attributes !Directory+!System+Encrypted, !Directory+!System+Compressed`\nTo find files and folders with commonly used attributes, use the Attributes parameter. Or, the parameters Directory , File , Hidden , ReadOnly , and System .\nThe Attributes parameter supports the following properties:\n- Archive - Compressed - Device - Directory - Encrypted - Hidden - IntegrityStream - Normal - NoScrubData - NotContentIndexed - Offline - ReadOnly - ReparsePoint - SparseFile - System - Temporary For a description of these attributes, see the FileAttributes Enumeration (/dotnet/api/system.io.fileattributes).\nTo combine attributes, use the following operators:\n- `!` (NOT)\n- `+` (AND)\n- `,` (OR)\nDon't use spaces between an operator and its attribute. Spaces are accepted after commas.\nFor common attributes, use the following abbreviations:\n- `D` (Directory)\n- `H` (Hidden)\n- `R` (Read-only)- `S` (System)\n",
+    "Globbing": "false",
+    "IsDynamic": true,
+    "Name": "Attributes",
+    "ParameterSets": {
+      "__AllParameterSets": {
+        "IsMandatory": false,
+        "Position": -2147483648,
+        "ValueFromPipeline": false,
+        "ValueFromPipelineByPropertyName": false,
+        "ValueFromRemainingArguments": false,
+        "HelpMessage": null,
+        "HelpMessageBaseName": null,
+        "HelpMessageResourceId": null
+      }
+    },
+    "PipelineInput": "False",
+    "Position": "named",
+    "Required": "false",
+    "SwitchParameter": false,
+    "TypeName": {
+      "value": "System.Management.Automation.FlagsExpression`1[System.IO.FileAttributes]",
+      "required": "true",
+      "variableLength": "false"
+    }
+  },
+  {
+    "Aliases": "none",
+    "DefaultValue": "None",
+    "Description": "This parameter was added in PowerShell 5.0 and enables you to control the depth of recursion. By default, `Get-ChildItem` displays the contents of the parent directory. The Depth parameter determines the number of subdirectory levels that are included in the recursion and displays the contents.\nFor example, `Depth 2` includes the Path parameter's directory, first level of subdirectories, and second level of subdirectories. By default directory names and filenames are included in the output.\n> [!NOTE] > On a Windows computer from PowerShell or cmd.exe , you can display a graphical view of a > directory structure with the tree.com command.",
+    "Globbing": "false",
+    "IsDynamic": false,
+    "Name": "Depth",
+    "ParameterSets": {
+      "__AllParameterSets": {
+        "IsMandatory": false,
+        "Position": -2147483648,
+        "ValueFromPipeline": false,
+        "ValueFromPipelineByPropertyName": false,
+        "ValueFromRemainingArguments": false,
+        "HelpMessage": null,
+        "HelpMessageBaseName": null,
+        "HelpMessageResourceId": null
+      }
+    },
+    "PipelineInput": "False",
+    "Position": "named",
+    "Required": "false",
+    "SwitchParameter": false,
+    "TypeName": {
+      "value": "System.UInt32",
+      "required": "true",
+      "variableLength": "false"
+    }
+  },
+  {
+    "Aliases": "ad, d",
+    "DefaultValue": "False",
+    "Description": "To get a list of directories, use the Directory parameter or the Attributes parameter with the Directory property. You can use the Recurse parameter with Directory .",
+    "Globbing": "false",
+    "IsDynamic": true,
+    "Name": "Directory",
+    "ParameterSets": {
+      "__AllParameterSets": {
+        "IsMandatory": false,
+        "Position": -2147483648,
+        "ValueFromPipeline": false,
+        "ValueFromPipelineByPropertyName": false,
+        "ValueFromRemainingArguments": false,
+        "HelpMessage": null,
+        "HelpMessageBaseName": null,
+        "HelpMessageResourceId": null
+      }
+    },
+    "PipelineInput": "False",
+    "Position": "named",
+    "Required": "false",
+    "SwitchParameter": true,
+    "TypeName": {
+      "value": "System.Management.Automation.SwitchParameter",
+      "required": "true",
+      "variableLength": "false"
+    }
+  },
+  {
+    "Aliases": "none",
+    "DefaultValue": "None",
+    "Description": "Specifies an array of one or more string patterns to be matched as the cmdlet gets child items. Any matching item is excluded from the output. Enter a path element or pattern, such as ` .txt` or `A `. Wildcard characters are accepted.\nA trailing asterisk (` `) in the Path * parameter is optional. For example, `-Path C:\\Test\\Logs` or `-Path C:\\Test\\Logs\\ `. If a trailing asterisk (` `) is included, the command recurses into the Path parameter's subdirectories. Without the asterisk (` `), the contents of the Path * parameter are displayed. More details are included in Example 5 and the Notes section.\nThe Include and Exclude parameters can be used together. However, the exclusions are applied after the inclusions, which can affect the final output.",
+    "Globbing": "true",
+    "IsDynamic": false,
+    "Name": "Exclude",
+    "ParameterSets": {
+      "__AllParameterSets": {
+        "IsMandatory": false,
+        "Position": -2147483648,
+        "ValueFromPipeline": false,
+        "ValueFromPipelineByPropertyName": false,
+        "ValueFromRemainingArguments": false,
+        "HelpMessage": null,
+        "HelpMessageBaseName": null,
+        "HelpMessageResourceId": null
+      }
+    },
+    "PipelineInput": "False",
+    "Position": "named",
+    "Required": "false",
+    "SwitchParameter": false,
+    "TypeName": {
+      "value": "System.String[]",
+      "required": "true",
+      "variableLength": "false"
+    }
+  },
+  {
+    "Aliases": "af",
+    "DefaultValue": "False",
+    "Description": "To get a list of files, use the File parameter. You can use the Recurse parameter with File .",
+    "Globbing": "false",
+    "IsDynamic": true,
+    "Name": "File",
+    "ParameterSets": {
+      "__AllParameterSets": {
+        "IsMandatory": false,
+        "Position": -2147483648,
+        "ValueFromPipeline": false,
+        "ValueFromPipelineByPropertyName": false,
+        "ValueFromRemainingArguments": false,
+        "HelpMessage": null,
+        "HelpMessageBaseName": null,
+        "HelpMessageResourceId": null
+      }
+    },
+    "PipelineInput": "False",
+    "Position": "named",
+    "Required": "false",
+    "SwitchParameter": true,
+    "TypeName": {
+      "value": "System.Management.Automation.SwitchParameter",
+      "required": "true",
+      "variableLength": "false"
+    }
+  },
+  {
+    "Aliases": "none",
+    "DefaultValue": "None",
+    "Description": "Specifies a filter to qualify the Path parameter. The FileSystem (../Microsoft.PowerShell.Core/About/about_FileSystem_Provider.md)provider is the only installed PowerShell provider that supports filters. Filters are more efficient than other parameters. The provider applies filter when the cmdlet gets the objects rather than having PowerShell filter the objects after they're retrieved. The filter string is passed to the .NET API to enumerate files. The API only supports `*` and `?` wildcards.",
+    "Globbing": "true",
+    "IsDynamic": false,
+    "Name": "Filter",
+    "ParameterSets": {
+      "__AllParameterSets": {
+        "IsMandatory": false,
+        "Position": 1,
+        "ValueFromPipeline": false,
+        "ValueFromPipelineByPropertyName": false,
+        "ValueFromRemainingArguments": false,
+        "HelpMessage": null,
+        "HelpMessageBaseName": null,
+        "HelpMessageResourceId": null
+      }
+    },
+    "PipelineInput": "False",
+    "Position": "1",
+    "Required": "false",
+    "SwitchParameter": false,
+    "TypeName": {
+      "value": "System.String",
+      "required": "true",
+      "variableLength": "false"
+    }
+  },
+  {
+    "Aliases": "none",
+    "DefaultValue": "False",
+    "Description": "By default, the `Get-ChildItem` cmdlet displays symbolic links to directories found during recursion, but doesn't recurse into them. Use the FollowSymlink parameter to search the directories that target those symbolic links. The FollowSymlink is a dynamic parameter and is supported only in the FileSystem provider.\nThis parameter was introduced in PowerShell 6.0.",
+    "Globbing": "false",
+    "IsDynamic": true,
+    "Name": "FollowSymlink",
+    "ParameterSets": {
+      "__AllParameterSets": {
+        "IsMandatory": false,
+        "Position": -2147483648,
+        "ValueFromPipeline": false,
+        "ValueFromPipelineByPropertyName": false,
+        "ValueFromRemainingArguments": false,
+        "HelpMessage": null,
+        "HelpMessageBaseName": null,
+        "HelpMessageResourceId": null
+      }
+    },
+    "PipelineInput": "False",
+    "Position": "named",
+    "Required": "false",
+    "SwitchParameter": true,
+    "TypeName": {
+      "value": "System.Management.Automation.SwitchParameter",
+      "required": "true",
+      "variableLength": "false"
+    }
+  },
+  {
+    "Aliases": "none",
+    "DefaultValue": "False",
+    "Description": "Allows the cmdlet to get items that otherwise can't be accessed by the user, such as hidden or system files. The Force parameter doesn't override security restrictions. Implementation varies among providers. For more information, see about_Providers (../Microsoft.PowerShell.Core/About/about_Providers.md).",
+    "Globbing": "false",
+    "IsDynamic": false,
+    "Name": "Force",
+    "ParameterSets": {
+      "__AllParameterSets": {
+        "IsMandatory": false,
+        "Position": -2147483648,
+        "ValueFromPipeline": false,
+        "ValueFromPipelineByPropertyName": false,
+        "ValueFromRemainingArguments": false,
+        "HelpMessage": null,
+        "HelpMessageBaseName": null,
+        "HelpMessageResourceId": null
+      }
+    },
+    "PipelineInput": "False",
+    "Position": "named",
+    "Required": "false",
+    "SwitchParameter": true,
+    "TypeName": {
+      "value": "System.Management.Automation.SwitchParameter",
+      "required": "true",
+      "variableLength": "false"
+    }
+  },
+  {
+    "Aliases": "ah, h",
+    "DefaultValue": "False",
+    "Description": "To get only hidden items, use the Hidden parameter or the Attributes parameter with the Hidden property. By default, `Get-ChildItem` doesn't display hidden items. Use the Force parameter to get hidden items.",
+    "Globbing": "false",
+    "IsDynamic": true,
+    "Name": "Hidden",
+    "ParameterSets": {
+      "__AllParameterSets": {
+        "IsMandatory": false,
+        "Position": -2147483648,
+        "ValueFromPipeline": false,
+        "ValueFromPipelineByPropertyName": false,
+        "ValueFromRemainingArguments": false,
+        "HelpMessage": null,
+        "HelpMessageBaseName": null,
+        "HelpMessageResourceId": null
+      }
+    },
+    "PipelineInput": "False",
+    "Position": "named",
+    "Required": "false",
+    "SwitchParameter": true,
+    "TypeName": {
+      "value": "System.Management.Automation.SwitchParameter",
+      "required": "true",
+      "variableLength": "false"
+    }
+  },
+  {
+    "Aliases": "none",
+    "DefaultValue": "None",
+    "Description": "Specifies an array of one or more string patterns to be matched as the cmdlet gets child items. Any matching item is included in the output. Enter a path element or pattern, such as `\"*.txt\"`. Wildcard characters are permitted. The Include parameter is effective only when the command includes the contents of an item, such as `C:\\Windows*`, where the wildcard character specifies the contents of the `C:\\Windows` directory.\nThe Include and Exclude parameters can be used together. However, the exclusions are applied after the inclusions, which can affect the final output.",
+    "Globbing": "true",
+    "IsDynamic": false,
+    "Name": "Include",
+    "ParameterSets": {
+      "__AllParameterSets": {
+        "IsMandatory": false,
+        "Position": -2147483648,
+        "ValueFromPipeline": false,
+        "ValueFromPipelineByPropertyName": false,
+        "ValueFromRemainingArguments": false,
+        "HelpMessage": null,
+        "HelpMessageBaseName": null,
+        "HelpMessageResourceId": null
+      }
+    },
+    "PipelineInput": "False",
+    "Position": "named",
+    "Required": "false",
+    "SwitchParameter": false,
+    "TypeName": {
+      "value": "System.String[]",
+      "required": "true",
+      "variableLength": "false"
+    }
+  },
+  {
+    "Aliases": "PSPath, LP",
+    "DefaultValue": "None",
+    "Description": "Specifies a path to one or more locations. The value of LiteralPath is used exactly as it's typed. No characters are interpreted as wildcards. If the path includes escape characters, enclose it in single quotation marks. Single quotation marks tell PowerShell to not interpret any characters as escape sequences.\nFor more information, see about_Quoting_Rules (../Microsoft.Powershell.Core/About/about_Quoting_Rules.md).",
+    "Globbing": "false",
+    "IsDynamic": false,
+    "Name": "LiteralPath",
+    "ParameterSets": {
+      "LiteralItems": {
+        "IsMandatory": true,
+        "Position": -2147483648,
+        "ValueFromPipeline": false,
+        "ValueFromPipelineByPropertyName": true,
+        "ValueFromRemainingArguments": false,
+        "HelpMessage": null,
+        "HelpMessageBaseName": null,
+        "HelpMessageResourceId": null
+      }
+    },
+    "PipelineInput": "True (ByPropertyName)",
+    "Position": "named",
+    "Required": "true",
+    "SwitchParameter": false,
+    "TypeName": {
+      "value": "System.String[]",
+      "required": "true",
+      "variableLength": "false"
+    }
+  },
+  {
+    "Aliases": "none",
+    "DefaultValue": "False",
+    "Description": "Gets only the names of the items in the location. The output is a string object that can be sent down the pipeline to other commands. Wildcards are permitted.",
+    "Globbing": "true",
+    "IsDynamic": false,
+    "Name": "Name",
+    "ParameterSets": {
+      "__AllParameterSets": {
+        "IsMandatory": false,
+        "Position": -2147483648,
+        "ValueFromPipeline": false,
+        "ValueFromPipelineByPropertyName": false,
+        "ValueFromRemainingArguments": false,
+        "HelpMessage": null,
+        "HelpMessageBaseName": null,
+        "HelpMessageResourceId": null
+      }
+    },
+    "PipelineInput": "False",
+    "Position": "named",
+    "Required": "false",
+    "SwitchParameter": true,
+    "TypeName": {
+      "value": "System.Management.Automation.SwitchParameter",
+      "required": "true",
+      "variableLength": "false"
+    }
+  },
+  {
+    "Aliases": "none",
+    "DefaultValue": "Current directory",
+    "Description": "Specifies a path to one or more locations. Wildcards are accepted. The default location is the current directory (`.`).",
+    "Globbing": "true",
+    "IsDynamic": false,
+    "Name": "Path",
+    "ParameterSets": {
+      "Items": {
+        "IsMandatory": false,
+        "Position": 0,
+        "ValueFromPipeline": true,
+        "ValueFromPipelineByPropertyName": true,
+        "ValueFromRemainingArguments": false,
+        "HelpMessage": null,
+        "HelpMessageBaseName": null,
+        "HelpMessageResourceId": null
+      }
+    },
+    "PipelineInput": "True (ByPropertyName, ByValue)",
+    "Position": "0",
+    "Required": "false",
+    "SwitchParameter": false,
+    "TypeName": {
+      "value": "System.String[]",
+      "required": "true",
+      "variableLength": "false"
+    }
+  },
+  {
+    "Aliases": "ar",
+    "DefaultValue": "False",
+    "Description": "To get only read-only items, use the ReadOnly parameter or the Attributes parameter ReadOnly property.",
+    "Globbing": "false",
+    "IsDynamic": true,
+    "Name": "ReadOnly",
+    "ParameterSets": {
+      "__AllParameterSets": {
+        "IsMandatory": false,
+        "Position": -2147483648,
+        "ValueFromPipeline": false,
+        "ValueFromPipelineByPropertyName": false,
+        "ValueFromRemainingArguments": false,
+        "HelpMessage": null,
+        "HelpMessageBaseName": null,
+        "HelpMessageResourceId": null
+      }
+    },
+    "PipelineInput": "False",
+    "Position": "named",
+    "Required": "false",
+    "SwitchParameter": true,
+    "TypeName": {
+      "value": "System.Management.Automation.SwitchParameter",
+      "required": "true",
+      "variableLength": "false"
+    }
+  },
+  {
+    "Aliases": "s",
+    "DefaultValue": "False",
+    "Description": "Gets the items in the specified locations and in all child items of the locations.",
+    "Globbing": "false",
+    "IsDynamic": false,
+    "Name": "Recurse",
+    "ParameterSets": {
+      "__AllParameterSets": {
+        "IsMandatory": false,
+        "Position": -2147483648,
+        "ValueFromPipeline": false,
+        "ValueFromPipelineByPropertyName": false,
+        "ValueFromRemainingArguments": false,
+        "HelpMessage": null,
+        "HelpMessageBaseName": null,
+        "HelpMessageResourceId": null
+      }
+    },
+    "PipelineInput": "False",
+    "Position": "named",
+    "Required": "false",
+    "SwitchParameter": true,
+    "TypeName": {
+      "value": "System.Management.Automation.SwitchParameter",
+      "required": "true",
+      "variableLength": "false"
+    }
+  },
+  {
+    "Aliases": "as",
+    "DefaultValue": "False",
+    "Description": "Gets only system files and directories. To get only system files and folders, use the System parameter or Attributes parameter System property.",
+    "Globbing": "false",
+    "IsDynamic": true,
+    "Name": "System",
+    "ParameterSets": {
+      "__AllParameterSets": {
+        "IsMandatory": false,
+        "Position": -2147483648,
+        "ValueFromPipeline": false,
+        "ValueFromPipelineByPropertyName": false,
+        "ValueFromRemainingArguments": false,
+        "HelpMessage": null,
+        "HelpMessageBaseName": null,
+        "HelpMessageResourceId": null
+      }
+    },
+    "PipelineInput": "False",
+    "Position": "named",
+    "Required": "false",
+    "SwitchParameter": true,
+    "TypeName": {
+      "value": "System.Management.Automation.SwitchParameter",
+      "required": "true",
+      "variableLength": "false"
+    }
+  }
+]

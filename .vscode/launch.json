@@ -16,7 +16,7 @@
             "name": "Test functionApp",
             "type": "PowerShell",
             "request": "launch",
-            "script": "${workspaceFolder}/explainpowershell.analysisservice.tests/Start-BackendIntegrationTests.ps1",
+            "script": "${workspaceFolder}/explainpowershell.analysisservice.tests/Start-AllBackendTests.ps1",
             "cwd": "${workspaceFolder}",
             "internalConsoleOptions": "openOnSessionStart"
         },

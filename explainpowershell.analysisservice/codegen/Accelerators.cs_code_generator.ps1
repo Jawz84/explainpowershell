@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace ExplainPowershell.SyntaxAnalyzer
 {
-    static partial class Helpers {
+    public static partial class Helpers {
         public static (string, string) ResolveAccelerator(string typeName)
         {
             var dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)

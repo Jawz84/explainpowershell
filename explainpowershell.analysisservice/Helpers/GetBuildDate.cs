@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace explainpowershell.analysisservice
 {
-    static partial class Helpers
+    public static partial class Helpers
     {
         public static DateTime GetBuildDate(Assembly assembly)
         {
