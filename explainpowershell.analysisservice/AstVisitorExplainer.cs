@@ -313,21 +313,10 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
             var parentCommandExplanation = explanations.FirstOrDefault(e => e.Id == exp.ParentId);
 
+            ParameterData matchedParameter;
             try {
-                JsonDocument paramData = JsonSerializer.Deserialize<JsonDocument>(parentCommandExplanation.HelpResult?.Parameters);
-                JsonElement currentParamData = paramData
-                    .RootElement
-                    .EnumerateArray()
-                    .FirstOrDefault(
-                        p =>  p
-                            .GetProperty("Name")
-                            .GetString()
-                            .ToLower() == commandParameterAst
-                                .ParameterName
-                                .ToLower());
-
-                var paramDescription = currentParamData.EnumerateObject().FirstOrDefault(p => p.Name == "Description").Value.GetString();
-                exp.Description = paramDescription;
+                matchedParameter = Helpers.MatchParam(commandParameterAst.ParameterName, parentCommandExplanation.HelpResult?.Parameters);
+                exp.Description = matchedParameter.Description;
             }
             catch {
                 log.LogWarning($"Failed to get Description for parameter '{commandParameterAst.ParameterName}' on command '{parentCommandExplanation.CommandName}'");
