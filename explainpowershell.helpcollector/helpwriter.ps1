@@ -38,6 +38,8 @@ $table = $table.CloudTable
 $commandHelp = Get-Content $helpDataCacheFilename -Raw
 | ConvertFrom-Json -AsHashtable
 
+$counter = 0
+
 foreach ($help in $commandHelp) {
     if (-not $PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent) {
         Write-Progress -Id 2 -Activity "Uploading '$($commandHelp.Count)' Help items." -CurrentOperation "Uploading help for command '$($help.CommandName)'" -PercentComplete ((@($commandHelp).IndexOf($help) + 1) / $commandHelp.Count * 100) 
@@ -50,10 +52,10 @@ foreach ($help in $commandHelp) {
     foreach ($prop in $help.Keys) {
         if ($help[$prop] -notlike $null) {
             try {
-                $entity.Properties.Add($prop, $help.Item($prop))
+                $null = $entity.Properties.Add($prop, $help.Item($prop))
             }
             catch {
-                $entity.Properties.Add([string]$prop, [string]($help.Item($prop) | ConvertTo-Json -depth 5))
+                $null = $entity.Properties.Add([string]$prop, [string]($help.Item($prop) | ConvertTo-Json -depth 5))
             }
         }
     }
@@ -62,15 +64,28 @@ foreach ($help in $commandHelp) {
         $res = $Table.Execute([TableOperation]::InsertOrReplace($entity))
     }
     catch {
-        Write-Warning "Couldn't write '$($entity.RowKey)': $($_.Exception.Message)"
+        Write-Host "Couldn't write '$($entity.RowKey)': $($_.Exception.Message)" -ForegroundColor Yellow
         continue
     }
 
     while ($null -eq $res) {
-        Write-Warning 'No response writing '$($entity.RowKey)', retrying in 2 seconds'
+        Write-Host 'No response writing '$($entity.RowKey)', retrying in 2 seconds' -ForegroundColor Yellow
         Start-Sleep -Seconds 2
         $res = $Table.Execute([TableOperation]::InsertOrReplace($entity))
     }
 
+    $counter++
+
     Write-Verbose ("{2,-5} {0,-20} {1}" -f $res.Result.Properties.ModuleName, $res.Result.Properties.CommandName, $res.HttpStatusCode)
+}
+
+if ($counter -eq 0) {
+    throw "No items were sucessfully written to DB!"
+}
+elseif ($counter -lt $commandHelp.Count) {
+    $succesPercentage = "{0:f1} %" -f ($counter/$commandHelp.Count*100)
+    Write-Host -ForegroundColor Yellow "Wrote $counter of $($commandHelp.Count) items to DB, that's $succesPercentage."
+}
+else {
+    Write-Host -ForegroundColor Cyan "Succesfully wrote $counter of $($commandHelp.Count) items to DB, 100% complete!"
 }

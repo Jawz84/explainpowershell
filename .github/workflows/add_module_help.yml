@@ -31,9 +31,14 @@ jobs:
           ModulesToProcess = @(Get-Module -ListAvailable $env:MODULE_NAME)
           verbose = $true
         }
+
         ./explainpowershell.helpcollector/helpcollector.ps1 @helpCollectorSplat
+        | Tee-Object -variable out
         | ConvertTo-Json
         | Out-File -path "./explainpowershell.helpcollector/help.$env:MODULE_NAME.cache.json"
+
+        $fileSize = (Get-Item "./explainpowershell.helpcollector/help.$env:MODULE_NAME.cache.json").Length / 1Kb
+        Write-Host "Output file size: $fileSize Kb, containing $($out.count) help items" -ForegroundColor Cyan
 
     - name: Authenticate with Azure
       uses: azure/login@v1
