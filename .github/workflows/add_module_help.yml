@@ -80,7 +80,7 @@ jobs:
         uses: jungwinter/comment@v1
         with:
           type: update
-          issue_number: '43'
-          comment_id: github.event.comment.id
+          issue_number: ${{ github.event.issue.number }}
+          comment_id: ${{ github.event.comment.id }}
           body: '# ${{ github.event.comment.body }}\n\nBot says: Oops @${{ github.event.sender.login }}, I was not able to process that module, sorry.. :-('
           token: ${{ secrets.GITHUB_TOKEN }}
