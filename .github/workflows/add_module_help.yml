@@ -19,7 +19,7 @@ jobs:
       with:
         type: create
         issue_number: ${{ github.event.issue.number }}
-        body: "#. Hi @${{ github.event.sender.login }}, I've started working on your module '${{ github.event.comment.body }}'. You can follow the details of my progress under Actions, but I will report back here when I'm done too."
+        body: "#. Hi @${{ github.event.sender.login }}, I've started working on your module '${{ github.event.comment.body }}'. You can follow the details [under Actions](https://github.com/Jawz84/explainpowershell/actions/runs/${{ github.run_id }}), but I will report back here when I'm done too."
         token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: install module if necessary
@@ -85,5 +85,5 @@ jobs:
         type: edit
         issue_number: ${{ github.event.issue.number }}
         comment_id: ${{ steps.create.outputs.id }}
-        body: "#. Sorry @${{ github.event.sender.login }} cc @jawz84, I was not able to process module '${{ github.event.comment.body }}' on my own.. :-("
+        body: "#. Sorry @${{ github.event.sender.login }} cc @jawz84, I was not able to process module '${{ github.event.comment.body }}' on my own.. :-( [See details here](https://github.com/Jawz84/explainpowershell/actions/runs/${{ github.run_id }})"
         token: ${{ secrets.GITHUB_TOKEN }}
