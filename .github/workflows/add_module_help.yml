@@ -19,8 +19,8 @@ jobs:
       with:
         type: create
         issue_number: ${{ github.event.issue.number }}
-        body: "## Bot says: Hi @${{ github.event.sender.login }}, I've started working on your module, you can follow details of my progress under Actions, but I will report back here when I'm done too."
-        token: ${{ secrets.GITHUB_TOKEN }} 
+        body: "#. Bot says: Hi @${{ github.event.sender.login }}, I've started working on your module, you can follow details of my progress under Actions, but I will report back here when I'm done too."
+        token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: install module if necessary
       shell: pwsh
@@ -71,17 +71,19 @@ jobs:
     - name: Comment back saying the module was added successfully
       if: success()
       uses: jungwinter/comment@v1
+      id: create
       with:
-        type: update
-        comment_id: ${{ steps.create.outputs.id }}
-        body: '## ${{ github.event.comment.body }}\n\nBot says: Hi @${{ github.event.sender.login }}, your module was added successfully! :+1:'
+        type: create
+        issue_number: ${{ github.event.issue.number }}
+        body: '#. ${{ github.event.comment.body }}\n\nBot says: Hi @${{ github.event.sender.login }}, your module was added successfully! :+1:'
         token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Comment back saying the module was added successfully
       if: failure()
       uses: jungwinter/comment@v1
+      id: create
       with:
-        type: update
-        comment_id: ${{ steps.create.outputs.id }}
-        body: '## ${{ github.event.comment.body }}\n\nBot says: Sorry @${{ github.event.sender.login }} cc @Jawz_84, I was not able to process that module.. :-('
+        type: create
+        issue_number: ${{ github.event.issue.number }}
+        body: '#. ${{ github.event.comment.body }}\n\nBot says: Sorry @${{ github.event.sender.login }} cc @Jawz_84, I was not able to process that module.. :-('
         token: ${{ secrets.GITHUB_TOKEN }}
