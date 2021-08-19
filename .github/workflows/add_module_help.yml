@@ -19,9 +19,8 @@ jobs:
       with:
         type: create
         issue_number: ${{ github.event.issue.number }}
-        comment_id: ${{ github.event.comment.id }}
         body: "#. Bot says: Hi @${{ github.event.sender.login }}, I've started working on your module, you can follow details of my progress under Actions, but I will report back here when I'm done too."
-        token: ${{ secrets.GITHUB_TOKEN }} 
+        token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: install module if necessary
       shell: pwsh
