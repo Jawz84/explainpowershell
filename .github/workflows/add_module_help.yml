@@ -13,6 +13,16 @@ jobs:
       MODULE_NAME: ${{ github.event.comment.body }}
     steps:
 
+    - name: Comment back saying the process has started
+      uses: jungwinter/comment@v1
+      id: create
+      with:
+        type: create
+        issue_number: ${{ github.event.issue.number }}
+        comment_id: ${{ github.event.comment.id }}
+        body: "#. Bot says: Hi @${{ github.event.sender.login }}, I've started working on your module, you can follow details of my progress under Actions, but I will report back here when I'm done too."
+        token: ${{ secrets.GITHUB_TOKEN }} 
+
     - name: install module if necessary
       shell: pwsh
       run: |
@@ -58,29 +68,23 @@ jobs:
         inlineScript: |
           ./explainpowershell.helpcollector/helpwriter.ps1 -HelpDataCacheFilename "./explainpowershell.helpcollector/help.$env:MODULE_NAME.cache.json" -IsProduction
         azPSVersion: '6.1.0'
-  reportBackSuccess:
-    if: success()
-    needs: moduleHelpAdd
-    runs-on: ubuntu-latest
-    steps:
-      - name: Comment back saying the module was added successfully
-        uses: jungwinter/comment@v1
-        with:
-          type: update
-          issue_number: '43'
-          comment_id: github.event.comment.id
-          body: '# ${{ github.event.comment.body }}\n\nBot says: Hi @${{ github.event.sender.login }}, your module was added successfully! :+1:'
-          token: ${{ secrets.GITHUB_TOKEN }}
-  reportBackFailure:
-    if: failure()
-    needs: moduleHelpAdd
-    runs-on: ubuntu-latest
-    steps:
-      - name: Comment back saying the module was added successfully
-        uses: jungwinter/comment@v1
-        with:
-          type: update
-          issue_number: ${{ github.event.issue.number }}
-          comment_id: ${{ github.event.comment.id }}
-          body: '# ${{ github.event.comment.body }}\n\nBot says: Oops @${{ github.event.sender.login }}, I was not able to process that module, sorry.. :-('
-          token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Comment back saying the module was added successfully
+      if: success()
+      uses: jungwinter/comment@v1
+      with:
+        type: edit
+        issue_number: ${{ github.event.issue.number }}
+        comment_id: ${{ steps.create.outputs.id }}
+        body: '#. ${{ github.event.comment.body }}\n\nBot says: Hi @${{ github.event.sender.login }}, your module was added successfully! :+1:'
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Comment back saying the module was added successfully
+      if: failure()
+      uses: jungwinter/comment@v1
+      with:
+        type: edit
+        issue_number: ${{ github.event.issue.number }}
+        comment_id: ${{ steps.create.outputs.id }}
+        body: '#. ${{ github.event.comment.body }}\n\nBot says: Sorry @${{ github.event.sender.login }} cc @Jawz_84, I was not able to process that module.. :-('
+        token: ${{ secrets.GITHUB_TOKEN }}
