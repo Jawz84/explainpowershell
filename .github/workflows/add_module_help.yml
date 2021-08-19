@@ -7,7 +7,7 @@ on:
 jobs:
   moduleHelpAdd:
     name: Add help for module '${{ github.event.comment.body }}'
-    if: ${{ github.event.issue.number == 43 }}
+    if: github.event.issue.number == 43 && ! startsWith(github.event.comment.body, '#')
     runs-on: ubuntu-latest
     env:
       MODULE_NAME: ${{ github.event.comment.body }}
@@ -58,3 +58,29 @@ jobs:
         inlineScript: |
           ./explainpowershell.helpcollector/helpwriter.ps1 -HelpDataCacheFilename "./explainpowershell.helpcollector/help.$env:MODULE_NAME.cache.json" -IsProduction
         azPSVersion: '6.1.0'
+  reportBackSuccess:
+    if: success()
+    needs: moduleHelpAdd
+    runs-on: ubuntu-latest
+    steps:
+      - name: Comment back saying the module was added successfully
+        uses: jungwinter/comment@v1
+        with:
+          type: update
+          issue_number: '43'
+          comment_id: github.event.comment.id
+          body: '# ${{ github.event.comment.body }}\n\nBot says: Hi @${{ github.event.sender.login }}, your module was added successfully! :+1:'
+          token: ${{ secrets.GITHUB_TOKEN }}
+  reportBackFailure:
+    if: failure()
+    needs: moduleHelpAdd
+    runs-on: ubuntu-latest
+    steps:
+      - name: Comment back saying the module was added successfully
+        uses: jungwinter/comment@v1
+        with:
+          type: update
+          issue_number: '43'
+          comment_id: github.event.comment.id
+          body: '# ${{ github.event.comment.body }}\n\nBot says: Oops @${{ github.event.sender.login }}, I was not able to process that module, sorry.. :-('
+          token: ${{ secrets.GITHUB_TOKEN }}
