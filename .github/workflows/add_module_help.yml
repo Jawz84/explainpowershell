@@ -19,8 +19,11 @@ jobs:
         $env:MODULE_NAME = $env:MODULE_NAME.Trim()
         if (-not (Get-Module -ListAvailable -Name $env:MODULE_NAME)) {
           Install-Module -Force $env:MODULE_NAME.replace('*','')
+          Write-Output "Module '$env:MODULE_NAME' installed"
         }
-        Write-Output "Module '$env:MODULE_NAME' installed"
+        else {
+          Write-Output "Module '$env:MODULE_NAME' present"
+        }
 
     - uses: actions/checkout@v1
 
@@ -39,6 +42,9 @@ jobs:
 
         $fileSize = (Get-Item "./explainpowershell.helpcollector/help.$env:MODULE_NAME.cache.json").Length / 1Kb
         Write-Host "Output file size: $fileSize Kb, containing $($out.count) help items" -ForegroundColor Cyan
+        if ($fileSize -eq 0) {
+          throw "The script was unable to acquire help automatically. Feel free to create an issue for this."
+        }
 
     - name: Authenticate with Azure
       uses: azure/login@v1
