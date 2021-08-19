@@ -19,7 +19,7 @@ jobs:
       with:
         type: create
         issue_number: ${{ github.event.issue.number }}
-        body: "# Bot says: Hi @${{ github.event.sender.login }}, I've started working on your module, you can follow details of my progress under Actions, but I will report back here when I'm done too."
+        body: "## Bot says: Hi @${{ github.event.sender.login }}, I've started working on your module, you can follow details of my progress under Actions, but I will report back here when I'm done too."
         token: ${{ secrets.GITHUB_TOKEN }} 
 
     - name: install module if necessary
@@ -74,7 +74,7 @@ jobs:
       with:
         type: update
         comment_id: ${{ steps.create.outputs.id }}
-        body: '# ${{ github.event.comment.body }}\n\nBot says: Hi @${{ github.event.sender.login }}, your module was added successfully! :+1:'
+        body: '## ${{ github.event.comment.body }}\n\nBot says: Hi @${{ github.event.sender.login }}, your module was added successfully! :+1:'
         token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Comment back saying the module was added successfully
@@ -83,5 +83,5 @@ jobs:
       with:
         type: update
         comment_id: ${{ steps.create.outputs.id }}
-        body: '# ${{ github.event.comment.body }}\n\nBot says: Sorry @${{ github.event.sender.login }} cc @Jawz_84, I was not able to process that module.. :-('
+        body: '## ${{ github.event.comment.body }}\n\nBot says: Sorry @${{ github.event.sender.login }} cc @Jawz_84, I was not able to process that module.. :-('
         token: ${{ secrets.GITHUB_TOKEN }}
