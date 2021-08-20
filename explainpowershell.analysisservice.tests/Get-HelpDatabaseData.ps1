@@ -15,10 +15,10 @@ function Get-HelpDatabaseData {
         [switch]$IsProduction,
 
         [parameter(ParameterSetName ="production")]
-        [String]$StorageAccountName = 'storageexplainpowershell',
+        [String]$StorageAccountName = 'explainpowershell',
 
         [parameter(ParameterSetName ="production")]
-        [String]$ResourceGroupName = 'explainpowershell'
+        [String]$ResourceGroupName = 'powershellexplainer'
     )
 
     $tableName = 'HelpData'
