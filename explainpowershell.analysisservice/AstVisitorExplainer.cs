@@ -236,6 +236,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
         {
             string cmdName = commandAst.GetCommandName();
             string resolvedCmd = Helpers.ResolveAlias(cmdName) ?? cmdName;
+
             if (string.IsNullOrEmpty(resolvedCmd))
             {
                 resolvedCmd = cmdName;
@@ -243,36 +244,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
             HelpEntity helpResult = HelpTableQuery(resolvedCmd);
             var description = helpResult?.Synopsis?.ToString() ?? "";
-
             resolvedCmd = helpResult?.CommandName ?? resolvedCmd;
-
-            // TODO: Create something better for this. BindCommand only binds commands that are loaded, and it's slow.
-            // I've set it to not resolve, because that speeds things up, and a lot of the times it won't matter.
-            var bindResult = StaticParameterBinder.BindCommand(commandAst, false);
-
-            StringBuilder boundParameters = new StringBuilder();
-            foreach (var p in bindResult.BoundParameters.Values)
-            {
-                if (p.Parameter != null)
-                {
-                    boundParameters
-                        .Append(" -")
-                        .Append(p.Parameter.Name);
-
-                    if (!p.Parameter.SwitchParameter)
-                    {
-                        boundParameters
-                            .Append(' ')
-                            .Append(p.Value.Extent.Text);
-                    }
-                }
-                else
-                {
-                    boundParameters
-                        .Append(' ')
-                        .Append(p.Value.Extent.Text);
-                }
-            }
 
             ExpandAliasesInExtent(commandAst, resolvedCmd);
 
