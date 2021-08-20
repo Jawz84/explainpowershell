@@ -10,8 +10,6 @@ using explainpowershell.SyntaxAnalyzer.ExtensionMethods;
 using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.Logging;
 
-// find 'TODO(?!:)'
-
 namespace ExplainPowershell.SyntaxAnalyzer
 {
     class AstVisitorExplainer : AstVisitor2
