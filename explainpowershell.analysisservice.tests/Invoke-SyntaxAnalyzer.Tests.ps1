@@ -7,6 +7,21 @@ Describe "Invoke-SyntaxAnalyzer" {
         . $PSScriptRoot/Test-IsAzuriteUp.ps1
     }
 
+    It "Provides descriptions for parameters, even if some values are 'null' in the underlying json" {
+        $code = 'get-help -full'
+        [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
+        $content = $result.Content | ConvertFrom-Json
+        $content.Explanations[1].Description.StartsWith("Displays the entire help article for a cmdlet.") | Should -BeTrue
+    }
+
+    It "Provides descriptions for parameters, also where the parameter appears to be abmiguous, but one of them is a dynamic parameter (static params take precedence)" {
+        $code = 'get-childitem -r'
+        [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
+        $content = $result.Content | ConvertFrom-Json
+        $content.Explanations[1].Description | Should -BeExactly "Gets the items in the specified locations and in all child items of the locations."
+        $content.Explanations[1].CommandName | Should -Not -BeNullOrEmpty
+    }
+
     It "Provides descriptions for parameters" {
         $code = 'get-childitem -path "foo"'
         [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code

@@ -276,20 +276,90 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitCommandParameter(CommandParameterAst commandParameterAst)
         {
-            var exp = new Explanation() {
-                    CommandName = "Command Parameter",
-                    TextToHighlight = commandParameterAst.ParameterName,
-                }.AddDefaults(commandParameterAst, explanations);
+            var exp = new Explanation()
+            {
+                CommandName = "Parameter",
+                TextToHighlight = commandParameterAst.ParameterName,
+            }.AddDefaults(commandParameterAst, explanations);
 
             var parentCommandExplanation = explanations.FirstOrDefault(e => e.Id == exp.ParentId);
 
             ParameterData matchedParameter;
-            try {
-                matchedParameter = Helpers.MatchParam(commandParameterAst.ParameterName, parentCommandExplanation.HelpResult?.Parameters);
-                exp.Description = matchedParameter.Description;
-            }
-            catch {
-                log.LogWarning($"Failed to get Description for parameter '{commandParameterAst.ParameterName}' on command '{parentCommandExplanation.CommandName}'");
+            if (parentCommandExplanation.HelpResult?.Parameters != null)
+            {
+                try
+                {
+                    matchedParameter = Helpers.MatchParam(commandParameterAst.ParameterName, parentCommandExplanation.HelpResult?.Parameters);
+
+                    if (matchedParameter != null) {
+
+                        if (!string.Equals(commandParameterAst.ParameterName, matchedParameter.Name, StringComparison.OrdinalIgnoreCase))
+                        {
+                            exp.CommandName += $" '-{matchedParameter.Name}'";
+                        }
+
+                        if (matchedParameter.SwitchParameter ?? false)
+                        {
+                            exp.CommandName = "Switch " + exp.CommandName;
+                        }
+
+                        if (string.Equals(matchedParameter.Required, "true", StringComparison.OrdinalIgnoreCase))
+                        {
+                            exp.CommandName = "Mandatory " + exp.CommandName;
+                        }
+
+                        if (!(matchedParameter.SwitchParameter ?? false) && !string.IsNullOrEmpty(matchedParameter.TypeName.value))
+                        {
+                            exp.CommandName += $" of type [{matchedParameter.TypeName.value}]";
+                        }
+
+                        if (string.Equals(matchedParameter.Globbing, "true", StringComparison.OrdinalIgnoreCase))
+                        {
+                            exp.CommandName += " (supports wildcards like '*' and '?')";
+                        }
+
+                        if (!string.IsNullOrEmpty(
+                            parentCommandExplanation
+                                .HelpResult?
+                                .ParameterSetNames))
+                        {
+                            var availableParamSets = parentCommandExplanation
+                                .HelpResult?
+                                .ParameterSetNames
+                                .Split(", ")
+                                .Append("__AllParameterSets")
+                                .ToArray();
+
+                            var paramSetData = Helpers.GetParameterSetData(matchedParameter, availableParamSets);
+
+                            if (paramSetData.Count > 1)
+                            {
+                                exp.Description += $"\nThis parameter is present in more than one parameter set: {string.Join(", ", paramSetData.Select(p => p.ParameterSetName))}";
+                            }
+                            if (paramSetData.Count == 1)
+                            {
+                                var paramSetName = paramSetData.Select(p => p.ParameterSetName).FirstOrDefault();
+                                if (paramSetName == "__AllParameterSets")
+                                {
+                                    if (availableParamSets.Length > 1)
+                                    {
+                                        exp.Description += $"\nThis parameter is present in all parameter sets.";
+                                    }
+                                }
+                                else
+                                {
+                                    exp.Description += $"\nThis parameter is in parameter set: {paramSetName}";
+                                }
+                            }
+                        }
+
+                        exp.Description = matchedParameter.Description;
+                    }
+                }
+                catch (Exception e)
+                {
+                    log.LogWarning($"Failed to get Description for parameter '{commandParameterAst.ParameterName}' on command '{parentCommandExplanation.CommandName}': {e.Message}");
+                }
             }
 
             explanations.Add(exp);

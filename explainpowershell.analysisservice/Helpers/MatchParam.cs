@@ -11,7 +11,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
     {
         public static ParameterData MatchParam(string foundParameter, string json)
         {
-            var doc = JsonSerializer.Deserialize<List<ParameterData>>(json);
+            var doc = JsonSerializer.Deserialize<List<ParameterData>>(json, new JsonSerializerOptions() {IgnoreNullValues = true});
             List<ParameterData> matchedParam = new List<ParameterData>();
 
             // First check for aliases, because they take precendence
@@ -23,8 +23,17 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
             if (matchedParam.Count == 0)
             {
-                // If no aliases match, then try partial parameter names (aliases take precedence)
-                matchedParam = doc.Where(p => p.Name.StartsWith(foundParameter, StringComparison.OrdinalIgnoreCase)).ToList();
+                // If no aliases match, then try partial parameter names for static params (aliases and static params take precedence)
+                matchedParam = doc.Where(
+                    p => ! (p.IsDynamic ?? false) && 
+                        p.Name.StartsWith(foundParameter, StringComparison.OrdinalIgnoreCase)).ToList();
+            }
+
+            if (matchedParam.Count == 0)
+            {
+                // If no aliases or static params match, then try partial parameter names for dynamic params too.
+                matchedParam = doc.Where(
+                    p => p.Name.StartsWith(foundParameter, StringComparison.OrdinalIgnoreCase)).ToList();
             }
 
             if (matchedParam.Count == 0)
