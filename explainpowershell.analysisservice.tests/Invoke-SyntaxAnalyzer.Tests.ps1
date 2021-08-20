@@ -12,7 +12,7 @@ Describe "Invoke-SyntaxAnalyzer" {
         [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
         $content = $result.Content | ConvertFrom-Json
         $content.Explanations[1].Description | Should -BeExactly 'Specifies a path to one or more locations. Wildcards are accepted. The default location is the current directory (`.`).'
-        $content.Explanations[1].CommandName | Should -BeExactly "Command Parameter"
+        $content.Explanations[1].CommandName | Should -BeExactly "Parameter of type [System.String[]] (supports wildcards like '*' and '?')"
     }
 
     It "Does not provide descriptions for non-existing parameters" {
@@ -20,7 +20,7 @@ Describe "Invoke-SyntaxAnalyzer" {
         [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
         $content = $result.Content | ConvertFrom-Json
         $content.Explanations[1].Description | Should -BeNullOrEmpty
-        $content.Explanations[1].CommandName | Should -BeExactly "Command Parameter"
+        $content.Explanations[1].CommandName | Should -BeExactly "Parameter"
     }
 
     It "Explains a hash table" {
