@@ -1,23 +1,23 @@
 using namespace Microsoft.Azure.Cosmos.Table
 
 function Get-HelpDatabaseData {
-    [CmdletBinding(DefaultParameterSetName="local")]
+    [CmdletBinding(DefaultParameterSetName = 'local')]
     param(
-        [parameter(ParameterSetName="local", Position="0")]
-        [parameter(ParameterSetName="production", Position="0")]
+        [parameter(ParameterSetName = 'local', Position = '0')]
+        [parameter(ParameterSetName = 'production', Position = '0')]
         [string]$RowKey,
 
-        [parameter(ParameterSetName="local")]
-        [parameter(ParameterSetName="production")]
+        [parameter(ParameterSetName = 'local')]
+        [parameter(ParameterSetName = 'production')]
         [switch]$ReturnTable,
 
-        [parameter(ParameterSetName="production")]
+        [parameter(ParameterSetName = 'production')]
         [switch]$IsProduction,
 
-        [parameter(ParameterSetName ="production")]
+        [parameter(ParameterSetName = 'production')]
         [String]$StorageAccountName = 'explainpowershell',
 
-        [parameter(ParameterSetName ="production")]
+        [parameter(ParameterSetName = 'production')]
         [String]$ResourceGroupName = 'powershellexplainer'
     )
 
@@ -25,8 +25,7 @@ function Get-HelpDatabaseData {
     $partitionKey = 'CommandHelp'
 
     if ($IsProduction) {
-        Get-AzContext
-        . ../explainpowershell.helpcollector/New-SasToken.ps1
+        . /workspace/explainpowershell.helpcollector/New-SasToken.ps1
         $sasToken = New-SasToken -ResourceGroupName $ResourceGroupName -StorageAccountName $storageAccountName
         $storageCtx = New-AzStorageContext -StorageAccountName $storageAccountName -SasToken $sasToken
     }
@@ -38,6 +37,13 @@ function Get-HelpDatabaseData {
     $table = (Get-AzStorageTable -Context $storageCtx -Name $tableName).CloudTable
     if ($ReturnTable) {
         return $table
+    }
+    elseif (-not $rowKey) {
+        $query = [TableQuery]@{
+            FilterString = "PartitionKey eq '$partitionKey'"
+        }
+
+        return $table.ExecuteQuery($query)
     }
     else {
         $query = [TableQuery]@{
