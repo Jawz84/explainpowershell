@@ -142,7 +142,7 @@ foreach ($mod in $ModulesToProcess) {
                 Write-Verbose "$($cmd.name) - No command parameter data"
             }
             [pscustomobject]@{
-                Aliases         = $_.aliases ?? $cmdParam.Aliases
+                Aliases         = ($_.aliases -join ", ") ?? ($cmdParam.Aliases -join ", ")
                 DefaultValue    = $_.defaultValue
                 Description     = $_.Description.Text -join ''
                 Globbing        = $_.globbing
