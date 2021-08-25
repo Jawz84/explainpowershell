@@ -5,7 +5,7 @@ using ExplainPowershell.SyntaxAnalyzer;
 
 namespace ExplainPowershell.SyntaxAnalyzer.Tests
 {
-    public class Tests
+    public class MatchParamTests
     {
         private string filename;
         private string json;
@@ -20,7 +20,7 @@ namespace ExplainPowershell.SyntaxAnalyzer.Tests
         [Test]
         public void ShouldThrowIfAmbiguous()
         {
-            var param = "fi";
+            var param = "a";
             Assert.Throws<ArgumentException>(() => Helpers.MatchParam(param, json));
         }
 
