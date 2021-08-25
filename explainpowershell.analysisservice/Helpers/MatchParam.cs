@@ -18,7 +18,11 @@ namespace ExplainPowershell.SyntaxAnalyzer
             if (!string.Equals(foundParameter, "none", StringComparison.OrdinalIgnoreCase))
             {
                 matchedParam = doc.Where(
-                    p => p.Aliases.Split(", ").ToList().Contains(foundParameter, StringComparer.OrdinalIgnoreCase)).ToList();
+                    p => p.Aliases.Split(", ")
+                        .All(
+                            q => q.StartsWith(
+                                foundParameter,
+                                StringComparison.InvariantCultureIgnoreCase))).ToList();
             }
 
             if (matchedParam.Count == 0)
