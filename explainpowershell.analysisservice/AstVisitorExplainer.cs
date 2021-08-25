@@ -318,6 +318,8 @@ namespace ExplainPowershell.SyntaxAnalyzer
                             exp.CommandName += " (supports wildcards like '*' and '?')";
                         }
 
+                        exp.Description = matchedParameter.Description;
+
                         if (!string.IsNullOrEmpty(
                             parentCommandExplanation
                                 .HelpResult?
@@ -352,8 +354,6 @@ namespace ExplainPowershell.SyntaxAnalyzer
                                 }
                             }
                         }
-
-                        exp.Description = matchedParameter.Description;
                     }
                 }
                 catch (Exception e)
