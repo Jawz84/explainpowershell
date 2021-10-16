@@ -18,7 +18,7 @@ Describe "Invoke-SyntaxAnalyzer" {
         $code = 'get-childitem -r'
         [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
         $content = $result.Content | ConvertFrom-Json
-        $content.Explanations[1].Description | Should -BeExactly "Gets the items in the specified locations and in all child items of the locations."
+        $content.Explanations[1].Description | Should -BeExactly "Gets the items in the specified locations and in all child items of the locations.`nThis parameter is present in all parameter sets."
         $content.Explanations[1].CommandName | Should -Not -BeNullOrEmpty
     }
 
@@ -26,7 +26,7 @@ Describe "Invoke-SyntaxAnalyzer" {
         $code = 'get-childitem -path "foo"'
         [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
         $content = $result.Content | ConvertFrom-Json
-        $content.Explanations[1].Description | Should -BeExactly 'Specifies a path to one or more locations. Wildcards are accepted. The default location is the current directory (`.`).'
+        $content.Explanations[1].Description | Should -BeExactly "Specifies a path to one or more locations. Wildcards are accepted. The default location is the current directory (``.``).`nThis parameter is in parameter set: Items"
         $content.Explanations[1].CommandName | Should -BeExactly "Parameter of type [System.String[]] (supports wildcards like '*' and '?')"
     }
 
