@@ -24,9 +24,39 @@ namespace explainpowershell.analysisservice
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequest req,
             [Table(HelpTableName)] CloudTable cloudTable)
         {
-            TableQuery<HelpEntity> query = new TableQuery<HelpEntity>()
-                .Select(new string[] { "CommandName", "ModuleName" });
+            HelpMetaData helpMetaData;
+            var refresh = req.Query["refresh"].ToString();
 
+            if (refresh == "true") 
+            {
+                helpMetaData = CalculateMetaData(cloudTable);
+            }
+            else 
+            {
+                var getHelpMetaDataQuery = new TableQuery<HelpMetaData>()
+                    .Where(
+                        TableQuery
+                            .GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, "HelpMetaData"));
+                helpMetaData = cloudTable.ExecuteQuery(getHelpMetaDataQuery).FirstOrDefault();
+
+                if ( helpMetaData == null )
+                {
+                    helpMetaData = CalculateMetaData(cloudTable);
+                }
+            }
+
+            var json = JsonSerializer.Serialize(helpMetaData);
+
+            return new OkObjectResult(json);
+        }
+
+        public static HelpMetaData CalculateMetaData(CloudTable cloudTable)
+        {
+            TableQuery<HelpEntity> query = new TableQuery<HelpEntity>()
+                .Where(
+                    TableQuery
+                        .GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, "CommandHelp"))
+                .Select(new string[] { "CommandName", "ModuleName" });
 
             var tableQueryResult = cloudTable.ExecuteQuery(query);
 
@@ -43,6 +73,8 @@ namespace explainpowershell.analysisservice
 
             var helpMetaData = new HelpMetaData()
             {
+                PartitionKey = "HelpMetaData",
+                RowKey = "HelpMetaData",
                 NumberOfAboutArticles = numAbout,
                 NumberOfCommands = tableQueryResult.Count() - numAbout,
                 NumberOfModules = moduleNames.Count(),
@@ -50,9 +82,10 @@ namespace explainpowershell.analysisservice
                 LastPublished = Helpers.GetBuildDate(Assembly.GetExecutingAssembly()).ToLongDateString()
             };
 
-            var json = JsonSerializer.Serialize(helpMetaData);
+            // write helpMetaData to cloudTable
+            _ = cloudTable.Execute(TableOperation.InsertOrReplace(helpMetaData));
 
-            return new OkObjectResult(json);
+            return helpMetaData;
         }
     }
 }

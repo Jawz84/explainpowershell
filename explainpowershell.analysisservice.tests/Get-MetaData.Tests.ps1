@@ -5,7 +5,23 @@ BeforeAll {
 }
 
 Describe "Get-MetaData" {
-    It "Returns Data about the database" {
+    It "Calculates Data about the database" {
+        $metaData = Get-MetaData -Refresh
+
+        $metaData.psobject.Properties.Name | Should -Be @(
+            'NumberOfCommands'
+            'NumberOfAboutArticles'
+            'NumberOfModules'
+            'ModuleNames'
+            'LastPublished'
+            'PartitionKey'
+            'RowKey'
+            'Timestamp'
+            'ETag')
+        $metaData.LastPublished | Should -Not -BeNullOrEmpty
+    }
+
+    It "Returns cached Data about the database" {
         $metaData = Get-MetaData
 
         $metaData.psobject.Properties.Name | Should -Be @(
@@ -13,7 +29,11 @@ Describe "Get-MetaData" {
             'NumberOfAboutArticles'
             'NumberOfModules'
             'ModuleNames'
-            'LastPublished')
+            'LastPublished'
+            'PartitionKey'
+            'RowKey'
+            'Timestamp'
+            'ETag')
         $metaData.LastPublished | Should -Not -BeNullOrEmpty
     }
 }
