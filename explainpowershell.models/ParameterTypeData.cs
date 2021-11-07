@@ -1,9 +1,14 @@
+using System.Text.Json.Serialization;
+
 namespace explainpowershell.models
 {
     public class ParameterTypeData
     {
-        public string value {get; set;}
-        public string required {get; set;}
-        public string variableLength {get; set;}
+        [JsonPropertyName("value")]
+        public string Value {get; set;}
+        [JsonPropertyName("required")]
+        public string Required {get; set;}
+        [JsonPropertyName("variableLength")]
+        public string VariableLength {get; set;}
     }
 }

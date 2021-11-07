@@ -5,8 +5,11 @@ param(
     [string]$Output = 'Detailed'
 )
 
-$c = New-PesterConfiguration
-$c.Output.Verbosity.Value = $Output
+$c = New-PesterConfiguration -Hashtable @{
+    Output = @{
+        Verbosity = $Output
+    }
+}
 
 $opp = $ProgressPreference
 $ProgressPreference = 'SilentlyContinue'
