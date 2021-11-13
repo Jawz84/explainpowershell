@@ -3,7 +3,7 @@ param(
     [Switch]$Force
 )
 
-if ($IsLinux && $env:DOTNET_RUNNING_IN_CONTAINER) {
+if ($IsLinux -and $env:DOTNET_RUNNING_IN_CONTAINER) {
     Write-Host -ForegroundColor Green "We are running in a container, make sure we have permissions on all folders in the repo, to be able to build and run the application."
     $testOwnershipAndPermissions = ls -l $PSScriptRoot | Select-String bootstrap -Raw
 
@@ -32,15 +32,19 @@ foreach ($module in $modules) {
 }
 
 Import-Module Posh-Git
-Import-UnixCompleters
+if ($IsLinux) {
+    Import-UnixCompleters
+}
 
 Write-Host -ForegroundColor Green "Checking PowerShell '`$profile.CurrentUserAllHosts'.."
 $commandsToAddToProfile = @(
     'Import-Module Posh-Git',
-    'Set-PSReadLineOption -EditMode Windows'
-    'Set-PSReadLineKeyHandler -Chord tab -Function MenuComplete'
-    'Set-UnixCompleter -ShellType Bash'
-    'Import-UnixCompleters'
+    'if ($isLinux) {'
+    '  Set-PSReadLineOption -EditMode Windows'
+    '  Set-PSReadLineKeyHandler -Chord tab -Function MenuComplete'
+    '  Set-UnixCompleter -ShellType Bash'
+    '  Import-UnixCompleters'
+    '}'
     ". $PSScriptRoot/explainpowershell.analysisservice.tests/Invoke-SyntaxAnalyzer.ps1"
     ". $PSScriptRoot/explainpowershell.analysisservice.tests/Get-HelpDatabaseData.ps1"
     ". $PSScriptRoot/explainpowershell.analysisservice.tests/Get-MetaData.ps1"
@@ -65,7 +69,7 @@ if ($null -eq $profileContents -or
 
 if (!(Test-Path '~/.local/share/powershell/Help/en-US/about_History.help.txt')) {
     Write-Host -Foregroundcolor green "Updating local PowerShell Help files.."
-    Update-Help -Force -ErrorAction SilentlyContinue -ErrorVariable updateerrors
+    #Update-Help -Force -ErrorAction SilentlyContinue -ErrorVariable updateerrors
     Write-Warning "$($updateerrors -join `"`n`")"
 }
 
