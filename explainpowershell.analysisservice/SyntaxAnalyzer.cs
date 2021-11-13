@@ -29,6 +29,12 @@ namespace ExplainPowershell.SyntaxAnalyzer
         {
             AnalysisResult analysisResult;
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+
+            if (string.IsNullOrEmpty(requestBody))
+            {
+                return ResponseHelper(HttpStatusCode.BadRequest, "Empty request. Pass powershell code in the request body for an AST analysis.");
+            }
+
             var code = JsonConvert
                 .DeserializeObject<Code>(requestBody)
                 ?.PowershellCode;

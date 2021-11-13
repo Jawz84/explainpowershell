@@ -78,7 +78,7 @@ jobs:
         body: "#. Great news @${{ github.event.sender.login }}, your module '${{ github.event.comment.body }}' was added successfully! :+1:"
         token: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Comment back saying the module was added successfully
+    - name: Comment back saying the module was not added successfully
       if: failure()
       uses: jungwinter/comment@v1
       with:
@@ -87,3 +87,12 @@ jobs:
         comment_id: ${{ steps.create.outputs.id }}
         body: "#. Sorry @${{ github.event.sender.login }} cc @jawz84, I was not able to process module '${{ github.event.comment.body }}' on my own.. :-( [See details here](https://github.com/Jawz84/explainpowershell/actions/runs/${{ github.run_id }})"
         token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Calculate new HelpMetaData
+      uses: azure/powershell@v1
+      with: 
+        inlineScript: |
+          Get-AzFunctionApp
+          | Where-Object { $_.Name -match 'powershellexplainer' -and $_.Status -eq 'running' }
+          | ForEach-Object { Invoke-RestMethod -Uri "https://$($_.DefaultHostName)/api/MetaData?refresh=true" }
+        azPSVersion: '6.1.0'

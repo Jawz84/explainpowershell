@@ -24,11 +24,15 @@
             </MudList>
         </MudItem>
         <MudItem>
-            <MudSelect T="string" Dense="true" MaxHeight="500" Text="Module names..">
-                @if(metaData != null) {
-                    @foreach (var module in metaData?.ModuleNames.OrderBy(name => name))
+            <MudSelect  T="string" Dense="true" MaxHeight="500" Text="Module names..">
+                @if(metaData != null) 
+                {
+                    @if(metaData.ModuleNames != null)
                     {
-                        <MudSelectItem T="string" Value="@module">@module</MudSelectItem>
+                        @foreach (var module in metaData.ModuleNames.Split(',').OrderBy(name => name))
+                        {
+                            <MudSelectItem T="string" Value="@module">@module</MudSelectItem>
+                        }   
                     }
                 }
             </MudSelect>
