@@ -78,11 +78,10 @@ namespace explainpowershell.analysisservice
                 NumberOfAboutArticles = numAbout,
                 NumberOfCommands = tableQueryResult.Count() - numAbout,
                 NumberOfModules = moduleNames.Count(),
-                ModuleNames = moduleNames,
+                ModuleNames = string.Join(',', moduleNames),
                 LastPublished = Helpers.GetBuildDate(Assembly.GetExecutingAssembly()).ToLongDateString()
             };
 
-            // write helpMetaData to cloudTable
             _ = cloudTable.Execute(TableOperation.InsertOrReplace(helpMetaData));
 
             return helpMetaData;
