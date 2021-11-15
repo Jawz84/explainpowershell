@@ -167,12 +167,14 @@
         }
     }
 
-    private void OnKeyUp(KeyboardEventArgs arg) {
+    private Task OnKeyUp(KeyboardEventArgs arg) {
         if (arg.Key == "Enter")
         {
-            DoSearch();
+            return DoSearch();
         }
+        return Task.CompletedTask;
     }
+
     private void acknowledgeAlert() {
         requestHasError = false;
         reasonPhrase = "";
@@ -180,8 +182,7 @@
 
     protected override Task OnInitializedAsync()
     {
-        _ = DoSearch();
-        return Task.FromResult("");
+        return DoSearch();
     }
 
     private void ToggleSyntaxPopoverIsOpen(string id)
