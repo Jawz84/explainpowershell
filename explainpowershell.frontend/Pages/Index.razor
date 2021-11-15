@@ -9,7 +9,7 @@
         <MudCard Elevation="2">
             <MudForm>
                 <MudCardContent>
-                    <MudTextField @bind-Value="InputValue" Immediate="true" T="string" Label="PowerShell oneliner to explain" AutoFocus="true" />
+                    <MudTextField @bind-Value="InputValue" Immediate="true" T="string" Label="PowerShell oneliner to explain" AutoFocus="true" KeyUpPreventDefault="true" OnKeyUp="OnKeyUp"/>
                     @if (requestHasError) {<MudAlert class="mt-2" OnClick="@acknowledgeAlert" Severity="Severity.Error">@reasonPhrase</MudAlert>}
                 </MudCardContent>
                 <MudCardActions>
@@ -167,6 +167,12 @@
         }
     }
 
+    private void OnKeyUp(KeyboardEventArgs arg) {
+        if (arg.Key == "Enter")
+        {
+            DoSearch();
+        }
+    }
     private void acknowledgeAlert() {
         requestHasError = false;
         reasonPhrase = "";
@@ -187,8 +193,6 @@
     {
         CommandDetailsPopoverIsOpen[id] = !CommandDetailsPopoverIsOpen[id];
     }
-
-
     private async Task DoSearch()
     {
         hideExpandedCode = true;
