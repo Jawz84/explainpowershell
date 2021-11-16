@@ -2,7 +2,7 @@
 param(
     [Parameter()]
     [ValidateSet('None', 'Normal', 'Detailed', 'Diagnostic')]
-    [string]$Output = 'Detailed'
+    [string]$Output = 'Normal'
 )
 
 $c = New-PesterConfiguration -Hashtable @{
@@ -14,13 +14,13 @@ $c = New-PesterConfiguration -Hashtable @{
 $opp = $ProgressPreference
 $ProgressPreference = 'SilentlyContinue'
 
-Push-Location $PSScriptRoot
+Push-Location /workspace/explainpowershell.analysisservice.tests
     # Integration Tests
     Write-Host -ForegroundColor Cyan "`n####`n#### Starting Integration tests`n"
     Invoke-Pester -Configuration $c
     # Unit Tests
     Write-Host -ForegroundColor Cyan "`n####`n#### Starting Unit tests`n"
-    dotnet test --no-build --nologo
+    dotnet test --no-build --nologo --verbosity $Output
 Pop-Location
 
 $ProgressPreference = $opp
