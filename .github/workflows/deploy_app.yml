@@ -8,7 +8,7 @@ on:
 jobs:
   buildFrontend:
     name: Build Frontend
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
     - uses: actions/checkout@v1
 
@@ -37,7 +37,7 @@ jobs:
 
   buildBackend:
     name: Build Backend api
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v1
 
@@ -60,7 +60,7 @@ jobs:
   deployFrontend:
     needs: buildFrontend
     name: Deploy Frontend
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
 
     - name: Download artifacts
@@ -94,7 +94,7 @@ jobs:
   deployBackend:
     needs: buildBackend
     name: Deploy Backend api
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@master
