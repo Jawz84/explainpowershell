@@ -11,10 +11,15 @@ $c = New-PesterConfiguration -Hashtable @{
     }
 }
 
+$PSScriptRoot
+
+# Run all code generators
+Get-ChildItem -Path $PSScriptRoot/../explainpowershell.analysisservice/ -Recurse -Filter *_code_generator.ps1 | ForEach-Object { & $_.FullName }
+
 $opp = $ProgressPreference
 $ProgressPreference = 'SilentlyContinue'
 
-Push-Location /workspace/explainpowershell.analysisservice.tests
+Push-Location -Path $PSScriptRoot/
     # Integration Tests
     Write-Host -ForegroundColor Cyan "`n####`n#### Starting Integration tests`n"
     Invoke-Pester -Configuration $c
