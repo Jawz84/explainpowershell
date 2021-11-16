@@ -8,8 +8,12 @@ on:
 jobs:
   buildFrontend:
     name: Build Frontend
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
+    - uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '6.0'
+
     - uses: actions/checkout@v1
 
     - name: Set api url to correct url manually
@@ -37,8 +41,12 @@ jobs:
 
   buildBackend:
     name: Build Backend api
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
+      - uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '6.0'
+
       - uses: actions/checkout@v1
 
       - name: Run code generators
@@ -60,7 +68,7 @@ jobs:
   deployFrontend:
     needs: buildFrontend
     name: Deploy Frontend
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
 
     - name: Download artifacts
@@ -94,7 +102,7 @@ jobs:
   deployBackend:
     needs: buildBackend
     name: Deploy Backend api
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@master
