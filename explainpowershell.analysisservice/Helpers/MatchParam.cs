@@ -1,8 +1,8 @@
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using explainpowershell.models;
 
 namespace ExplainPowershell.SyntaxAnalyzer
@@ -11,7 +11,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
     {
         public static ParameterData MatchParam(string foundParameter, string json)
         {
-            var doc = JsonSerializer.Deserialize<List<ParameterData>>(json, new JsonSerializerOptions() {IgnoreNullValues = true});
+            var doc = JsonSerializer.Deserialize<List<ParameterData>>(json, new JsonSerializerOptions() {DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull});
             List<ParameterData> matchedParam = new List<ParameterData>();
 
             // First check for aliases, because they take precendence

@@ -55,7 +55,7 @@ jobs:
         uses: actions/upload-artifact@master
         with:
           name: api
-          path: ./explainpowershell.analysisservice/bin/Release/netcoreapp3.1
+          path: ./explainpowershell.analysisservice/bin/Release/net6.0
 
   deployFrontend:
     needs: buildFrontend

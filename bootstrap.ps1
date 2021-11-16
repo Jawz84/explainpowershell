@@ -16,6 +16,7 @@ if ($IsLinux -and $env:DOTNET_RUNNING_IN_CONTAINER) {
 Write-Host -ForegroundColor Green "Downloading all C# dependencies (dotnet restore).."
 $env:DOTNET_NOLOGO='true'
 dotnet restore
+dotnet dev-certs https --trust
 
 Write-Host -ForegroundColor Green "Checking PowerShell modules.."
 $modules = 'Pester', 'Az', 'Posh-Git', 'Microsoft.PowerShell.UnixCompleters'
