@@ -37,7 +37,7 @@ jobs:
       uses: actions/upload-artifact@master
       with:
         name: webapp
-        path: ./explainpowershell.frontend/bin/Release/net5.0/publish/wwwroot
+        path: ./explainpowershell.frontend/bin/Release/net6.0/publish/wwwroot
 
   buildBackend:
     name: Build Backend api
