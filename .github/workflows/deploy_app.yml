@@ -142,3 +142,12 @@ jobs:
           app-name: ${{ secrets.FUNCTION_APP_NAME }}
           package: ./
           publish-profile: ${{ steps.publishprofile.outputs.profile }}
+
+      - name: Calculate new HelpMetaData
+        uses: azure/powershell@v1
+        with: 
+          inlineScript: |
+            Get-AzFunctionApp
+            | Where-Object { $_.Name -match 'powershellexplainer' -and $_.Status -eq 'running' }
+            | ForEach-Object { Invoke-RestMethod -Uri "https://$($_.DefaultHostName)/api/MetaData?refresh=true" }
+          azPSVersion: '6.1.0'
