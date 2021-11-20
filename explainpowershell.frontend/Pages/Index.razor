@@ -37,77 +37,75 @@
                                 <MudTooltip Text="click for more details" Placement="Placement.End">
                                     <MudItem @onclick="@(() => ToggleCommandDetailsPopoverIsOpen(context.Item.Id))" >
                                         <ExplainCard Context="@context.Item"/>
+                                        <MudPopover Class="ma-2" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" OverflowBehavior="OverflowBehavior.FlipNever" Direction="Direction.Bottom" Open="@CommandDetailsPopoverIsOpen[context.Item.Id]"> 
+                                            <MudSimpleTable Class="pa-2" Style="width:auto;">
+                                                <tbody>
+                                                    @if(! string.IsNullOrEmpty(@context.Item.HelpResult?.Description))
+                                                    {
+                                                        <tr>
+                                                            <td>Description</td>
+                                                            <td>@context.Item.HelpResult?.Description</td>
+                                                        </tr>
+                                                    }
+                                                    @if(! string.IsNullOrEmpty(@context.Item.HelpResult?.Aliases))
+                                                    {
+                                                        <tr>
+                                                            <td>Aliases</td>
+                                                            <td>@context.Item.HelpResult?.Aliases</td>
+                                                        </tr>
+                                                    }
+                                                    @if(! string.IsNullOrEmpty(@context.Item.HelpResult?.ParameterSetNames))
+                                                    {
+                                                        <tr>
+                                                            <td>ParameterSetNames</td>
+                                                            <td>@context.Item.HelpResult?.ParameterSetNames</td>
+                                                        </tr>
+                                                    }
+                                                    @if(! string.IsNullOrEmpty(@context.Item.HelpResult?.DefaultParameterSet))
+                                                    {
+                                                        <tr>
+                                                            <td>DefaultParameterSet</td>
+                                                            <td>@context.Item.HelpResult?.DefaultParameterSet</td>
+                                                        </tr>
+                                                    }
+                                                    @if(! string.IsNullOrEmpty(@context.Item.HelpResult?.InputTypes))
+                                                    {
+                                                        <tr>
+                                                            <td>InputTypes</td>
+                                                            <td>@context.Item.HelpResult?.InputTypes</td>
+                                                        </tr>
+                                                    }
+                                                    @if(! string.IsNullOrEmpty(@context.Item.HelpResult?.ReturnValues))
+                                                    {
+                                                        <tr>
+                                                            <td>ReturnValues</td>
+                                                            <td>@context.Item.HelpResult?.ReturnValues</td>
+                                                        </tr>
+                                                    }
+                                                    @if(! string.IsNullOrEmpty(@context.Item.HelpResult?.RelatedLinks))
+                                                    {
+                                                        <tr>
+                                                            <td>RelatedLinks</td>
+                                                            <td>
+                                                                <ul style="list-style:disc">
+                                                                    @foreach(var link in context.Item.HelpResult?.RelatedLinks.Split(", ")) {
+                                                                        <li><MudLink Href="@link" Target="_blank">@link</MudLink></li>
+                                                                    }
+                                                                </ul>
+                                                            </td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </MudSimpleTable>
+                                            <MudButton Class="ma-2" OnClick="@(() => ToggleCommandDetailsPopoverIsOpen(context.Item.Id))">Close</MudButton>
+                                        </MudPopover>
                                     </MudItem>
                                 </MudTooltip>
                                 <MudItem>
                                     <MudButton Class="ma-2" OnClick="@(() => ToggleSyntaxPopoverIsOpen(context.Item.Id))">Syntax</MudButton>
                                 </MudItem>
                                 <MudItem>
-                                    <MudPopover MaxHeight="600" Class="pa-4" Style="width:auto; position:relative;" Direction="Direction.Bottom" Open="@CommandDetailsPopoverIsOpen[context.Item.Id]">
-                                        <MudSimpleTable>
-                                            <tbody>
-                                                @if(! string.IsNullOrEmpty(@context.Item.HelpResult?.Description))
-                                                {
-                                                    <tr>
-                                                        <td>Description</td>
-                                                        <td>@context.Item.HelpResult?.Description</td>
-                                                    </tr>
-                                                }
-                                                @if(! string.IsNullOrEmpty(@context.Item.HelpResult?.Aliases))
-                                                {
-                                                    <tr>
-                                                        <td>Aliases</td>
-                                                        <td>@context.Item.HelpResult?.Aliases</td>
-                                                    </tr>
-                                                }
-                                                @if(! string.IsNullOrEmpty(@context.Item.HelpResult?.ParameterSetNames))
-                                                {
-                                                    <tr>
-                                                        <td>ParameterSetNames</td>
-                                                        <td>@context.Item.HelpResult?.ParameterSetNames</td>
-                                                    </tr>
-                                                }
-                                                @if(! string.IsNullOrEmpty(@context.Item.HelpResult?.DefaultParameterSet))
-                                                {
-                                                    <tr>
-                                                        <td>DefaultParameterSet</td>
-                                                        <td>@context.Item.HelpResult?.DefaultParameterSet</td>
-                                                    </tr>
-                                                }
-                                                @if(! string.IsNullOrEmpty(@context.Item.HelpResult?.InputTypes))
-                                                {
-                                                    <tr>
-                                                        <td>InputTypes</td>
-                                                        <td>@context.Item.HelpResult?.InputTypes</td>
-                                                    </tr>
-                                                }
-                                                @if(! string.IsNullOrEmpty(@context.Item.HelpResult?.ReturnValues))
-                                                {
-                                                    <tr>
-                                                        <td>ReturnValues</td>
-                                                        <td>@context.Item.HelpResult?.ReturnValues</td>
-                                                    </tr>
-                                                }
-                                                @if(! string.IsNullOrEmpty(@context.Item.HelpResult?.RelatedLinks))
-                                                {
-                                                    <tr>
-                                                        <td>RelatedLinks</td>
-                                                        <td>
-                                                            <ul style="list-style:disc">
-                                                                @foreach(var link in context.Item.HelpResult?.RelatedLinks.Split(", ")) {
-                                                                    <li><MudLink Href="@link" Target="_blank">@link</MudLink></li>
-                                                                }
-                                                            </ul>
-                                                        </td>
-                                                    </tr>
-                                                }
-                                            </tbody>
-                                        </MudSimpleTable>
-                                        <MudButton OnClick="@(() => ToggleCommandDetailsPopoverIsOpen(context.Item.Id))">Close</MudButton>
-                                    </MudPopover>
-                                </MudItem>
-                                <MudItem>
-                                    <MudPopover MaxHeight="600" Class="pa-4" Style="width:auto; position:relative;" Direction="Direction.Right" Open="@SyntaxPopoverIsOpen[context.Item.Id]">
+                                    <MudPopover Class="pa-2" Style="width:auto;" AnchorOrigin="Origin.TopRight" TransformOrigin="Origin.TopLeft" OverflowBehavior="OverflowBehavior.FlipNever" Direction="Direction.Right" Open="@SyntaxPopoverIsOpen[context.Item.Id]">
                                         @foreach (var line in @context.Item.HelpResult?.Syntax.Split("\n")) {
                                             @foreach (var param in line
                                                 .Replace(context.Item.CommandName,$"{context.Item.CommandName}\n")
@@ -126,7 +124,7 @@
                                                 </MudItem>
                                             }
                                         }
-                                        <MudButton OnClick="@(() => ToggleSyntaxPopoverIsOpen(context.Item.Id))">Close</MudButton>
+                                        <MudButton Class="ma-2" OnClick="@(() => ToggleSyntaxPopoverIsOpen(context.Item.Id))">Close</MudButton>
                                     </MudPopover>
                                 </MudItem>
                             </MudGrid>
