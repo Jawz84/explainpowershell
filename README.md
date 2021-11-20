@@ -36,12 +36,16 @@ This repo offers a development container, with a bootstrap script to get you ful
     - Fill local Azurite Table emulator with the necessary database
     - Run all tests for you, so you know everything is working
 
-There are multiple preconfigured launch configurations and tasks. Use the `Watch run ..` tasks if you want to iterate quickly without debugging (these use dotnet watch under the hood).
+There are multiple preconfigured launch configurations and tasks.
+
+> NOTE: This repo is set up to use LF line endings troughout to prevent problems when switching back and forth between linux dev container and windows. See `.gitattributes`. Explanation about this can be found here: https://www.aleksandrhovhannisyan.com/blog/crlf-vs-lf-normalizing-line-endings-in-git/
 
 ### Access to local emulated db
 
 The local emulated db lives in the Azurite container. This container is automatically started when you open the repository in a Development Container. It should be accessible through `http://localhost:10002/devstoreaccount1/HelpData` with for instance [Azure Storage Explorer](https://azure.microsoft.com/en-us/features/storage-explorer/), with the default development keys. See [Azurite documentation](https://docs.microsoft.com/en-us/azure/storage/common/storage-use-azurite) for more info. 
 Keep in mind that the Azurite container access works with timing based auth. If the docker container clock deviates from the system clock, you cannot authenticate. On Windows, this has been a bug, that is fixed in WSL2 kernel `5.10.16.3`. To see your WSL2 kernel version, use `uname -r`. [Read more information](https://devblogs.microsoft.com/commandline/servicing-the-windows-subsystem-for-linux-wsl-2-linux-kernel/#bug-fix-clock-sync)
+
+If you want, it is possible to use the legacy storage emulator on Windows. Just turn it on, and run the `.\bootstrap.ps1` script again.
 
 ## Deploying to Azure
 
