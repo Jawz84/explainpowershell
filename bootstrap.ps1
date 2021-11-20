@@ -13,8 +13,9 @@ if ($IsLinux -and $env:DOTNET_RUNNING_IN_CONTAINER) {
     }
 }
 
-Write-Host -ForegroundColor Green "Downloading all C# dependencies (dotnet restore).."
+Write-Host -ForegroundColor Green "Performing dotnet cleanup and setup.."
 $env:DOTNET_NOLOGO='true'
+dotnet clean -v m
 dotnet restore
 dotnet dev-certs https --trust
 
