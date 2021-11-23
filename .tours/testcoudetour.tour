@@ -1,0 +1,51 @@
+{
+  "$schema": "https://aka.ms/codetour-schema",
+  "title": "testcoudetour",
+  "steps": [
+    {
+      "file": ".devcontainer/devcontainer.json",
+      "description": "Welcome to Explain PowerShell! \n\nThis repository offers a development container that fully sets up your dev environment for you. To use this feature, open this repository with VSCode and make sure the extension [ms-vscode-remote.vscode-remote-extensionpack](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack) is installed. VSCode will detect the `.devcontainer` folder and offer you to open the repository in a dev container. \n\nThis is the recommended way for aspiring developers to interact with this repository. ",
+      "line": 2
+    },
+    {
+      "file": ".devcontainer/devcontainer.json",
+      "description": "As you can see here, the dev container works with Docker compose, and actually consists of two containers.",
+      "line": 3
+    },
+    {
+      "file": ".devcontainer/docker-compose.yml",
+      "description": "Here we see which two containers are created:",
+      "line": 1
+    },
+    {
+      "file": ".devcontainer/docker-compose.yml",
+      "description": "The actual dev container, based on a Dockerfile. More about this in a moment.",
+      "line": 14
+    },
+    {
+      "file": ".devcontainer/docker-compose.yml",
+      "description": "An [`Azurite` container](https://docs.microsoft.com/en-us/azure/storage/common/storage-use-azurite?tabs=visual-studio) that emulates the database that is present in the cloud.",
+      "line": 6
+    },
+    {
+      "file": ".devcontainer/Dockerfile",
+      "description": "This is the Dockerfile that defines the actual development container. It starts with a dotnet SDK base image, and adds a few layers for installing all tools needed:\n- PowerShell\n- Azure CLI\n- GitHub CLI\n- Azure Functions Core Tools",
+      "line": 1
+    },
+    {
+      "file": ".devcontainer/devcontainer.json",
+      "description": "When the Azurite database container and the dev container are set up, this command starts the `./bootstrap.ps1` script. This performs the finishing touch to your dev environment. Let's go there and see what it does.",
+      "line": 32
+    },
+    {
+      "file": "bootstrap.ps1",
+      "description": "This bootstrap script is run the first time when the dev container is set up. If you are running into issues, or if you don't use the dev container set up, you can run this script seperately too. *)\n\nThe two most important things this does are: \n- __initialize the local Azurite**) database.__ \n- __start all available tests__ to check the dev environment. All tests should pass.\n\nApart from that, it also does these things:\n- Make sure you have all needed permissions on all repository folders.\n- Do some dotnet clean up and set up.\n- Make sure needed PowerShell modules are installed.\n- Add some preferences to the PowerShell profile, to make it easier to interact with Git and auto-load linux completers.\n\n\n👉Let's have a look at those tests now.\n\n\n*) Make sure the prerequisites for this repository are present locally.  \n**) Or other storage emulator that can emulate Azure Table Storage on port 10002.",
+      "line": 1
+    },
+    {
+      "file": "explainpowershell.analysisservice.tests/Start-AllBackendTests.ps1",
+      "description": "This is the place to initiate tests from for all backend services. You can easily start this set of tests from the `Run and debug` menu, under the name __Test functionApp__.\n\nAll PowerShell integration tests are started from here. (These will auto-start the function app and check if the local db is reachable)\n\nDotnet unit tests are started from here.\n\n\nWhen set up of the development container has run correctly, these tests will all succeed. At that point, you have a fully operational development environment.",
+      "line": 1
+    }
+  ]
+}
