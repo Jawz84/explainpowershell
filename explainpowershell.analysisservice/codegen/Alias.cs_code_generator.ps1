@@ -1,3 +1,5 @@
+$modules = Get-Content "$PSScriptRoot/../../explainpowershell.metadata/defaultModules.json" | ConvertFrom-Json
+
 $pre = @'
 using System;
 using System.Collections.Generic;
@@ -20,7 +22,10 @@ $post = @'
 }
 '@
 
-$body = Get-Alias | ForEach-Object {
+$body = Get-Alias
+    # We only want to 'recognize' aliases from the core PowerShell modules, so we exclude other modules' aliases here
+    | Where-Object { -not $_.Source -or $_.Source -in $modules.Name }
+    | ForEach-Object {
 @"
                 { `"$($_.Name)`", `"$($_.Definition)`" },
 "@
