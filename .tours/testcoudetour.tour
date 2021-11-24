@@ -1,6 +1,6 @@
 {
   "$schema": "https://aka.ms/codetour-schema",
-  "title": "testcoudetour",
+  "title": "Tour of development container",
   "steps": [
     {
       "file": ".devcontainer/devcontainer.json",
@@ -47,5 +47,6 @@
       "description": "This is the place to initiate tests from for all backend services. You can easily start this set of tests from the `Run and debug` menu, under the name __Test functionApp__.\n\nAll PowerShell integration tests are started from here. (These will auto-start the function app and check if the local db is reachable)\n\nDotnet unit tests are started from here.\n\n\nWhen set up of the development container has run correctly, these tests will all succeed. At that point, you have a fully operational development environment.",
       "line": 1
     }
-  ]
+  ],
+  "description": "Watch this if you intend to contribute, this explains the moving parts of the dev environment, including dev database and testing."
 }
