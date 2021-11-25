@@ -1,6 +1,6 @@
 {
   "$schema": "https://aka.ms/codetour-schema",
-  "title": "High level tour of the whole application",
+  "title": "High level tour of the application",
   "steps": [
     {
       "file": "explainpowershell.frontend/Pages/Index.razor",
