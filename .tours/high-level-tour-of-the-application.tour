@@ -34,16 +34,6 @@
     },
     {
       "file": "explainpowershell.analysisservice/AstVisitorExplainer.cs",
-      "description": "The `Explanation` type you see here, is defined in the `Models` project, which is used both by the Backend api as well as the Blazor Frontend. \n\nLet's have a quick look there.",
-      "line": 580
-    },
-    {
-      "file": "explainpowershell.models/Explanation.cs",
-      "description": "This is how the `Explanation` type is defined. Even though we will send this type through the wire from the backend api to the frontend as json, because we use this same type on both ends, we can safely reserialize this data from json back to an `Explanation` object in the Frontend. \n\nThis is a great advantage of Blazor + C# api projects, you can have shared models. In JavaScript framework + c# backend api, you have to define the model twice. Which is errorprone. Ok back to our api.",
-      "line": 2
-    },
-    {
-      "file": "explainpowershell.analysisservice/AstVisitorExplainer.cs",
       "description": "Once we are done going through all the elements in the AST, this method gets called, and we return all explanations and a little metadata.",
       "line": 24,
       "selection": {
