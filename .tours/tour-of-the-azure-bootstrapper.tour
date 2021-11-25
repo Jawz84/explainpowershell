@@ -1,0 +1,21 @@
+{
+  "$schema": "https://aka.ms/codetour-schema",
+  "title": "Tour of the Azure bootstrapper",
+  "steps": [
+    {
+      "file": "azuredeploymentbootstrapper.ps1",
+      "description": "Welcome to the Azure bootstrapper tour.\n\nHere we will have a look at how you can get your own copy of explain powershell running in Azure, and this is basically how the actual www.explainpowershell.com site is set up in Azure too, excluding DNS, CDN and application insights.\n\nTo be able to use this, you need a GitHub account and an Azure subscription. A 30-day free subscription will do just fine.\nThe script assumes you have forked the explain powershell repo to your own github.\n\nYou will be asked to authenticate, so the script can set up everything.\n\nA few things are stored as GitHub Secrets, so they can be used from the GitHub Actions.\n\nAfter the resource group in Azure is created and the secrets are in place, you can run the `Deploy Azure Infra` GitHub Action. This action will deploy you copy of explain powershell to Azure.",
+      "line": 13
+    },
+    {
+      "file": ".github/workflows/deploy_azure_infra.yml",
+      "description": "This is the github action that you can run after you have run the `azuredeploymentbootstrapper.ps1` script.\n\nIt logs to Azure, and performs an Azure ARM deployment to deploy your copy of explain powershell.\n\nOnce this Action is done, you can go into your Azure subscription and find the functionapp and storage ready for deployment. After this step, you also need to deploy the app to Azure. Use the `Deploy app to Azure` Action for this.",
+      "line": 2
+    },
+    {
+      "file": ".github/workflows/deploy_app.yml",
+      "description": "This GitHub Action is for deploying the function app and the Blazor frontend to your Azure environment. \n\nThere is a step in here to purge the Azure CDN, which you don't have if you have used the `Deploy Azure infra` Action, but it will be silently skipped in that case.",
+      "line": 2
+    }
+  ]
+}
