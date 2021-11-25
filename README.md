@@ -3,9 +3,15 @@
 PowerShell version of [explainshell.com](explainshell.com)
 
 On ExplainShell.com, you can enter a Linux terminal oneliner, and the site will analyze it, and return snippets from the proper man-pages, in an effort to explain the oneliner. 
+I have created a similar thing but for PowerShell here:
 
-On https://www.explainpowershell.com you can do the same, but for PowerShell :)
-Currently all basic commands are supported, as wel as a lot of mainstream modules. You can request support for your module [via this issue](https://github.com/Jawz84/explainpowershell/issues/43).
+https://www.explainpowershell.com
+
+If you'd like a tour of this repo, open the repo in VSCode (from here with the '.' key), and install the [CodeTour](vsls-contrib.codetour) extension. In the Explorer View, you will now see CodeTour all the way at the bottom left. There currently are four code tours available:
+- High level tour of the application
+- Tour of development container
+- Tour of the Azure bootstrapper
+- Tour of the help collector
 
 ## Goal
 
@@ -36,16 +42,12 @@ This repo offers a development container, with a bootstrap script to get you ful
     - Fill local Azurite Table emulator with the necessary database
     - Run all tests for you, so you know everything is working
 
-There are multiple preconfigured launch configurations and tasks.
-
-> NOTE: This repo is set up to use LF line endings troughout to prevent problems when switching back and forth between linux dev container and windows. See `.gitattributes`. Explanation about this can be found here: https://www.aleksandrhovhannisyan.com/blog/crlf-vs-lf-normalizing-line-endings-in-git/
+There are multiple preconfigured launch configurations and tasks. Use the `Watch run ..` tasks if you want to iterate quickly without debugging (these use dotnet watch under the hood).
 
 ### Access to local emulated db
 
 The local emulated db lives in the Azurite container. This container is automatically started when you open the repository in a Development Container. It should be accessible through `http://localhost:10002/devstoreaccount1/HelpData` with for instance [Azure Storage Explorer](https://azure.microsoft.com/en-us/features/storage-explorer/), with the default development keys. See [Azurite documentation](https://docs.microsoft.com/en-us/azure/storage/common/storage-use-azurite) for more info. 
 Keep in mind that the Azurite container access works with timing based auth. If the docker container clock deviates from the system clock, you cannot authenticate. On Windows, this has been a bug, that is fixed in WSL2 kernel `5.10.16.3`. To see your WSL2 kernel version, use `uname -r`. [Read more information](https://devblogs.microsoft.com/commandline/servicing-the-windows-subsystem-for-linux-wsl-2-linux-kernel/#bug-fix-clock-sync)
-
-If you want, it is possible to use the legacy storage emulator on Windows. Just turn it on, and run the `.\bootstrap.ps1` script again.
 
 ## Deploying to Azure
 
@@ -64,5 +66,3 @@ Alternatively, you can retrieve it with `az`:
 $myStorageAccountName = ".."
 (az storage account show --name $myStorageAccountName | convertfrom-json).primaryEndpoints.web
 ```
-
-In the current production environment, I also have App Insights enabled, and set up an Azure CDN, DNS zone and an App Service Domain. This is enough to set up a `www.explainpowershell.com` website, also set up HTTPS through CDN manged HTTPS in Azure. To also allow access to the naked domain `explainpowerhell.com` (without the `www.`), I followed [Onboard a root or apex domain](https://docs.microsoft.com/en-us/azure/cdn/onboard-apex-domain). Alas, CDN managed HTTPS support for apex domains is no more. See #40.
