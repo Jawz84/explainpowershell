@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Http;
-using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
@@ -14,6 +13,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using explainpowershell.models;
+using Azure.Data.Tables;
 
 namespace ExplainPowershell.SyntaxAnalyzer
 {
@@ -24,7 +24,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
         [FunctionName("SyntaxAnalyzer")]
         public async Task<HttpResponseMessage> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequest req,
-            [Table(HelpTableName)] CloudTable cloudTable,
+            [Table(HelpTableName)] TableClient tableClient,
             ILogger log)
         {
             AnalysisResult analysisResult;
@@ -48,7 +48,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
             try
             {
-                var visitor = new AstVisitorExplainer(ast.Extent.Text, cloudTable, log);
+                var visitor = new AstVisitorExplainer(ast.Extent.Text, tableClient, log);
                 ast.Visit(visitor);
                 analysisResult = visitor.GetAnalysisResult();
             }

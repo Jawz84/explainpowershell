@@ -7,8 +7,8 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using explainpowershell.models;
 using explainpowershell.SyntaxAnalyzer.ExtensionMethods;
-using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.Logging;
+using Azure.Data.Tables;
 
 namespace ExplainPowershell.SyntaxAnalyzer
 {
@@ -18,7 +18,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
         private readonly List<Explanation> explanations = new List<Explanation>();
         private string extent;
         private int offSet = 0;
-        private readonly CloudTable helpTable;
+        private readonly TableClient tableClient;
         private readonly ILogger log;
 
         public AnalysisResult GetAnalysisResult()
@@ -50,9 +50,9 @@ namespace ExplainPowershell.SyntaxAnalyzer
             return analysisResult;
         }
 
-        public AstVisitorExplainer(string extentText, CloudTable cloudTable, ILogger log)
+        public AstVisitorExplainer(string extentText, TableClient client, ILogger log)
         {
-            helpTable = cloudTable;
+            tableClient = client;
             this.log = log;
             extent = extentText;
         }
@@ -67,14 +67,9 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         private HelpEntity HelpTableQuery(string resolvedCmd)
         {
-            TableQuery<HelpEntity> query = new TableQuery<HelpEntity>()
-                .Where(
-                    TableQuery.CombineFilters(
-                        TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, PartitionKey),
-                        TableOperators.And,
-                        TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal, resolvedCmd.ToLower()))); // Azure Table query does not support StringComparer.IgnoreOrdinalCase. RowKey command names are all stored lowercase.
-
-            var helpResult = helpTable.ExecuteQuery(query).FirstOrDefault();
+            string filter = TableServiceClient.CreateQueryFilter($"PartitionKey eq {PartitionKey} and RowKey eq {resolvedCmd.ToLower()}");
+            var entities = tableClient.Query<HelpEntity>(filter: filter);
+            var helpResult = entities.FirstOrDefault();
             return helpResult;
         }
 
