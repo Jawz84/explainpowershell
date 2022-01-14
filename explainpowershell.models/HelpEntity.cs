@@ -1,8 +1,10 @@
-using Microsoft.Azure.Cosmos.Table;
+using System;
+using Azure;
+using Azure.Data.Tables;
 
 namespace explainpowershell.models
 {
-    public class HelpEntity : TableEntity
+    public class HelpEntity : ITableEntity
     {
         public string Aliases { get; set; }
         public string CommandName { get; set; }
@@ -19,5 +21,11 @@ namespace explainpowershell.models
         public string ReturnValues { get; set; }
         public string Synopsis { get; set; }
         public string Syntax { get; set; }
+
+        // ITableEntity
+        public string PartitionKey { get; set; }
+        public string RowKey { get; set; }
+        public DateTimeOffset? Timestamp { get; set; }
+        public ETag ETag { get; set; }
     }
 }

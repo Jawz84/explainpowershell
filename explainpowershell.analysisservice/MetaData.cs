@@ -7,11 +7,12 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
-using Microsoft.Azure.Cosmos.Table;
 using explainpowershell.models;
 using System.Linq;
 using System.Collections.Generic;
 using System.Reflection;
+using Azure.Data.Tables;
+using Azure.Data.Tables.Sas;
 
 namespace explainpowershell.analysisservice
 {
@@ -22,26 +23,25 @@ namespace explainpowershell.analysisservice
         [FunctionName("MetaData")]
         public static IActionResult Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequest req,
-            [Table(HelpTableName)] CloudTable cloudTable)
+            [Table(HelpTableName)] TableClient client)
         {
             HelpMetaData helpMetaData;
             var refresh = req.Query["refresh"].ToString();
 
             if (refresh == "true") 
             {
-                helpMetaData = CalculateMetaData(cloudTable);
+                helpMetaData = CalculateMetaData(client);
             }
             else 
             {
-                var getHelpMetaDataQuery = new TableQuery<HelpMetaData>()
-                    .Where(
-                        TableQuery
-                            .GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, "HelpMetaData"));
-                helpMetaData = cloudTable.ExecuteQuery(getHelpMetaDataQuery).FirstOrDefault();
+                string filter = TableServiceClient.CreateQueryFilter($"PartitionKey eq HelpMetaData");
+                var entities = client.Query<HelpMetaData>(filter);
+                
+                helpMetaData = entities.FirstOrDefault();
 
                 if ( helpMetaData == null )
                 {
-                    helpMetaData = CalculateMetaData(cloudTable);
+                    helpMetaData = CalculateMetaData(client);
                 }
             }
 
@@ -50,23 +50,19 @@ namespace explainpowershell.analysisservice
             return new OkObjectResult(json);
         }
 
-        public static HelpMetaData CalculateMetaData(CloudTable cloudTable)
+        public static HelpMetaData CalculateMetaData(TableClient client)
         {
-            TableQuery<HelpEntity> query = new TableQuery<HelpEntity>()
-                .Where(
-                    TableQuery
-                        .GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, "CommandHelp"))
-                .Select(new string[] { "CommandName", "ModuleName" });
-
-            var tableQueryResult = cloudTable.ExecuteQuery(query);
-
-            var numAbout = tableQueryResult
+            string filter = TableServiceClient.CreateQueryFilter($"PartitionKey eq CommandHelp");
+            var select = new string[] { "CommandName", "ModuleName" };
+            var entities = client.Query<HelpEntity>(filter: filter, select: select);
+                
+            var numAbout = entities
                 .Where(r => r
                     .CommandName
                     .StartsWith("about_", StringComparison.OrdinalIgnoreCase))
                 .Count();
 
-            var moduleNames = tableQueryResult
+            var moduleNames = entities
                 .Select(r => r.ModuleName)
                 .Where(m => !string.IsNullOrEmpty(m))
                 .Distinct();
@@ -76,13 +72,13 @@ namespace explainpowershell.analysisservice
                 PartitionKey = "HelpMetaData",
                 RowKey = "HelpMetaData",
                 NumberOfAboutArticles = numAbout,
-                NumberOfCommands = tableQueryResult.Count() - numAbout,
+                NumberOfCommands = entities.Count() - numAbout,
                 NumberOfModules = moduleNames.Count(),
                 ModuleNames = string.Join(',', moduleNames),
                 LastPublished = Helpers.GetBuildDate(Assembly.GetExecutingAssembly()).ToLongDateString()
             };
 
-            _ = cloudTable.Execute(TableOperation.InsertOrReplace(helpMetaData));
+            _ = client.UpsertEntity(helpMetaData);
 
             return helpMetaData;
         }
