@@ -18,6 +18,7 @@ Describe "Get-MetaData" {
             'RowKey'
             'Timestamp'
             'ETag')
+        $metaData.NumberOfCommands | Should -Not -Be 0
         $metaData.LastPublished | Should -Not -BeNullOrEmpty
     }
 
@@ -34,6 +35,7 @@ Describe "Get-MetaData" {
             'RowKey'
             'Timestamp'
             'ETag')
+        $metaData.NumberOfCommands | Should -Not -Be 0
         $metaData.LastPublished | Should -Not -BeNullOrEmpty
     }
 }

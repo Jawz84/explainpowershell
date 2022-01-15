@@ -10,7 +10,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
 {
     internal class SpecialVars
     {
-        internal static object ThisVariable = new object();
+        internal static object ThisVariable = new();
         internal const string @foreach = "foreach";
         internal const string @switch = "switch";
         internal const string Question = "?";

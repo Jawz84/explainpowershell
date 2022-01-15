@@ -8,7 +8,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
     {
         public static List<ParameterSetData> GetParameterSetData(ParameterData paramData, string[] paramSetNames)
         {
-            List<ParameterSetData> paramSetData = new List<ParameterSetData>();
+            List<ParameterSetData> paramSetData = new();
 
             foreach (var paramSet in paramSetNames)
             {

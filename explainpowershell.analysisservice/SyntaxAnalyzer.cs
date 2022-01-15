@@ -22,7 +22,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
         private const string HelpTableName = "HelpData";
 
         [FunctionName("SyntaxAnalyzer")]
-        public async Task<HttpResponseMessage> Run(
+        public static async Task<HttpResponseMessage> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequest req,
             [Table(HelpTableName)] TableClient tableClient,
             ILogger log)
@@ -65,7 +65,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
             return ResponseHelper(HttpStatusCode.OK, json, "application/json");
         }
 
-        private HttpResponseMessage ResponseHelper(HttpStatusCode status, string message, string mediaType = "text/plain")
+        private static HttpResponseMessage ResponseHelper(HttpStatusCode status, string message, string mediaType = "text/plain")
         {
             return new HttpResponseMessage(status)
             {

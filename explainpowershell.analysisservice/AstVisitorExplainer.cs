@@ -15,7 +15,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
     class AstVisitorExplainer : AstVisitor2
     {
         private const string PartitionKey = "CommandHelp";
-        private readonly List<Explanation> explanations = new List<Explanation>();
+        private readonly List<Explanation> explanations = new();
         private string extent;
         private int offSet = 0;
         private readonly TableClient tableClient;
@@ -57,7 +57,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
             extent = extentText;
         }
 
-        private bool HasSpecialVars(string varName)
+        private static bool HasSpecialVars(string varName)
         {
             if (SpecialVars.InitializedVariables.Contains(varName, StringComparer.OrdinalIgnoreCase))
                 return true;
@@ -748,7 +748,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 HelpResult = HelpTableQuery("about_quoting_rules")
             }.AddDefaults(stringConstantExpressionAst, explanations);
 
-            var hasDollarSign = stringConstantExpressionAst.Value.IndexOf('$') >= 0;
+            var hasDollarSign = stringConstantExpressionAst.Value.Contains('$');
             switch (stringConstantExpressionAst.StringConstantType)
             {
                 case StringConstantType.SingleQuoted:

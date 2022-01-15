@@ -12,7 +12,6 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Reflection;
 using Azure.Data.Tables;
-using Azure.Data.Tables.Sas;
 
 namespace explainpowershell.analysisservice
 {
@@ -23,25 +22,27 @@ namespace explainpowershell.analysisservice
         [FunctionName("MetaData")]
         public static IActionResult Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequest req,
-            [Table(HelpTableName)] TableClient client)
+            [Table(HelpTableName)] TableClient client,
+            ILogger log)
         {
             HelpMetaData helpMetaData;
             var refresh = req.Query["refresh"].ToString();
 
-            if (refresh == "true") 
+            if (refresh == "true")
             {
-                helpMetaData = CalculateMetaData(client);
+                helpMetaData = CalculateMetaData(client, log);
             }
-            else 
+            else
             {
-                string filter = TableServiceClient.CreateQueryFilter($"PartitionKey eq HelpMetaData");
+                log.LogInformation("Trying to get HelpMetaData from cache");
+                string filter = TableServiceClient.CreateQueryFilter($"PartitionKey eq 'HelpMetaData'");
                 var entities = client.Query<HelpMetaData>(filter);
-                
+
                 helpMetaData = entities.FirstOrDefault();
 
                 if ( helpMetaData == null )
                 {
-                    helpMetaData = CalculateMetaData(client);
+                    helpMetaData = CalculateMetaData(client, log);
                 }
             }
 
@@ -50,12 +51,14 @@ namespace explainpowershell.analysisservice
             return new OkObjectResult(json);
         }
 
-        public static HelpMetaData CalculateMetaData(TableClient client)
+        public static HelpMetaData CalculateMetaData(TableClient client, ILogger log)
         {
-            string filter = TableServiceClient.CreateQueryFilter($"PartitionKey eq CommandHelp");
+            log.LogInformation("Calculating meta data on HelpTable");
+
+            string filter = TableServiceClient.CreateQueryFilter($"PartitionKey eq 'CommandHelp'");
             var select = new string[] { "CommandName", "ModuleName" };
             var entities = client.Query<HelpEntity>(filter: filter, select: select);
-                
+
             var numAbout = entities
                 .Where(r => r
                     .CommandName
