@@ -2,10 +2,15 @@
 @page "/"
 @inject HttpClient Http
 
-<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-16">
-    <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-10">
-        <MudText Typo="Typo.h3" GutterBottom="true">Explain PowerShell</MudText>
-        <MudText Class="mb-4">Get explanation for PowerShell code oneliner, inspired by <MudLink Href="https://explainshell.com/">explainshell.com</MudLink> and <MudLink Href="http://showthedocs.com/">showthedocs.com</MudLink>.</MudText>
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="@titleMargin">
+    <MudContainer MaxWidth="MaxWidth.Medium">
+        @if (shrinkTitle) {
+            <MudText Typo="Typo.h6" GutterBottom="true">Explain PowerShell</MudText>
+        }
+        else {
+            <MudText Typo="Typo.h3" GutterBottom="true">Explain PowerShell</MudText>
+            <MudText Class="mb-4">Get explanation for PowerShell code oneliner, inspired by <MudLink Href="https://explainshell.com/">explainshell.com</MudLink> and <MudLink Href="http://showthedocs.com/">showthedocs.com</MudLink>.</MudText>
+        }
         <MudCard Elevation="2">
             <MudForm>
                 <MudCardContent>
@@ -141,6 +146,7 @@
 </MudContainer>
 
 @code {
+    private string titleMargin = "mt-16";
     private Dictionary<string, bool> SyntaxPopoverIsOpen = new Dictionary<string, bool>();
     private Dictionary<string, bool> CommandDetailsPopoverIsOpen = new Dictionary<string, bool>();
     private bool requestHasError {get;set;}
@@ -149,6 +155,7 @@
     private bool hideExpandedCode {get;set;}
     private string expandedCode {get; set;}
     private HashSet<TreeItem<Explanation>> TreeItems { get; set; } = new HashSet<TreeItem<Explanation>>();
+    private bool shrinkTitle = false;
     private bool hasNoExplanations {
         get {
             return TreeItems.Count <= 0;
@@ -192,6 +199,14 @@
     {
         CommandDetailsPopoverIsOpen[id] = !CommandDetailsPopoverIsOpen[id];
     }
+
+    private void ShrinkTitle() 
+    {
+        shrinkTitle = true;
+        titleMargin = "mt-6";
+        StateHasChanged();
+    }
+
     private async Task DoSearch()
     {
         hideExpandedCode = true;
@@ -201,6 +216,8 @@
 
         if (string.IsNullOrEmpty(InputValue))
             return;
+
+        ShrinkTitle();
 
         waiting = true;
         var code = new Code() { PowershellCode = InputValue };
