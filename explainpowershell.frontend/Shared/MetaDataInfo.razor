@@ -1,13 +1,8 @@
 ﻿@inject HttpClient Http
 
 <MudGrid Class="px-2" Justify="Justify.FlexStart">
-    <MudHidden IsHidden="@hasMetaData">
-        <MudItem>
-            <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Small"/>
-            <MudText Typo="Typo.caption" >Warming up backend.. </MudText>
-        </MudItem>
-    </MudHidden>
-    <MudHidden IsHidden="@notHasMetaData">
+    @if (@hasMetaData)
+    {
         <MudItem>
             <MudList>
                 <MudListItem><b>Last published: </b></MudListItem>
@@ -32,7 +27,7 @@
                         @foreach (var module in metaData.ModuleNames.Split(',').OrderBy(name => name))
                         {
                             <MudSelectItem T="string" Value="@module">@module</MudSelectItem>
-                        }   
+                        }
                     }
                 }
             </MudSelect>
@@ -45,12 +40,18 @@
                 Color="Color.Primary">Request a module
             </MudButton>
         </MudItem>
-    </MudHidden>
+    }
+    else
+    {
+        <MudItem>
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Small"/>
+            <MudText Typo="Typo.caption" >Warming up backend.. </MudText>
+        </MudItem>
+    }
 </MudGrid>
 
 @code {
-    private bool hasMetaData { get;set; }
-    private bool notHasMetaData => ! hasMetaData;
+    private bool hasMetaData { get; set; }
     private HelpMetaData metaData { get; set; }
 
     protected override async Task OnInitializedAsync()
@@ -60,6 +61,7 @@
             metaData = await Http.GetFromJsonAsync<HelpMetaData>("MetaData");
             hasMetaData = true;
             StateHasChanged();
+            return;
         }
         catch
         {
