@@ -18,7 +18,7 @@ If you'd like a tour of this repo, open the repo in VSCode (from here with the '
 I want to make it easy for anyone to find out what a certain line of PowerShell code does.
 I envision something like this:
 
-![mock](./Mockup.png)
+![mock](./img/Mockup.png)
 
 ## Azure Resources overview
 
@@ -26,7 +26,7 @@ I envision something like this:
 * Azure Storage that hosts Blazor Wasm pages as a static website.
 * Azure Storage Table in which all help metadata is for currently supported modules.
 
-![azure resources](./AzViz.png)
+![azure resources](./img/AzViz.png)
 
 ## Development
 
