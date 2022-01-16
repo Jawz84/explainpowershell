@@ -4,7 +4,7 @@ param(
 )
 
 if ($IsLinux -and $env:DOTNET_RUNNING_IN_CONTAINER) {
-    Write-Host -ForegroundColor Green "We are running in a container, make sure we have permissions on all folders in the repo, to be able to build and run the application."
+    Write-Host -ForegroundColor Green 'We are running in a container, make sure we have permissions on all folders in the repo, to be able to build and run the application.'
     $testOwnershipAndPermissions = ls -l $PSScriptRoot | Select-String bootstrap -Raw
 
     if ($Force -or ($testOwnershipAndPermissions | Select-String root)) {
@@ -13,14 +13,13 @@ if ($IsLinux -and $env:DOTNET_RUNNING_IN_CONTAINER) {
     }
 }
 
-Write-Host -ForegroundColor Green "Performing dotnet cleanup and setup.."
-$env:DOTNET_NOLOGO='true'
-dotnet clean -v m
+Write-Host -ForegroundColor Green 'Performing dotnet cleanup and setup..'
+$env:DOTNET_NOLOGO = 'true'
 dotnet restore
-dotnet dev-certs https --trust
+dotnet clean -v m
 
-Write-Host -ForegroundColor Green "Checking PowerShell modules.."
-$modules = 'Pester', 'Az', 'Posh-Git', 'Microsoft.PowerShell.UnixCompleters'
+Write-Host -ForegroundColor Green 'Checking PowerShell modules..'
+$modules = 'Pester', 'Az.Accounts', 'Az.Storage', 'Posh-Git', 'Microsoft.PowerShell.UnixCompleters'
 foreach ($module in $modules) {
     if (($m = Get-Module -ListAvailable $module)) {
         Write-Host "Module '$module' version $($m.Version) already installed. Use -Force to update."
@@ -35,7 +34,11 @@ foreach ($module in $modules) {
 
 Import-Module Posh-Git
 if ($IsLinux) {
+    dotnet dev-certs https
     Import-UnixCompleters
+}
+else {
+    dotnet dev-certs https --trust
 }
 
 Write-Host -ForegroundColor Green "Checking PowerShell '`$profile.CurrentUserAllHosts'.."
@@ -52,32 +55,31 @@ $commandsToAddToProfile = @(
     ". $PSScriptRoot/explainpowershell.analysisservice.tests/Get-MetaData.ps1"
 )
 
-if ( !(Test-Path -path $profile.CurrentUserAllHosts) ) {
-    New-Item -path $profile.CurrentUserAllHosts -Force -ItemType file | Out-Null
+if ( !(Test-Path -Path $profile.CurrentUserAllHosts) ) {
+    New-Item -Path $profile.CurrentUserAllHosts -Force -ItemType file | Out-Null
 }
 
-$profileContents = Get-Content -path $profile.CurrentUserAllHosts
+$profileContents = Get-Content -Path $profile.CurrentUserAllHosts
 if ($null -eq $profileContents -or
-    $profileContents.split("`n") -notcontains $commandsToAddToProfile[0])
-{
-    Write-Host -ForegroundColor Green "Add settings to PowerShell profile"
+    $profileContents.split("`n") -notcontains $commandsToAddToProfile[0]) {
+    Write-Host -ForegroundColor Green 'Add settings to PowerShell profile'
     Add-Content -Path $profile.CurrentUserAllHosts -Value $commandsToAddToProfile
     # Copy profile contents to VSCode profile too: Microsoft.VSCode_profile.ps1
     Get-Content -Path $profile.CurrentUserAllHosts
-        | Set-Content -Path ($profile.CurrentUserAllHosts
+    | Set-Content -Path ($profile.CurrentUserAllHosts
         | Split-Path -Parent
         | Join-Path -ChildPath 'Microsoft.VSCode_profile.ps1') -Force
 }
 
 if (!(Test-Path '~/.local/share/powershell/Help/en-US/about_History.help.txt')) {
-    Write-Host -Foregroundcolor green "Updating local PowerShell Help files.."
+    Write-Host -ForegroundColor green 'Updating local PowerShell Help files..'
     #Update-Help -Force -ErrorAction SilentlyContinue -ErrorVariable updateerrors
     Write-Warning "$($updateerrors -join `"`n`")"
 }
 
 $fileName = "$PSScriptRoot/explainpowershell.helpcollector/help.about_articles.cache.user"
 if ($Force -or !(Test-Path $fileName)) {
-    Write-Host -Foregroundcolor green "Collecting about_.. article data and saving to cache file '$fileName'.."
+    Write-Host -ForegroundColor green "Collecting about_.. article data and saving to cache file '$fileName'.."
     ./explainpowershell.helpcollector/aboutcollector.ps1
     | ConvertTo-Json
     | Set-Content -Path $fileName -Force
@@ -86,7 +88,7 @@ else {
     Write-Host "Detected cache file '$fileName', skipping collecting about_.. data. Use '-Force' or remove cache file to refresh about_.. data."
 }
 
-Write-Host "Writing about_.. help article data to local Azurite table.."
+Write-Host 'Writing about_.. help article data to local Azurite table..'
 ./explainpowershell.helpcollector/helpwriter.ps1 -HelpDataCacheFilename $fileName
 
 $modulesToProcess = Get-Content "$PSScriptRoot/explainpowershell.metadata/defaultModules.json"
@@ -109,7 +111,7 @@ foreach ($module in $modulesToProcess) {
     ./explainpowershell.helpcollector/helpwriter.ps1 -HelpDataCacheFilename $fileName
 }
 
-Write-host -ForegroundColor Green "Running tests to see if everything works"
+Write-Host -ForegroundColor Green 'Running tests to see if everything works'
 & $PSScriptRoot/explainpowershell.analysisservice.tests/Start-AllBackendTests.ps1
 
-Write-host -ForegroundColor Green "Done. You now have the functions 'Get-HelpDatabaseData', 'Invoke-SyntaxAnalyzer' and 'Get-MetaData' available for ease of testing."
+Write-Host -ForegroundColor Green "Done. You now have the functions 'Get-HelpDatabaseData', 'Invoke-SyntaxAnalyzer' and 'Get-MetaData' available for ease of testing."
