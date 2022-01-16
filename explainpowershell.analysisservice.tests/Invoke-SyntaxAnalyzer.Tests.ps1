@@ -297,7 +297,7 @@ Describe "Invoke-SyntaxAnalyzer" {
         $content.Explanations[2].Description | Should -BeExactly "A splatted variable named 'splatted'"
     }
 
-    $testCase = (Get-Content $PSScriptRoot\oneliners.ps1).split("`n") | ForEach-Object {
+    $testCase = (Get-Content "$PSScriptRoot\testfiles\oneliners.ps1").split("`n") | ForEach-Object {
         [psobject]@{
             PowerShellCode = $_
         }
