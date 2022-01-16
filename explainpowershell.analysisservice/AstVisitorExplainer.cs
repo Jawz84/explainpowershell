@@ -12,7 +12,7 @@ using Azure.Data.Tables;
 
 namespace ExplainPowershell.SyntaxAnalyzer
 {
-    class AstVisitorExplainer : AstVisitor2
+    public class AstVisitorExplainer : AstVisitor2
     {
         private const string PartitionKey = "CommandHelp";
         private readonly List<Explanation> explanations = new();
@@ -977,6 +977,16 @@ namespace ExplainPowershell.SyntaxAnalyzer
                         explanation.CommandName = "PSDrive (Providers)";
                         explanation.HelpResult = HelpTableQuery("about_Providers");
                     }
+                }
+            }
+
+            if (variableExpressionAst.Parent is UsingExpressionAst)
+            {
+                prefix = " using ";
+                explanation.HelpResult = HelpTableQuery("about_Scopes");
+                if (explanation.HelpResult != null)
+                {
+                    explanation.HelpResult.DocumentationLink += "#the-using-scope-modifier";
                 }
             }
 
