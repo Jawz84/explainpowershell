@@ -30,14 +30,17 @@ Describe "prerequisites" {
 }
 
 Describe "dotnet versions" {
+    # TODO: peek at code above for better version
+    $dotnetMajorVersion = '6'
+    
     It "dotnet sdk should be up-to-date" {
-        # dotnet sdk check checks for dotnet sdk and runtimes, three in total. Should all three be "Up to date"
-        (dotnet sdk check | Select-String "Up to date").Count | Should -Be 3
+        # dotnet sdk check checks for dotnet sdk and runtimes. Should be "Up to date" for Major dotnet version (other versions don't matter)
+        (dotnet sdk check) -match "$dotnetMajorVersion(\.\d+)+  "
+        | Where-Object {$_ -notmatch "Up to date"}
+        | Should -BeNullOrEmpty
     }
     It "dotnet packages should be up-to-date" {
-        # Except for the Microsoft.Azure.WebJobs.Extensions.Storage package, there should be no outdated packages
-        # Microsoft.Azure.WebJobs.Extensions.Storage is outdated, but the newer versions don't support Azure Tables anymore :(
-        (dotnet list package --outdated | select-string "> (?!Microsoft\.Azure\.WebJobs\.Extensions\.Storage)").Count | Should -Be 0
+        (dotnet list package --outdated) -match "^   >" | Should -BeNullOrEmpty
     }
 }
 
