@@ -4,6 +4,8 @@ function Invoke-SyntaxAnalyzer {
         [switch]$Explanations
     )
 
+    $ErrorActionPreference = 'stop'
+
     $body = @{
         PowershellCode=$PowershellCode
     } | ConvertTo-Json

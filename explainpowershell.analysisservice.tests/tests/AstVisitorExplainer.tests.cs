@@ -39,11 +39,17 @@ namespace ExplainPowershell.SyntaxAnalyzer.Tests
             AnalysisResult res = explainer.GetAnalysisResult();
 
             Assert.AreEqual(
-                "A using variable named 'var'",
+                "A variable named 'var', with the 'using' scope modifier: a local variable used in a remote scope.",
                 res.Explanations[1].Description);
             Assert.AreEqual(
-                "https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Scopes#the-using-scope-modifier",
+                "https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Remote_Variables",
                 res.Explanations[1].HelpResult?.DocumentationLink);
+            Assert.AreEqual(
+                "Scoped variable",
+                res.Explanations[1].CommandName);
+            Assert.That(
+                res.Explanations[1].HelpResult?.RelatedLinks, 
+                Is.Not.Null.And.Not.Empty);
         }
     }
 }

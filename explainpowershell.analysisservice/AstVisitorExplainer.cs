@@ -960,7 +960,6 @@ namespace ExplainPowershell.SyntaxAnalyzer
                     explanation.HelpResult = HelpTableQuery("about_scopes");
                 }
 
-
                 if (variableExpressionAst.VariablePath.IsDriveQualified)
                 {
                     if (string.Equals(identifier, "Env", StringComparison.OrdinalIgnoreCase))
@@ -982,12 +981,10 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
             if (variableExpressionAst.Parent is UsingExpressionAst)
             {
-                prefix = " using ";
-                explanation.HelpResult = HelpTableQuery("about_Scopes");
-                if (explanation.HelpResult != null)
-                {
-                    explanation.HelpResult.DocumentationLink += "#the-using-scope-modifier";
-                }
+                suffix = ", with the 'using' scope modifier: a local variable used in a remote scope.";
+                explanation.HelpResult = HelpTableQuery("about_Remote_Variables");
+                explanation.CommandName = "Scoped variable";
+                explanation.HelpResult.RelatedLinks += HelpTableQuery("about_Scopes")?.DocumentationLink;
             }
 
             explanation.Description = $"A{prefix}variable {standard}{suffix}";
