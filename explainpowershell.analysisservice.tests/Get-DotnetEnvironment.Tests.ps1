@@ -1,7 +1,7 @@
 Push-Location $PSScriptRoot/.. # this line does not work as expected when placed in the BeforeAll block.
 
 BeforeAll {
-    $requiredDotnetVersions = Get-ChildItem *.csproj -Recurse -Depth 1 | ForEach-Object {
+    $requiredDotnetVersions = Get-ChildItem $PSScriptRoot/.. *.csproj -Recurse -Depth 1 | ForEach-Object {
         [version](
             [xml](Get-Content $_)
         ).
@@ -25,7 +25,7 @@ Describe "prerequisites" {
     }
 
     It "has the right Azure Function Core Tools version installed" {
-        $requiredFuncVersion = [int](Get-Content ./.vscode/settings.json | ConvertFrom-Json).'azurefunctions.projectruntime'.trim('~')
+        $requiredFuncVersion = [int](Get-Content $PSScriptRoot/../.vscode/settings.json | ConvertFrom-Json).'azurefunctions.projectruntime'.trim('~')
         $funcToolsVersion = [version](func --version)
 
         $funcToolsVersion.Major | Should -BeGreaterOrEqual $requiredFuncVersion
