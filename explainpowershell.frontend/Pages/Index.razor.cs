@@ -14,21 +14,17 @@ namespace explainpowershell.frontend.Pages
     public partial class Index : ComponentBase {
         [Inject]
         private HttpClient Http { get; set; }
-        private string titleMargin = "mt-16";
-        private Dictionary<string, bool> SyntaxPopoverIsOpen = new Dictionary<string, bool>();
-        private Dictionary<string, bool> CommandDetailsPopoverIsOpen = new Dictionary<string, bool>();
-        private bool requestHasError {get;set;}
-        private string reasonPhrase {get;set;}
-        private bool waiting {get;set;}
-        private bool hideExpandedCode {get;set;}
-        private string expandedCode {get; set;}
+        private string TitleMargin { get; set; }= "mt-16";
+        private Dictionary<string, bool> SyntaxPopoverIsOpen { get; set; }= new();
+        private Dictionary<string, bool> CommandDetailsPopoverIsOpen { get; set; } = new();
+        private bool RequestHasError { get; set; }
+        private string ReasonPhrase { get; set; }
+        private bool Waiting { get; set; }
+        private bool HideExpandedCode { get; set; }
+        private string ExpandedCode { get; set; }
         private HashSet<TreeItem<Explanation>> TreeItems { get; set; } = new HashSet<TreeItem<Explanation>>();
-        private bool shrinkTitle = false;
-        private bool hasNoExplanations {
-            get {
-                return TreeItems.Count <= 0;
-            }
-        }
+        private bool ShouldShrinkTitle { get; set; } = false;
+        private bool HasNoExplanations => TreeItems.Count <= 0;
         private string InputValue {
             get {
                 return _inputValue;
@@ -48,9 +44,9 @@ namespace explainpowershell.frontend.Pages
             return Task.CompletedTask;
         }
 
-        private void acknowledgeAlert() {
-            requestHasError = false;
-            reasonPhrase = "";
+        private void AcknowledgeAlert() {
+            RequestHasError = false;
+            ReasonPhrase = "";
         }
 
         protected override Task OnInitializedAsync()
@@ -68,26 +64,26 @@ namespace explainpowershell.frontend.Pages
             CommandDetailsPopoverIsOpen[id] = !CommandDetailsPopoverIsOpen[id];
         }
 
-        private void ShrinkTitle() 
+        private void ShrinkTitle()
         {
-            shrinkTitle = true;
-            titleMargin = "mt-6";
+            ShouldShrinkTitle = true;
+            TitleMargin = "mt-6";
             StateHasChanged();
         }
 
         private async Task DoSearch()
         {
-            hideExpandedCode = true;
-            waiting = false;
-            requestHasError = false;
-            reasonPhrase = string.Empty;
+            HideExpandedCode = true;
+            Waiting = false;
+            RequestHasError = false;
+            ReasonPhrase = string.Empty;
 
             if (string.IsNullOrEmpty(InputValue))
                 return;
 
             ShrinkTitle();
 
-            waiting = true;
+            Waiting = true;
             var code = new Code() { PowershellCode = InputValue };
 
             HttpResponseMessage temp;
@@ -95,17 +91,17 @@ namespace explainpowershell.frontend.Pages
                 temp = await Http.PostAsJsonAsync<Code>("SyntaxAnalyzer", code);
             }
             catch {
-                requestHasError = true;
-                waiting = false;
-                reasonPhrase = "oops!";
+                RequestHasError = true;
+                Waiting = false;
+                ReasonPhrase = "oops!";
                 return;
             }
 
             if (!temp.IsSuccessStatusCode)
             {
-                requestHasError = true;
-                waiting = false;
-                reasonPhrase = await temp.Content.ReadAsStringAsync();
+                RequestHasError = true;
+                Waiting = false;
+                ReasonPhrase = await temp.Content.ReadAsStringAsync();
                 return;
             }
 
@@ -113,12 +109,12 @@ namespace explainpowershell.frontend.Pages
 
             if (!string.IsNullOrEmpty(analysisResult.ParseErrorMessage))
             {
-                requestHasError = true;
-                reasonPhrase = analysisResult.ParseErrorMessage;
+                RequestHasError = true;
+                ReasonPhrase = analysisResult.ParseErrorMessage;
             }
 
-            waiting = false;
-            hideExpandedCode = false;
+            Waiting = false;
+            HideExpandedCode = false;
 
             SyntaxPopoverIsOpen.Clear();
             foreach (var syntaxedExplanation in analysisResult.Explanations.Where(i => i.HelpResult?.Syntax != null))
@@ -133,7 +129,7 @@ namespace explainpowershell.frontend.Pages
             }
 
             TreeItems = analysisResult.Explanations.GenerateTree(expl => expl.Id, expl => expl.ParentId);
-            expandedCode = analysisResult.ExpandedCode;
+            ExpandedCode = analysisResult.ExpandedCode;
         }
 
         private string _inputValue;

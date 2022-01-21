@@ -1,8 +1,8 @@
 ﻿@page "/"
 
-<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="@titleMargin">
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="@TitleMargin">
     <MudContainer MaxWidth="MaxWidth.Medium">
-        @if (shrinkTitle) {
+        @if (ShouldShrinkTitle) {
             <MudText Typo="Typo.h6" GutterBottom="true">Explain PowerShell</MudText>
         }
         else {
@@ -13,21 +13,21 @@
             <MudForm>
                 <MudCardContent>
                     <MudTextField @bind-Value="InputValue" Immediate="true" T="string" Label="PowerShell oneliner to explain" AutoFocus="true" KeyUpPreventDefault="true" OnKeyUp="OnKeyUp"/>
-                    @if (requestHasError) {<MudAlert class="mt-2" OnClick="@acknowledgeAlert" Severity="Severity.Error">@reasonPhrase</MudAlert>}
+                    @if (RequestHasError) {<MudAlert class="mt-2" OnClick="@AcknowledgeAlert" Severity="Severity.Error">@ReasonPhrase</MudAlert>}
                 </MudCardContent>
                 <MudCardActions>
-                    @if (waiting)
+                    @if (Waiting)
                     {
                         <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Small" Class="ml-auto"/>
                     }
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="@DoSearch" Disabled="@waiting" >Explain</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="@DoSearch" Disabled="@Waiting" >Explain</MudButton>
                 </MudCardActions>
             </MudForm>
         </MudCard>
     </MudContainer>
-    <MudDivider DividerType="DividerType.Middle" Class="my-6" hidden="@hideExpandedCode"/>
-    <MudText Align="Align.Center" hidden="@hideExpandedCode">@expandedCode</MudText>
-    <MudDivider DividerType="DividerType.Middle" Class="my-6" hidden="@hasNoExplanations"/>
+    <MudDivider DividerType="DividerType.Middle" Class="my-6" hidden="@HideExpandedCode"/>
+    <MudText Align="Align.Center" hidden="@HideExpandedCode">@ExpandedCode</MudText>
+    <MudDivider DividerType="DividerType.Middle" Class="my-6" hidden="@HasNoExplanations"/>
     <MudContainer MaxWidth="MaxWidth.Medium">
         <MudTreeView Items="TreeItems">
             <ItemTemplate>
