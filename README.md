@@ -44,6 +44,9 @@ This repo offers a development container, with a bootstrap script to get you ful
 
 There are multiple preconfigured launch configurations and tasks. Use the `Watch run ..` tasks if you want to iterate quickly without debugging (these use dotnet watch under the hood).
 
+> Please note that in the Development Container, the BlazorWasmDebugginExtension extension does not work, but it is loaded/wasm is detected. Because of this, when running the solution, you will see these two errors, which can be completely ignored:
+![errors at run time that can be ignored](./img/screenshot-errors.png)
+
 ### Access to local emulated db
 
 The local emulated db lives in the Azurite container. This container is automatically started when you open the repository in a Development Container. It should be accessible through `http://localhost:10002/devstoreaccount1/HelpData` with for instance [Azure Storage Explorer](https://azure.microsoft.com/en-us/features/storage-explorer/), with the default development keys. See [Azurite documentation](https://docs.microsoft.com/en-us/azure/storage/common/storage-use-azurite) for more info. 
