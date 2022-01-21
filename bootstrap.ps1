@@ -16,7 +16,21 @@ if ($IsLinux -and $env:DOTNET_RUNNING_IN_CONTAINER) {
 Write-Host -ForegroundColor Green 'Performing dotnet cleanup and setup..'
 $env:DOTNET_NOLOGO = 'true'
 dotnet restore
-dotnet clean -v m
+dotnet clean --verbosity minimal
+try {
+    $ErrorActionPreference = 'stop'
+    push-location ./explainpowershell.analysisservice.tests/
+        dotnet restore
+        dotnet clean --verbosity minimal
+    pop-location
+}
+catch {
+    Write-Warning "For a correct result, run this script from the root of the project."
+    break
+}
+finally {
+    $ErrorActionPreference = 'continue'
+}
 
 Write-Host -ForegroundColor Green 'Checking PowerShell modules..'
 $modules = 'Pester', 'Az.Accounts', 'Az.Storage', 'Posh-Git', 'Microsoft.PowerShell.UnixCompleters'
