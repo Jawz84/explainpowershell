@@ -533,15 +533,26 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitForEachStatement(ForEachStatementAst forEachStatementAst)
         {
-            // TODO
-            AstExplainer(forEachStatementAst);
+            explanations.Add(
+                new Explanation() {
+                    Description = $"Executes the code in the script block for each element '{forEachStatementAst.Variable.Extent.Text}' in '{forEachStatementAst.Condition}'",
+                    CommandName = "foreach statement",
+                    HelpResult = HelpTableQuery("about_foreach"),
+                    TextToHighlight = "foreach"
+                }.AddDefaults(forEachStatementAst, explanations));
+
             return base.VisitForEachStatement(forEachStatementAst);
         }
 
         public override AstVisitAction VisitForStatement(ForStatementAst forStatementAst)
         {
-            // TODO
-            AstExplainer(forStatementAst);
+            explanations.Add(
+                new Explanation() {
+                    Description = $"Executes the code in the script block for as long as adding '{forStatementAst.Iterator.Extent.Text}' on '{forStatementAst.Initializer.Extent.Text}' results in '{forStatementAst.Condition.Extent.Text}' being true.",
+                    CommandName = "for statement",
+                    HelpResult = HelpTableQuery("about_for"),
+                    TextToHighlight = "for"
+                }.AddDefaults(forStatementAst, explanations));
             return base.VisitForStatement(forStatementAst);
         }
 
