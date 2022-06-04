@@ -1,8 +1,10 @@
 # See here for image contents: https://github.com/microsoft/vscode-dev-containers/blob/main/containers/dotnet/.devcontainer/base.Dockerfile
 # See here for latests container tags available: https://mcr.microsoft.com/v2/dotnet/sdk/tags/list
 
+
 # [Choice] .NET version (container tag)
-ARG VARIANT=6.0.101-bullseye-slim
+# Check with PowerShell: Invoke-Restmethod https://mcr.microsoft.com/v2/dotnet/sdk/tags/list| foreach-object {$_.tags -match "0-bullseye-slim-amd64$"} | select-object -last 2 # pick one
+ARG VARIANT=6.0-bullseye-slim-amd64  
 FROM mcr.microsoft.com/dotnet/sdk:${VARIANT}
 
 # Copy library scripts to execute
