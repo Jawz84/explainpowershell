@@ -48,8 +48,38 @@ namespace ExplainPowershell.SyntaxAnalyzer.Tests
                 "Scoped variable",
                 res.Explanations[1].CommandName);
             Assert.That(
-                res.Explanations[1].HelpResult?.RelatedLinks, 
+                res.Explanations[1].HelpResult?.RelatedLinks,
                 Is.Not.Null.And.Not.Empty);
+        }
+
+        [Test]
+        public void ShoudGenerateHelpForForeachStatements()
+        {
+            ScriptBlock.Create("foreach ($i in $array) { $i }").Ast.Visit(explainer);
+            AnalysisResult res = explainer.GetAnalysisResult();
+
+            Assert.AreEqual(
+                "Executes the code in the script block for each element '$i' in '$array'",
+                res.Explanations[0].Description);
+
+            Assert.AreEqual(
+                "https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Foreach",
+                res.Explanations[0].HelpResult?.DocumentationLink);
+        }
+
+        [Test]
+        public void ShoudGenerateHelpForForStatements()
+        {
+            ScriptBlock.Create("for ($i=0; $i -lt 10; $i++) { $i }").Ast.Visit(explainer);
+            AnalysisResult res = explainer.GetAnalysisResult();
+
+            Assert.AreEqual(
+                "Executes the code in the script block for as long as adding '$i++' on '$i=0' results in '$i -lt 10' being true.",
+                res.Explanations[0].Description);
+
+            Assert.AreEqual(
+                "https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_For",
+                res.Explanations[0].HelpResult?.DocumentationLink);
         }
     }
 }
