@@ -84,8 +84,11 @@ $ModulesToProcess = $ModulesToProcess | Sort-Object -Unique -Property Name
 
 $script:badUrls = @()
 
+#TODO - reconsider this, seems to throw null errors
+$defaultParameterSetSettings = '{"IsMandatory":true,"Position":-2147483648,"ValueFromPipeline":false,"ValueFromPipelineByPropertyName":false,"ValueFromRemainingArguments":false,"HelpMessage":null,"HelpMessageBaseName":null,"HelpMessageResourceId":null}'
+
 foreach ($mod in $ModulesToProcess) {
-    if (-not $PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent) {
+    if (-not $PSCmdlet.MyInvocation.BoundParameters['Verbose'].IsPresent) {
         Write-Progress -Id 1 -Activity "Processing '$($ModulesToProcess.Count)' modules." -CurrentOperation "Processing module '$($mod.Name)'" -PercentComplete ((@($ModulesToProcess).IndexOf($mod) + 1) / $ModulesToProcess.Count * 100) 
     }
     else {
@@ -106,7 +109,7 @@ foreach ($mod in $ModulesToProcess) {
     foreach ($cmd in $commandsToProcess) {
         Write-Debug $cmd.Name
 
-        if (-not $PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent) {
+        if (-not $PSCmdlet.MyInvocation.BoundParameters['Verbose'].IsPresent) {
             Write-Progress -ParentId 1 -Activity "Processing '$($commandsToProcess.Count)' commands" -CurrentOperation "Processing command '$($cmd.Name)'" -PercentComplete ((@($commandsToProcess).IndexOf($cmd) + 1) / $commandsToProcess.Count * 100)
         }
 
@@ -141,8 +144,9 @@ foreach ($mod in $ModulesToProcess) {
             catch {
                 Write-Verbose "$($cmd.name) - No command parameter data"
             }
+
             [pscustomobject]@{
-                Aliases         = ($_.aliases -join ", ") ?? ($cmdParam.Aliases -join ", ")
+                Aliases         = ($_.aliases -join ', ') ?? ($cmdParam.Aliases -join ', ')
                 DefaultValue    = $_.defaultValue
                 Description     = $_.Description.Text -join ''
                 Globbing        = $_.globbing
@@ -158,25 +162,25 @@ foreach ($mod in $ModulesToProcess) {
         }
 
         [pscustomobject]@{
-            Aliases             = @($help.Aliases) -join ", "
+            Aliases             = @($help.Aliases) -join ', '
             CommandName         = $cmd.Name
             DefaultParameterSet = $cmd.DefaultParameterSet
             Description         = $help.Description.Text -join ''
             DocumentationLink   = $documentationLink
-            InputTypes          = $help.InputTypes.inputType.type.name -join ", "
+            InputTypes          = $help.InputTypes.inputType.type.name -join ', '
             ModuleName          = $cmd.ModuleName
-            ModuleVersion       = "$($cmd.Module.Version)"
+            ModuleVersion       = "$($cmd.Module.Version ?? $cmd.Version ?? '')"
             ModuleProjectUri    = $moduleProjectUri
-            Parameters          = $parameterData | ConvertTo-Json -Depth 4
-            ParameterSetNames   = @($parameterData.ParameterSets.Keys | Where-Object { $_ -ne '__AllParameterSets' } | Sort-Object -Unique) -join ", "
-            RelatedLinks        = $relatedLinks -join ", "
-            ReturnValues        = $help.ReturnValues.returnValue.type.name -join ", "
+            Parameters          = ($parameterData | ConvertTo-Json -Compress -Depth 4).replace($defaultParameterSetSettings,'null')
+            ParameterSetNames   = @($parameterData.ParameterSets.Keys | Where-Object { $_ -ne '__AllParameterSets' } | Sort-Object -Unique) -join ', '
+            RelatedLinks        = $relatedLinks -join ', '
+            ReturnValues        = $help.ReturnValues.returnValue.type.name -join ', '
             Synopsis            = $synopsis
             Syntax              = $syntax
         }
     }
 
-    if (-not $PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent) {
+    if (-not $PSCmdlet.MyInvocation.BoundParameters['Verbose'].IsPresent) {
         Write-Progress -ParentId 1 -Activity "Processing '$($commandsToProcess.Count)' commands" -CurrentOperation 'Completed' -Completed
         Write-Progress -Id 1 -Activity "Processing '$($ModulesToProcess.Count)' modules." -CurrentOperation 'Completed' -Completed
     }
