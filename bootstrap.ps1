@@ -33,7 +33,7 @@ finally {
 }
 
 Write-Host -ForegroundColor Green 'Checking PowerShell modules..'
-$modules = 'Pester', 'Az.Accounts', 'Az.Storage', 'Posh-Git', 'Microsoft.PowerShell.UnixCompleters'
+$modules = 'Pester', 'Az.Storage', 'Posh-Git', 'Microsoft.PowerShell.UnixCompleters'
 foreach ($module in $modules) {
     if (($m = Get-Module -ListAvailable $module)) {
         Write-Host "Module '$module' version $($m.Version) already installed. Use -Force to update."
