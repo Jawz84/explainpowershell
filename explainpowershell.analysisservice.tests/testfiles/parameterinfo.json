@@ -22,11 +22,7 @@
     "Position": "named",
     "Required": "false",
     "SwitchParameter": false,
-    "TypeName": {
-      "value": "System.Management.Automation.FlagsExpression`1[System.IO.FileAttributes]",
-      "required": "true",
-      "variableLength": "false"
-    }
+    "TypeName": "System.Management.Automation.FlagsExpression`1[System.IO.FileAttributes]"
   },
   {
     "Aliases": "none",
@@ -51,11 +47,7 @@
     "Position": "named",
     "Required": "false",
     "SwitchParameter": false,
-    "TypeName": {
-      "value": "System.UInt32",
-      "required": "true",
-      "variableLength": "false"
-    }
+    "TypeName": "System.UInt32"
   },
   {
     "Aliases": "ad, d",
@@ -80,11 +72,7 @@
     "Position": "named",
     "Required": "false",
     "SwitchParameter": true,
-    "TypeName": {
-      "value": "System.Management.Automation.SwitchParameter",
-      "required": "true",
-      "variableLength": "false"
-    }
+    "TypeName": "System.Management.Automation.SwitchParameter"
   },
   {
     "Aliases": "none",
@@ -109,11 +97,7 @@
     "Position": "named",
     "Required": "false",
     "SwitchParameter": false,
-    "TypeName": {
-      "value": "System.String[]",
-      "required": "true",
-      "variableLength": "false"
-    }
+    "TypeName": "System.String[]"
   },
   {
     "Aliases": "af",
@@ -138,11 +122,7 @@
     "Position": "named",
     "Required": "false",
     "SwitchParameter": true,
-    "TypeName": {
-      "value": "System.Management.Automation.SwitchParameter",
-      "required": "true",
-      "variableLength": "false"
-    }
+    "TypeName": "System.Management.Automation.SwitchParameter"
   },
   {
     "Aliases": "none",
@@ -167,11 +147,7 @@
     "Position": "1",
     "Required": "false",
     "SwitchParameter": false,
-    "TypeName": {
-      "value": "System.String",
-      "required": "true",
-      "variableLength": "false"
-    }
+    "TypeName": "System.String"
   },
   {
     "Aliases": "none",
@@ -196,11 +172,7 @@
     "Position": "named",
     "Required": "false",
     "SwitchParameter": true,
-    "TypeName": {
-      "value": "System.Management.Automation.SwitchParameter",
-      "required": "true",
-      "variableLength": "false"
-    }
+    "TypeName": "System.Management.Automation.SwitchParameter"
   },
   {
     "Aliases": "none",
@@ -225,11 +197,7 @@
     "Position": "named",
     "Required": "false",
     "SwitchParameter": true,
-    "TypeName": {
-      "value": "System.Management.Automation.SwitchParameter",
-      "required": "true",
-      "variableLength": "false"
-    }
+    "TypeName": "System.Management.Automation.SwitchParameter"
   },
   {
     "Aliases": "ah, h",
@@ -254,11 +222,7 @@
     "Position": "named",
     "Required": "false",
     "SwitchParameter": true,
-    "TypeName": {
-      "value": "System.Management.Automation.SwitchParameter",
-      "required": "true",
-      "variableLength": "false"
-    }
+    "TypeName": "System.Management.Automation.SwitchParameter"
   },
   {
     "Aliases": "none",
@@ -283,11 +247,7 @@
     "Position": "named",
     "Required": "false",
     "SwitchParameter": false,
-    "TypeName": {
-      "value": "System.String[]",
-      "required": "true",
-      "variableLength": "false"
-    }
+    "TypeName": "System.String[]"
   },
   {
     "Aliases": "PSPath, LP",
@@ -312,11 +272,7 @@
     "Position": "named",
     "Required": "true",
     "SwitchParameter": false,
-    "TypeName": {
-      "value": "System.String[]",
-      "required": "true",
-      "variableLength": "false"
-    }
+    "TypeName": "System.String[]"
   },
   {
     "Aliases": "none",
@@ -341,11 +297,7 @@
     "Position": "named",
     "Required": "false",
     "SwitchParameter": true,
-    "TypeName": {
-      "value": "System.Management.Automation.SwitchParameter",
-      "required": "true",
-      "variableLength": "false"
-    }
+    "TypeName": "System.Management.Automation.SwitchParameter"
   },
   {
     "Aliases": "none",
@@ -370,11 +322,7 @@
     "Position": "0",
     "Required": "false",
     "SwitchParameter": false,
-    "TypeName": {
-      "value": "System.String[]",
-      "required": "true",
-      "variableLength": "false"
-    }
+    "TypeName": "System.String[]"
   },
   {
     "Aliases": "ar",
@@ -399,11 +347,7 @@
     "Position": "named",
     "Required": "false",
     "SwitchParameter": true,
-    "TypeName": {
-      "value": "System.Management.Automation.SwitchParameter",
-      "required": "true",
-      "variableLength": "false"
-    }
+    "TypeName": "System.Management.Automation.SwitchParameter"
   },
   {
     "Aliases": "s",
@@ -428,11 +372,7 @@
     "Position": "named",
     "Required": "false",
     "SwitchParameter": true,
-    "TypeName": {
-      "value": "System.Management.Automation.SwitchParameter",
-      "required": "true",
-      "variableLength": "false"
-    }
+    "TypeName": "System.Management.Automation.SwitchParameter"
   },
   {
     "Aliases": "as",
@@ -457,10 +397,6 @@
     "Position": "named",
     "Required": "false",
     "SwitchParameter": true,
-    "TypeName": {
-      "value": "System.Management.Automation.SwitchParameter",
-      "required": "true",
-      "variableLength": "false"
-    }
+    "TypeName": "System.Management.Automation.SwitchParameter"
   }
 ]

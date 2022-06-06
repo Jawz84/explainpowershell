@@ -27,7 +27,7 @@ namespace ExplainPowershell.SyntaxAnalyzer.Tests
         public void ShouldReadParameterSetDetails()
         {
             var parameterData = doc[4]; // The -Full parameter
-            
+
             Assert.AreEqual(
                 Helpers.GetParameterSetData(
                     parameterData, 

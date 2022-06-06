@@ -23,3 +23,12 @@ foreach ($file in (Get-ChildItem -Path $PSScriptRoot/ -Filter '*.user' )) {
         Write-Host "Skipping '$($File.Name)', because that data is already present in Azure. (use -Force switch to overwrite)"
     }
 }
+
+# Trigger refresh of database metadata, so ExplainPowerShell can show the newly added modules and updated cmdlet count.
+if (-not (Get-Module -ListAvailable Az.Functions)) {
+    Install-Module Az.Functions -Force
+}
+
+Get-AzFunctionApp
+    | Where-Object { $_.Name -match 'powershellexplainer' -and $_.Status -eq 'running' }
+    | ForEach-Object { Invoke-RestMethod -Uri "https://$($_.DefaultHostName)/api/MetaData?refresh=true" }
