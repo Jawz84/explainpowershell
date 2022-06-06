@@ -84,9 +84,6 @@ $ModulesToProcess = $ModulesToProcess | Sort-Object -Unique -Property Name
 
 $script:badUrls = @()
 
-#TODO - reconsider this, seems to throw null errors
-$defaultParameterSetSettings = '{"IsMandatory":true,"Position":-2147483648,"ValueFromPipeline":false,"ValueFromPipelineByPropertyName":false,"ValueFromRemainingArguments":false,"HelpMessage":null,"HelpMessageBaseName":null,"HelpMessageResourceId":null}'
-
 foreach ($mod in $ModulesToProcess) {
     if (-not $PSCmdlet.MyInvocation.BoundParameters['Verbose'].IsPresent) {
         Write-Progress -Id 1 -Activity "Processing '$($ModulesToProcess.Count)' modules." -CurrentOperation "Processing module '$($mod.Name)'" -PercentComplete ((@($ModulesToProcess).IndexOf($mod) + 1) / $ModulesToProcess.Count * 100) 
@@ -171,7 +168,7 @@ foreach ($mod in $ModulesToProcess) {
             ModuleName          = $cmd.ModuleName
             ModuleVersion       = "$($cmd.Module.Version ?? $cmd.Version ?? '')"
             ModuleProjectUri    = $moduleProjectUri
-            Parameters          = ($parameterData | ConvertTo-Json -Compress -Depth 4).replace($defaultParameterSetSettings,'null')
+            Parameters          = $parameterData | ConvertTo-Json -Compress -Depth 3
             ParameterSetNames   = @($parameterData.ParameterSets.Keys | Where-Object { $_ -ne '__AllParameterSets' } | Sort-Object -Unique) -join ', '
             RelatedLinks        = $relatedLinks -join ', '
             ReturnValues        = $help.ReturnValues.returnValue.type.name -join ', '
