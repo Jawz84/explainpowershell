@@ -303,9 +303,9 @@ namespace ExplainPowershell.SyntaxAnalyzer
                             exp.CommandName = "Mandatory " + exp.CommandName;
                         }
 
-                        if (!(matchedParameter.SwitchParameter ?? false) && !string.IsNullOrEmpty(matchedParameter.TypeName.Value))
+                        if (!(matchedParameter.SwitchParameter ?? false) && !string.IsNullOrEmpty(matchedParameter.TypeName))
                         {
-                            exp.CommandName += $" of type [{matchedParameter.TypeName.Value}]";
+                            exp.CommandName += $" of type [{matchedParameter.TypeName}]";
                         }
 
                         if (string.Equals(matchedParameter.Globbing, "true", StringComparison.OrdinalIgnoreCase))
