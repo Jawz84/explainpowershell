@@ -1,9 +1,7 @@
-using namespace explainpowershell.helpcollector.tools
-
 Describe "explainpowershell.helpcollector.tools.tests" {
     It "Returns expected output" {
         try {
-            $null = [DeCompress]
+            $null = [explainpowershell.helpcollector.tools.DeCompress]
         }
         catch {
             $typeDef = Get-Content $PSScriptRoot\..\explainpowershell.helpcollector\tools\DeCompress.cs -Raw
@@ -31,8 +29,8 @@ Describe "explainpowershell.helpcollector.tools.tests" {
 '@
 
         $paramsOriginal = $json | ConvertFrom-Json | Select-Object -ExpandProperty parameters
-        $compressedParams = [DeCompress]::Compress($paramsOriginal)
-        $decompressedParams = [DeCompress]::Decompress($compressedParams)
+        $compressedParams = [explainpowershell.helpcollector.tools.DeCompress]::Compress($paramsOriginal)
+        $decompressedParams = [explainpowershell.helpcollector.tools.DeCompress]::Decompress($compressedParams)
 
         [System.Text.ASCIIEncoding]::Unicode.GetByteCount($paramsOriginal) / 1kb | Should -BeGreaterThan 64
         [System.Text.ASCIIEncoding]::Unicode.GetByteCount($compressedParams) / 1kb | Should -BeLessThan 64
