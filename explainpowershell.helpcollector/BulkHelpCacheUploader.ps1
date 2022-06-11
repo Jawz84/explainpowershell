@@ -1,9 +1,11 @@
 [CmdletBinding()]
 param(
-    [switch] $Force
+    [string] $Path = $PSScriptRoot,
+    [switch] $Force,
+    [switch] $IsDev
 )
 
-foreach ($file in (Get-ChildItem -Path $PSScriptRoot/ -Filter '*.user' )) {
+foreach ($file in (Get-ChildItem -Path $Path -Filter '*.cache.user' )) {
     $fileName = $file.FullName
 
     if (-not $Force) {
@@ -13,7 +15,7 @@ foreach ($file in (Get-ChildItem -Path $PSScriptRoot/ -Filter '*.user' )) {
     if ($force -or -not (Get-HelpDatabaseData -RowKey $item -IsProduction).Properties.ModuleVersion) {
         Write-Host "Writing help for module '$($File.Name)' to Azure table.."
         try {
-            ./helpwriter.ps1 -HelpDataCacheFilename $fileName -IsProduction
+            ./helpwriter.ps1 -HelpDataCacheFilename $fileName -IsProduction:$(-not $IsDev)
         }
         catch {
             Write-Warning "Error in processing module '$($file.Name)': $($_.Exception.Message)"
@@ -24,11 +26,13 @@ foreach ($file in (Get-ChildItem -Path $PSScriptRoot/ -Filter '*.user' )) {
     }
 }
 
-# Trigger refresh of database metadata, so ExplainPowerShell can show the newly added modules and updated cmdlet count.
-if (-not (Get-Module -ListAvailable Az.Functions)) {
-    Install-Module Az.Functions -Force
-}
+if (-not $IsDev) {
+    # Trigger refresh of database metadata, so ExplainPowerShell can show the newly added modules and updated cmdlet count.
+    if (-not (Get-Module -ListAvailable Az.Functions)) {
+        Install-Module Az.Functions -Force
+    }
 
-Get-AzFunctionApp
-    | Where-Object { $_.Name -match 'powershellexplainer' -and $_.Status -eq 'running' }
-    | ForEach-Object { Invoke-RestMethod -Uri "https://$($_.DefaultHostName)/api/MetaData?refresh=true" }
+    Get-AzFunctionApp
+        | Where-Object { $_.Name -match 'powershellexplainer' -and $_.Status -eq 'running' }
+        | ForEach-Object { Invoke-RestMethod -Uri "https://$($_.DefaultHostName)/api/MetaData?refresh=true" }
+}

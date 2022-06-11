@@ -1,4 +1,5 @@
 using namespace Microsoft.Azure.Cosmos.Table
+using namespace explainpowershell.helpcollector.tools
 
 [CmdletBinding()]
 param(
@@ -35,14 +36,28 @@ if ($null -eq $table) {
 }
 $table = $table.CloudTable
 
-$commandHelp = Get-Content $helpDataCacheFilename -Raw
-| ConvertFrom-Json -AsHashtable
+$commandHelp = @(Get-Content $helpDataCacheFilename -Raw
+| ConvertFrom-Json -AsHashtable)
 
 $counter = 0
 
 foreach ($help in $commandHelp) {
     if (-not $PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent) {
         Write-Progress -Id 2 -Activity "Uploading '$($commandHelp.Count)' Help items." -CurrentOperation "Uploading help for command '$($help.CommandName)'" -PercentComplete ((@($commandHelp).IndexOf($help) + 1) / $commandHelp.Count * 100) 
+    }
+
+    if (([System.Text.ASCIIEncoding]::Unicode.GetByteCount(@($help.Parameters)) / 1kb)  -gt 64) {
+        # Parameter data is json, and can become too big for the 64Kb limit of Azure Table storage. If it is too big, compress it before storing.
+        Write-Verbose "Compressing Parameter help for '$($help.CommandName)', because it's bigger than 64kb, and wouldn't fit Azure Table storage otherwise."
+        try {
+            $null = [DeCompress]
+        }
+        catch {
+            $typeDef = (Get-Content $PSScriptRoot\tools\DeCompress.cs -Raw)
+            Add-Type -TypeDefinition $typeDef
+        }
+
+        $help.Parameters = [DeCompress]::Compress($help.Parameters)
     }
 
     $RowKey = $help.CommandName.ToLower()
@@ -55,7 +70,7 @@ foreach ($help in $commandHelp) {
                 $null = $entity.Properties.Add($prop, $help.Item($prop))
             }
             catch {
-                $null = $entity.Properties.Add([string]$prop, [string]($help.Item($prop) | ConvertTo-Json -depth 5))
+                $null = $entity.Properties.Add([string]$prop, [string]($help.Item($prop) | ConvertTo-Json -depth 3 -Compress))
             }
         }
     }
