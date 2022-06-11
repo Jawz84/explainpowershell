@@ -36,8 +36,8 @@ if ($null -eq $table) {
 }
 $table = $table.CloudTable
 
-$commandHelp = Get-Content $helpDataCacheFilename -Raw
-| ConvertFrom-Json -AsHashtable
+$commandHelp = @(Get-Content $helpDataCacheFilename -Raw
+| ConvertFrom-Json -AsHashtable)
 
 $counter = 0
 
