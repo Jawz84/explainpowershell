@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using explainpowershell.models;
+using explainpowershell.helpcollector.tools;
 
 namespace ExplainPowershell.SyntaxAnalyzer
 {
@@ -11,8 +12,20 @@ namespace ExplainPowershell.SyntaxAnalyzer
     {
         public static ParameterData MatchParam(string foundParameter, string json)
         {
-            var doc = JsonSerializer.Deserialize<List<ParameterData>>(json, new JsonSerializerOptions() {DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull});
+            List<ParameterData> doc;
             List<ParameterData> matchedParam = new();
+
+            try {
+                doc = JsonSerializer.Deserialize<List<ParameterData>>(json, new JsonSerializerOptions() {DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull});
+            }
+            catch {
+                json = DeCompress.Decompress(json);
+                doc = JsonSerializer.Deserialize<List<ParameterData>>(json, new JsonSerializerOptions() {DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull});
+            }
+
+            if (null == doc) {
+                return matchedParam.FirstOrDefault();
+            }
 
             // First check for aliases, because they take precendence
             if (!string.Equals(foundParameter, "none", StringComparison.OrdinalIgnoreCase))

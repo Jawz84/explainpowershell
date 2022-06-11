@@ -9,6 +9,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "explainpowershell", "explai
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "explainpowershell.models", "explainpowershell.models\explainpowershell.models.csproj", "{CE997188-9CE9-43F5-AFAA-670D28222C23}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "explainpowershell.helpcollector", "explainpowershell.helpcollector", "{56F173B4-132E-4ADA-A154-7914BC2ECF6C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tools", "explainpowershell.helpcollector\tools\explainpowershell.helpcollector.tools.csproj", "{6854D7F5-13D2-4363-A699-88F3802FC917}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +34,12 @@ Global
 		{CE997188-9CE9-43F5-AFAA-670D28222C23}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CE997188-9CE9-43F5-AFAA-670D28222C23}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CE997188-9CE9-43F5-AFAA-670D28222C23}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6854D7F5-13D2-4363-A699-88F3802FC917}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6854D7F5-13D2-4363-A699-88F3802FC917}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6854D7F5-13D2-4363-A699-88F3802FC917}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6854D7F5-13D2-4363-A699-88F3802FC917}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{6854D7F5-13D2-4363-A699-88F3802FC917} = {56F173B4-132E-4ADA-A154-7914BC2ECF6C}
 	EndGlobalSection
 EndGlobal
