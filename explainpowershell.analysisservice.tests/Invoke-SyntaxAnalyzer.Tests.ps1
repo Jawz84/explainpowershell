@@ -12,7 +12,7 @@ Describe "make_module_aware" {
         [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
         $content = $result.Content | ConvertFrom-Json
         $content.Explanations[0].HelpResult.ModuleName | Should -BeExactly 'myTestModule'
-        $content.Explanations[0].CommandName | Should -BeExactly 'get-testinfo'
+        $content.Explanations[0].CommandName | Should -BeExactly 'Get-TestInfo'
         $content.Explanations[0].HelpResult.ModuleProjectUri | Should -BeExactly 'https://www.explainpowershell.com'
     }
 }
