@@ -1,6 +1,6 @@
 using namespace Microsoft.PowerShell.Commands
 
-Describe "make_module_aware" {
+Describe "Invoke-SyntaxAnalyzer" {
     BeforeAll {
         . $PSCommandPath.Replace('.Tests.ps1', '.ps1')
         . $PSScriptRoot/Start-FunctionApp.ps1
@@ -15,13 +15,26 @@ Describe "make_module_aware" {
         $content.Explanations[0].CommandName | Should -BeExactly 'Get-TestInfo'
         $content.Explanations[0].HelpResult.ModuleProjectUri | Should -BeExactly 'https://www.explainpowershell.com'
     }
-}
 
-Describe "Invoke-SyntaxAnalyzer" {
-    BeforeAll {
-        . $PSCommandPath.Replace('.Tests.ps1', '.ps1')
-        . $PSScriptRoot/Start-FunctionApp.ps1
-        . $PSScriptRoot/Test-IsAzuriteUp.ps1
+    It "Warns the user if a command is present in more than one module" {
+        $code = 'get-testinfo'
+        [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
+        $content = $result.Content | ConvertFrom-Json
+        $content.ParseErrorMessage | Should -BeLike "The command 'get-testinfo' is present in more than one module:*"
+    }
+
+    It "Doesn't warn the user if a command is present in more than one module, but the module is specified" {
+        $code = 'myTestModule\get-testinfo'
+        [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
+        $content = $result.Content | ConvertFrom-Json
+        $content.ParseErrorMessage | Should -BeNullOrEmpty
+    }
+
+    It "Doesn't warn the user if a command is not present in more than one module" {
+        $code = 'get-childitem'
+        [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
+        $content = $result.Content | ConvertFrom-Json
+        $content.ParseErrorMessage | Should -BeNullOrEmpty
     }
 
     It "Provides descriptions for parameters, even if some values are 'null' in the underlying json" {
