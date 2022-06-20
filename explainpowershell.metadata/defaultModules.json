@@ -26,5 +26,13 @@
     {
         "Name": "PSReadLine",
         "ProjectUri": "https://docs.microsoft.com/en-us/powershell/module/psreadline"
+    },
+    {
+        "Name": "myTestModule",
+        "ProjectUri": "https://www.explainpowershell.com"
+    },
+    {
+        "Name": "myConflictingTestModule",
+        "ProjectUri": "https://www.explainpowershell.com"
     }
 ]

@@ -14,8 +14,10 @@ namespace ExplainPowershell.SyntaxAnalyzer
 {
     public class AstVisitorExplainer : AstVisitor2
     {
+        private const char filterChar = (char)17;
         private const string PartitionKey = "CommandHelp";
         private readonly List<Explanation> explanations = new();
+        private string errorMessage;
         private string extent;
         private int offSet = 0;
         private readonly TableClient tableClient;
@@ -44,7 +46,8 @@ namespace ExplainPowershell.SyntaxAnalyzer
             {
                 Explanations = explanations,
                 DetectedModules = modules,
-                ExpandedCode = extent
+                ExpandedCode = extent,
+                ParseErrorMessage = errorMessage
             };
 
             return analysisResult;
@@ -71,6 +74,24 @@ namespace ExplainPowershell.SyntaxAnalyzer
             var entities = tableClient.Query<HelpEntity>(filter: filter);
             var helpResult = entities.FirstOrDefault();
             return helpResult;
+        }
+
+        private HelpEntity HelpTableQuery(string resolvedCmd, string moduleName)
+        {
+            var rowKey = $"{resolvedCmd.ToLower()}{filterChar}{moduleName.ToLower()}";
+            return HelpTableQuery(rowKey);
+        }
+
+        private List<HelpEntity> HelpTableQueryRange(string resolvedCmd)
+        {
+            // Getting a range from Azure Table storage works based on ascii char filtering. You can match prefixes. I use '►' (char)16 as a divider 
+            // between the name of a command and the name of its module for commands that appear in more than one module. Filtering this way makes sure I 
+            // only match entries with <myCommandName>►<myModuleName>.
+            // filterChar = (char)17 = '◄'.
+            string filter = TableServiceClient.CreateQueryFilter(
+                $"PartitionKey eq {PartitionKey} and RowKey ge {resolvedCmd.ToLower()} and RowKey lt {resolvedCmd.ToLower()}{filterChar}");
+            var entities = tableClient.Query<HelpEntity>(filter: filter);
+            return entities.ToList();
         }
 
         private void ExpandAliasesInExtent(CommandAst cmd, string resolvedCmd)
@@ -227,7 +248,15 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitCommand(CommandAst commandAst)
         {
+            string moduleName = string.Empty;
             string cmdName = commandAst.GetCommandName();
+            if (cmdName.IndexOf('\\') != -1)
+            {
+                var s = cmdName.Split('\\');
+                moduleName = s[0];
+                cmdName = s[1];
+            }
+
             string resolvedCmd = Helpers.ResolveAlias(cmdName) ?? cmdName;
 
             if (string.IsNullOrEmpty(resolvedCmd))
@@ -235,7 +264,28 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 resolvedCmd = cmdName;
             }
 
-            HelpEntity helpResult = HelpTableQuery(resolvedCmd);
+            HelpEntity helpResult;
+            if (string.IsNullOrEmpty(moduleName))
+            {
+                var helpResults = HelpTableQueryRange(resolvedCmd);
+                helpResult = helpResults?.FirstOrDefault();
+                if (helpResults.Count > 1)
+                {
+                    this.errorMessage = $"The command '{helpResult?.CommandName}' is present in more than one module: '{string.Join("', '", helpResults.Select(r => r.ModuleName))}'. Explicitly prepend the module name to the command to select one: '{helpResults.First().ModuleName}\\{helpResult?.CommandName}'";
+                }
+            }
+            else
+            {
+                helpResult = HelpTableQuery(resolvedCmd, moduleName);
+                if (string.IsNullOrEmpty(helpResult?.ModuleName))
+                {
+                    helpResult = new()
+                    {
+                        ModuleName = moduleName
+                    };
+                }
+            }
+
             var description = helpResult?.Synopsis?.ToString() ?? "";
             resolvedCmd = helpResult?.CommandName ?? resolvedCmd;
 
@@ -558,7 +608,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitFunctionDefinition(FunctionDefinitionAst functionDefinitionAst)
         {
-            // TODO
+            // TODO: add function definition explanation
             AstExplainer(functionDefinitionAst);
             return base.VisitFunctionDefinition(functionDefinitionAst);
         }
@@ -659,7 +709,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitNamedAttributeArgument(NamedAttributeArgumentAst namedAttributeArgumentAst)
         {
-            // TODO
+            // TODO: add named attribute argument explanation
             AstExplainer(namedAttributeArgumentAst);
             return base.VisitNamedAttributeArgument(namedAttributeArgumentAst);
         }
@@ -673,14 +723,14 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitParamBlock(ParamBlockAst paramBlockAst)
         {
-            // TODO
+            // TODO: add param block explanation
             AstExplainer(paramBlockAst);
             return base.VisitParamBlock(paramBlockAst);
         }
 
         public override AstVisitAction VisitParameter(ParameterAst parameterAst)
         {
-            // TODO
+            // TODO: add parameter explanation
             AstExplainer(parameterAst);
             return base.VisitParameter(parameterAst);
         }
@@ -711,7 +761,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitReturnStatement(ReturnStatementAst returnStatementAst)
         {
-            // TODO
+            // TODO: add return statement explanation
             AstExplainer(returnStatementAst);
             return base.VisitReturnStatement(returnStatementAst);
         }
@@ -806,21 +856,21 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitSwitchStatement(SwitchStatementAst switchStatementAst)
         {
-            // TODO
+            // TODO: add switch statement explanation
             AstExplainer(switchStatementAst);
             return base.VisitSwitchStatement(switchStatementAst);
         }
 
         public override AstVisitAction VisitThrowStatement(ThrowStatementAst throwStatementAst)
         {
-            // TODO
+            // TODO: add throw statement explanation
             AstExplainer(throwStatementAst);
             return base.VisitThrowStatement(throwStatementAst);
         }
 
         public override AstVisitAction VisitTrap(TrapStatementAst trapStatementAst)
         {
-            // TODO
+            // TODO: add trap explanation
             AstExplainer(trapStatementAst);
             return base.VisitTrap(trapStatementAst);
         }
@@ -890,7 +940,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitUsingExpression(UsingExpressionAst usingExpressionAst)
         {
-            // TODO
+            // TODO: add using expression explanation
             AstExplainer(usingExpressionAst);
             return base.VisitUsingExpression(usingExpressionAst);
         }

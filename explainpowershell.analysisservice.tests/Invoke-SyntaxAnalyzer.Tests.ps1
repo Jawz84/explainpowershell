@@ -7,6 +7,36 @@ Describe "Invoke-SyntaxAnalyzer" {
         . $PSScriptRoot/Test-IsAzuriteUp.ps1
     }
 
+    It "Switches to the right module on demand" {
+        $code = 'myTestModule\get-testinfo'
+        [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
+        $content = $result.Content | ConvertFrom-Json
+        $content.Explanations[0].HelpResult.ModuleName | Should -BeExactly 'myTestModule'
+        $content.Explanations[0].CommandName | Should -BeExactly 'Get-TestInfo'
+        $content.Explanations[0].HelpResult.ModuleProjectUri | Should -BeExactly 'https://www.explainpowershell.com'
+    }
+
+    It "Warns the user if a command is present in more than one module" {
+        $code = 'get-testinfo'
+        [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
+        $content = $result.Content | ConvertFrom-Json
+        $content.ParseErrorMessage | Should -BeLike "The command 'get-testinfo' is present in more than one module:*"
+    }
+
+    It "Doesn't warn the user if a command is present in more than one module, but the module is specified" {
+        $code = 'myTestModule\get-testinfo'
+        [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
+        $content = $result.Content | ConvertFrom-Json
+        $content.ParseErrorMessage | Should -BeNullOrEmpty
+    }
+
+    It "Doesn't warn the user if a command is not present in more than one module" {
+        $code = 'get-childitem'
+        [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
+        $content = $result.Content | ConvertFrom-Json
+        $content.ParseErrorMessage | Should -BeNullOrEmpty
+    }
+
     It "Provides descriptions for parameters, even if some values are 'null' in the underlying json" {
         $code = 'get-help -full'
         [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code

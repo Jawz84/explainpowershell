@@ -12,6 +12,58 @@ $partitionKey = 'CommandHelp'
 $StorageAccountName = 'explainpowershell'
 $ResourceGroupName = 'powershellexplainer'
 
+function Set-Entity {
+    param(
+        $Table,
+        $Entity
+    )
+
+    try {
+        $res = $Table.Execute([TableOperation]::InsertOrReplace($entity))
+    }
+    catch {
+        Write-Host "Couldn't write '$($entity.RowKey)': $($_.Exception.Message)" -ForegroundColor Yellow
+        continue
+    }
+
+    while ($null -eq $res) {
+        Write-Host 'No response writing '$($entity.RowKey)', retrying in 2 seconds' -ForegroundColor Yellow
+        Start-Sleep -Seconds 2
+        $res = $Table.Execute([TableOperation]::InsertOrReplace($entity))
+    }
+
+    Write-Verbose ("{2,-5} {0,-20} {1}" -f $res.Result.Properties.ModuleName, $res.Result.Properties.CommandName, $res.HttpStatusCode)
+}
+
+function Remove-Entity {
+    param(
+        $Table,
+        $Entity
+    )
+
+    try {
+        $res = $Table.Execute([TableOperation]::Delete($entity))
+    }
+    catch {
+        Write-Host "Couldn't delete '$($entity.RowKey)': $($_.Exception.Message)" -ForegroundColor Yellow
+        continue
+    }
+
+    while ($null -eq $res) {
+        Write-Host 'No response deleting '$($entity.RowKey)', retrying in 2 seconds' -ForegroundColor Yellow
+        Start-Sleep -Seconds 2
+        $res = $Table.Execute([TableOperation]::Delete($entity))
+    }
+}
+
+function New-RowKeyWithModuleName {
+    param(
+        $RowKey,
+        [string]$ModuleName
+    )
+    return "$RowKey$([char]17)$($ModuleName.ToLower())"
+}
+
 if (-not $PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent) {
     Write-Progress -id 2 -Activity "Upload help information.." -CurrentOperation "Preparing..." -PercentComplete 0
 }
@@ -62,7 +114,10 @@ foreach ($help in $commandHelp) {
 
     $RowKey = $help.CommandName.ToLower()
 
-    $entity = New-Object -TypeName DynamicTableEntity -ArgumentList $PartitionKey, $RowKey
+    $entity = [DynamicTableEntity]@{
+        PartitionKey = $PartitionKey
+        RowKey       = $RowKey
+    }
 
     foreach ($prop in $help.Keys) {
         if ($help[$prop] -notlike $null) {
@@ -75,24 +130,36 @@ foreach ($help in $commandHelp) {
         }
     }
 
-    try {
-        $res = $Table.Execute([TableOperation]::InsertOrReplace($entity))
-    }
-    catch {
-        Write-Host "Couldn't write '$($entity.RowKey)': $($_.Exception.Message)" -ForegroundColor Yellow
-        continue
-    }
+    $res = $Table.Execute([TableOperation]::Retrieve($partitionKey, $rowKey, $null))
+    $IsEntityPresent = $res.HttpStatusCode -eq [System.Net.HttpStatusCode]::OK
+    $existingEntity = $res.Result
+    $IsSameModuleName = $existingEntity.Properties.ModuleName -eq $entity.Properties.ModuleName
 
-    while ($null -eq $res) {
-        Write-Host 'No response writing '$($entity.RowKey)', retrying in 2 seconds' -ForegroundColor Yellow
-        Start-Sleep -Seconds 2
-        $res = $Table.Execute([TableOperation]::InsertOrReplace($entity))
+    if(-not $IsEntityPresent -or ($IsEntityPresent -and $IsSameModuleName)) {
+        Set-Entity -Table $table -Entity $entity
+    }
+    else {
+        $entity = [DynamicTableEntity]@{
+            PartitionKey = $PartitionKey
+            RowKey       = New-RowKeyWithModuleName -RowKey $RowKey -ModuleName $entity.Properties.ModuleName
+            Properties   = $entity.Properties
+        }
+
+        $adaptedExistingEntity = [DynamicTableEntity]@{
+            PartitionKey = $existingEntity.PartitionKey
+            RowKey       = New-RowKeyWithModuleName -RowKey $existingEntity.RowKey -ModuleName $existingEntity.Properties.ModuleName
+            Properties   = $existingEntity.Properties
+        }
+
+        Set-Entity -Table $table -Entity $entity
+        Set-Entity -Table $table -Entity $adaptedExistingEntity
+        Remove-Entity -Table $table -Entity $existingEntity
     }
 
     $counter++
-
-    Write-Verbose ("{2,-5} {0,-20} {1}" -f $res.Result.Properties.ModuleName, $res.Result.Properties.CommandName, $res.HttpStatusCode)
 }
+
+Write-Progress -Id 2 -Activity "Uploading '$($commandHelp.Count)' Help items." -Completed
 
 if ($counter -eq 0) {
     throw "No items were sucessfully written to DB!"

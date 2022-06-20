@@ -105,6 +105,8 @@ else {
 Write-Host 'Writing about_.. help article data to local Azurite table..'
 ./explainpowershell.helpcollector/helpwriter.ps1 -HelpDataCacheFilename $fileName
 
+Import-Module "$PSScriptRoot/explainpowershell.analysisservice.tests/testfiles/myTestModule.psm1"
+
 $modulesToProcess = Get-Content "$PSScriptRoot/explainpowershell.metadata/defaultModules.json"
 | ConvertFrom-Json
 
@@ -123,6 +125,11 @@ foreach ($module in $modulesToProcess) {
 
     Write-Host "Writing help for module '$($module.Name)' to local Azurite table.."
     ./explainpowershell.helpcollector/helpwriter.ps1 -HelpDataCacheFilename $fileName
+
+    if ($module.name -eq 'myTestModule') {
+        Remove-Module myTestModule
+        Import-Module "$PSScriptRoot/explainpowershell.analysisservice.tests/testfiles/myConflictingTestModule.psm1"
+    }
 }
 
 Write-Host -ForegroundColor Green 'Running tests to see if everything works'

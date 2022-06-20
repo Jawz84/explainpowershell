@@ -29,7 +29,7 @@
 	"forwardPorts": [10002],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "/usr/share/powershell/pwsh -f ./bootstrap.ps1",
+	"postCreateCommand": "/usr/share/powershell/pwsh -f ./bootstrap.ps1 -force",
 
 	// Comment out connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
 	"remoteUser": "vscode"

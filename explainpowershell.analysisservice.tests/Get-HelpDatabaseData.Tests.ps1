@@ -15,6 +15,7 @@ Describe 'Get-HelpDatabaseData' {
 
     $commandsToCheck = Get-Content "$PSScriptRoot/../explainpowershell.metadata/defaultModules.json"
     | ConvertFrom-Json
+    | Where-Object {$_.name -notmatch '^myTestModule$|^myConflictingTestModule$'}
     | ForEach-Object {
         $cmd = Get-Command -Module $_.name | Select-Object -First 1
         [psobject]@{
