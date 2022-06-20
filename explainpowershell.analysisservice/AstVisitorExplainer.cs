@@ -17,6 +17,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
         private const char filterChar = (char)17;
         private const string PartitionKey = "CommandHelp";
         private readonly List<Explanation> explanations = new();
+        private string errorMessage;
         private string extent;
         private int offSet = 0;
         private readonly TableClient tableClient;
@@ -45,7 +46,8 @@ namespace ExplainPowershell.SyntaxAnalyzer
             {
                 Explanations = explanations,
                 DetectedModules = modules,
-                ExpandedCode = extent
+                ExpandedCode = extent,
+                ParseErrorMessage = errorMessage
             };
 
             return analysisResult;
@@ -267,7 +269,10 @@ namespace ExplainPowershell.SyntaxAnalyzer
             {
                 var helpResults = HelpTableQueryRange(resolvedCmd);
                 helpResult = helpResults?.FirstOrDefault();
-                // TODO: Warn user that more than one explanation is available
+                if (helpResults.Count > 1)
+                {
+                    this.errorMessage = $"The command '{helpResult?.CommandName}' is present in more than one module: '{string.Join("', '", helpResults.Select(r => r.ModuleName))}'. Explicitly prepend the module name to the command to select one: '{helpResults.First().ModuleName}\\{helpResult?.CommandName}'";
+                }
             }
             else
             {

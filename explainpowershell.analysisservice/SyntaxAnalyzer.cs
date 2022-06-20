@@ -58,7 +58,9 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 return ResponseHelper(HttpStatusCode.InternalServerError, "Oops, someting went wrong internally. Please file an issue with the PowerShell code you submitted when this occurred.");
             }
 
-            analysisResult.ParseErrorMessage = parseErrors?.FirstOrDefault()?.Message;
+            analysisResult.ParseErrorMessage = string.IsNullOrEmpty(analysisResult.ParseErrorMessage)
+                ? parseErrors?.FirstOrDefault()?.Message
+                : analysisResult.ParseErrorMessage + "\n" + parseErrors?.FirstOrDefault()?.Message;
 
             var json = System.Text.Json.JsonSerializer.Serialize(analysisResult);
 
