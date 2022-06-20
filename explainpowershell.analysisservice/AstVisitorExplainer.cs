@@ -14,6 +14,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
 {
     public class AstVisitorExplainer : AstVisitor2
     {
+        private const char filterChar = (char)17;
         private const string PartitionKey = "CommandHelp";
         private readonly List<Explanation> explanations = new();
         private string extent;
@@ -71,6 +72,26 @@ namespace ExplainPowershell.SyntaxAnalyzer
             var entities = tableClient.Query<HelpEntity>(filter: filter);
             var helpResult = entities.FirstOrDefault();
             return helpResult;
+        }
+
+        private HelpEntity HelpTableQuery(string resolvedCmd, string moduleName)
+        {
+            string filter = TableServiceClient.CreateQueryFilter($"PartitionKey eq {PartitionKey} and RowKey eq {resolvedCmd.ToLower()}{filterChar}{moduleName}");
+            var entities = tableClient.Query<HelpEntity>(filter: filter);
+            var helpResult = entities.FirstOrDefault();
+            return helpResult;
+        }
+
+        private List<HelpEntity> HelpTableQueryRange(string resolvedCmd)
+        {
+            // Getting a range from Azure Table storage works based on ascii char filtering. You can match prefixes. I use '►' (char)16 as a divider 
+            // between the name of a command and the name of its module for commands that appear in more than one module. Filtering this way makes sure I 
+            // only match entries with <myCommandName>►<myModuleName>.
+            // filterChar = (char)17 = '◄'.
+            string filter = TableServiceClient.CreateQueryFilter(
+                $"PartitionKey eq {PartitionKey} and RowKey ge {resolvedCmd.ToLower()} and RowKey lt {resolvedCmd.ToLower()}{filterChar}");
+            var entities = tableClient.Query<HelpEntity>(filter: filter);
+            return entities.ToList();
         }
 
         private void ExpandAliasesInExtent(CommandAst cmd, string resolvedCmd)
@@ -227,7 +248,15 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitCommand(CommandAst commandAst)
         {
+            string moduleName = string.Empty;
             string cmdName = commandAst.GetCommandName();
+            if (cmdName.IndexOf('\\') != -1)
+            {
+                var s = cmdName.Split('\\');
+                moduleName = s[0];
+                cmdName = s[1];
+            }
+
             string resolvedCmd = Helpers.ResolveAlias(cmdName) ?? cmdName;
 
             if (string.IsNullOrEmpty(resolvedCmd))
@@ -235,7 +264,22 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 resolvedCmd = cmdName;
             }
 
-            HelpEntity helpResult = HelpTableQuery(resolvedCmd);
+            HelpEntity helpResult;
+            if (string.IsNullOrEmpty(moduleName))
+            {
+                var helpResults = HelpTableQueryRange(resolvedCmd);
+                helpResult = helpResults?.FirstOrDefault();
+            }
+            else
+            {
+                helpResult = HelpTableQuery(resolvedCmd, moduleName);
+                if (string.IsNullOrEmpty(helpResult?.ModuleName))
+                {
+                    helpResult = new();
+                    helpResult.ModuleName = moduleName;
+                }
+            }
+
             var description = helpResult?.Synopsis?.ToString() ?? "";
             resolvedCmd = helpResult?.CommandName ?? resolvedCmd;
 

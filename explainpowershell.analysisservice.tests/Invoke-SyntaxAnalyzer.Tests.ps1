@@ -1,5 +1,22 @@
 using namespace Microsoft.PowerShell.Commands
 
+Describe "make_module_aware" {
+    BeforeAll {
+        . $PSCommandPath.Replace('.Tests.ps1', '.ps1')
+        . $PSScriptRoot/Start-FunctionApp.ps1
+        . $PSScriptRoot/Test-IsAzuriteUp.ps1
+    }
+
+    It "Switches to the right module on demand" {
+        $code = 'myTestModule\get-testinfo'
+        [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
+        $content = $result.Content | ConvertFrom-Json
+        $content.Explanations[0].HelpResult.ModuleName | Should -BeExactly 'myTestModule'
+        $content.Explanations[0].CommandName | Should -BeExactly 'get-testinfo'
+        $content.Explanations[0].HelpResult.ModuleProjectUri | Should -BeExactly 'https://www.explainpowershell.com'
+    }
+}
+
 Describe "Invoke-SyntaxAnalyzer" {
     BeforeAll {
         . $PSCommandPath.Replace('.Tests.ps1', '.ps1')
