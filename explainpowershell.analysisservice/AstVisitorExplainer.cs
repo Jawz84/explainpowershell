@@ -76,10 +76,8 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         private HelpEntity HelpTableQuery(string resolvedCmd, string moduleName)
         {
-            string filter = TableServiceClient.CreateQueryFilter($"PartitionKey eq {PartitionKey} and RowKey eq {resolvedCmd.ToLower()}{filterChar}{moduleName}");
-            var entities = tableClient.Query<HelpEntity>(filter: filter);
-            var helpResult = entities.FirstOrDefault();
-            return helpResult;
+            var rowKey = $"{resolvedCmd.ToLower()}{filterChar}{moduleName.ToLower()}";
+            return HelpTableQuery(rowKey);
         }
 
         private List<HelpEntity> HelpTableQueryRange(string resolvedCmd)
@@ -269,14 +267,17 @@ namespace ExplainPowershell.SyntaxAnalyzer
             {
                 var helpResults = HelpTableQueryRange(resolvedCmd);
                 helpResult = helpResults?.FirstOrDefault();
+                // TODO: Warn user that more than one explanation is available
             }
             else
             {
                 helpResult = HelpTableQuery(resolvedCmd, moduleName);
                 if (string.IsNullOrEmpty(helpResult?.ModuleName))
                 {
-                    helpResult = new();
-                    helpResult.ModuleName = moduleName;
+                    helpResult = new()
+                    {
+                        ModuleName = moduleName
+                    };
                 }
             }
 
@@ -602,7 +603,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitFunctionDefinition(FunctionDefinitionAst functionDefinitionAst)
         {
-            // TODO
+            // TODO: add function definition explanation
             AstExplainer(functionDefinitionAst);
             return base.VisitFunctionDefinition(functionDefinitionAst);
         }
@@ -703,7 +704,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitNamedAttributeArgument(NamedAttributeArgumentAst namedAttributeArgumentAst)
         {
-            // TODO
+            // TODO: add named attribute argument explanation
             AstExplainer(namedAttributeArgumentAst);
             return base.VisitNamedAttributeArgument(namedAttributeArgumentAst);
         }
@@ -717,14 +718,14 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitParamBlock(ParamBlockAst paramBlockAst)
         {
-            // TODO
+            // TODO: add param block explanation
             AstExplainer(paramBlockAst);
             return base.VisitParamBlock(paramBlockAst);
         }
 
         public override AstVisitAction VisitParameter(ParameterAst parameterAst)
         {
-            // TODO
+            // TODO: add parameter explanation
             AstExplainer(parameterAst);
             return base.VisitParameter(parameterAst);
         }
@@ -755,7 +756,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitReturnStatement(ReturnStatementAst returnStatementAst)
         {
-            // TODO
+            // TODO: add return statement explanation
             AstExplainer(returnStatementAst);
             return base.VisitReturnStatement(returnStatementAst);
         }
@@ -850,21 +851,21 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitSwitchStatement(SwitchStatementAst switchStatementAst)
         {
-            // TODO
+            // TODO: add switch statement explanation
             AstExplainer(switchStatementAst);
             return base.VisitSwitchStatement(switchStatementAst);
         }
 
         public override AstVisitAction VisitThrowStatement(ThrowStatementAst throwStatementAst)
         {
-            // TODO
+            // TODO: add throw statement explanation
             AstExplainer(throwStatementAst);
             return base.VisitThrowStatement(throwStatementAst);
         }
 
         public override AstVisitAction VisitTrap(TrapStatementAst trapStatementAst)
         {
-            // TODO
+            // TODO: add trap explanation
             AstExplainer(trapStatementAst);
             return base.VisitTrap(trapStatementAst);
         }
@@ -934,7 +935,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitUsingExpression(UsingExpressionAst usingExpressionAst)
         {
-            // TODO
+            // TODO: add using expression explanation
             AstExplainer(usingExpressionAst);
             return base.VisitUsingExpression(usingExpressionAst);
         }
