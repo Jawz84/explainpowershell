@@ -1,9 +1,8 @@
 [CmdletBinding()]
 param(
-    [switch] $Force
+    [switch] $Force,
+    $modulesToProcess = ( Get-Module -ListAvailable ) #| Where-Object Name -notmatch "az.*|micrsoft.*|pester|editorservices|plaser|threadjob|posh-git"
 )
-
-$modulesToProcess =  Get-Module -ListAvailable #| Where-Object Name -notmatch "az.*|micrsoft.*|pester|editorservices|plaser|threadjob|posh-git"
 
 foreach ($module in $modulesToProcess) {
     $fileName = "$PSScriptRoot/help.$($module.Name).cache.user"
