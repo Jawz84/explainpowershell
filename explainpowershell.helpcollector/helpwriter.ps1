@@ -61,7 +61,9 @@ function New-RowKeyWithModuleName {
         $RowKey,
         [string]$ModuleName
     )
-    return "$RowKey$([char]17)$($ModuleName.ToLower())"
+
+    $separatorChar = ' '
+    return "$RowKey$separatorChar$($ModuleName.ToLower())"
 }
 
 if (-not $PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent) {

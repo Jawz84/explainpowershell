@@ -14,7 +14,8 @@ namespace ExplainPowershell.SyntaxAnalyzer
 {
     public class AstVisitorExplainer : AstVisitor2
     {
-        private const char filterChar = (char)17;
+        private const char filterChar = '!';
+        private const char separatorChar = ' ';
         private const string PartitionKey = "CommandHelp";
         private readonly List<Explanation> explanations = new();
         private string errorMessage;
@@ -78,16 +79,16 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         private HelpEntity HelpTableQuery(string resolvedCmd, string moduleName)
         {
-            var rowKey = $"{resolvedCmd.ToLower()}{filterChar}{moduleName.ToLower()}";
+            var rowKey = $"{resolvedCmd.ToLower()}{separatorChar}{moduleName.ToLower()}";
             return HelpTableQuery(rowKey);
         }
 
         private List<HelpEntity> HelpTableQueryRange(string resolvedCmd)
         {
-            // Getting a range from Azure Table storage works based on ascii char filtering. You can match prefixes. I use '►' (char)16 as a divider 
+            // Getting a range from Azure Table storage works based on ascii char filtering. You can match prefixes. I use a space ' ' (char)32 as a divider 
             // between the name of a command and the name of its module for commands that appear in more than one module. Filtering this way makes sure I 
-            // only match entries with <myCommandName>►<myModuleName>.
-            // filterChar = (char)17 = '◄'.
+            // only match entries with '<myCommandName> <myModuleName>'.
+            // filterChar = (char)33 = '!'.
             string filter = TableServiceClient.CreateQueryFilter(
                 $"PartitionKey eq {PartitionKey} and RowKey ge {resolvedCmd.ToLower()} and RowKey lt {resolvedCmd.ToLower()}{filterChar}");
             var entities = tableClient.Query<HelpEntity>(filter: filter);
