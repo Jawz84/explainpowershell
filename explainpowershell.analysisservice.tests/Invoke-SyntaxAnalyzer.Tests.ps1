@@ -7,8 +7,24 @@ Describe "Invoke-SyntaxAnalyzer" {
         . $PSScriptRoot/Test-IsAzuriteUp.ps1
     }
 
+    It "Should display correct help for assigment operators" {
+        $code = '$D=[Datetime]::Now'
+        [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
+        $content = $result.Content | ConvertFrom-Json
+        $content.Explanations[0].Description | Should -Be "The assignment operator '='. Assigns a value to '`$D'."
+        $content.Explanations[0].HelpResult.DocumentationLink | Should -Match "about_Assignment_Operators"
+    }
+
+    It "Should correctly explain static properties on classes" {
+        $code = '[Datetime]::Now'
+        [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
+        $content = $result.Content | ConvertFrom-Json
+        $content.Explanations[0].Description | Should -Be "Access the static property 'Now' on class '[Datetime]'"
+        $content.Explanations[0].HelpResult.DocumentationLink | Should -Match "about_Properties"
+    }
+
     It "Should not fail explaining ``. {gci -path 'sdf'}``" {
-        $code = '. {}'
+        $code = '. {gci -path "sdf"}'
         [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
         $content = $result.Content | ConvertFrom-Json
         $content.Explanations | Should -Not -BeNullOrEmpty
@@ -350,11 +366,5 @@ Describe "Invoke-SyntaxAnalyzer" {
     It "Can handle all kinds of different oneliners without freaking out: <PowerShellCode>" -ForEach $testCase {
             $result = Invoke-SyntaxAnalyzer -PowerShellCode $PowerShellCode
             $result.StatusCode | Should -Be 200
-    }
-
-    AfterAll {
-        if (-not $global:_isPrerequisitesRunning) {
-            Get-Job | Stop-Job -PassThru | Remove-Job -Force
-        }
     }
 }
