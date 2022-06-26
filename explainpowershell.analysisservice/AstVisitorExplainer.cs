@@ -197,12 +197,16 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitBinaryExpression(BinaryExpressionAst binaryExpressionAst)
         {
+            var (tokenDescription, helpQuery) = Helpers.TokenExplainer(binaryExpressionAst.Operator);
+            helpQuery ??= "about_operators";
+            var helpResult = HelpTableQuery(helpQuery);
+
             explanations.Add(
                 new Explanation()
                 {
-                    CommandName = $"Operator",
-                    HelpResult = HelpTableQuery("about_operators"),
-                    Description = Helpers.TokenExplainer(binaryExpressionAst.Operator),
+                    CommandName = "Operator",
+                    HelpResult = helpResult,
+                    Description = $"{tokenDescription} This works from left to right, so targeting '{binaryExpressionAst.Right.Extent.Text}'",
                     TextToHighlight = binaryExpressionAst.Operator.Text()
                 }.AddDefaults(binaryExpressionAst, explanations));
 
@@ -294,9 +298,10 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
             if (commandAst.InvocationOperator != TokenKind.Unknown)
             {
+                var (tokenDescription, _) = Helpers.TokenExplainer(commandAst.InvocationOperator);
                 string invocationOperatorExplanation = commandAst.InvocationOperator == TokenKind.Dot ?
                     "The dot source invocation operator '.'" :
-                    Helpers.TokenExplainer(commandAst.InvocationOperator);
+                    tokenDescription;
 
                 description = invocationOperatorExplanation + " " + description;
             }
@@ -934,11 +939,14 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitUnaryExpression(UnaryExpressionAst unaryExpressionAst)
         {
+            var (description, helpQuery) = Helpers.TokenExplainer(unaryExpressionAst.TokenKind);
+            helpQuery ??= "about_operators";
+
             explanations.Add(new Explanation()
             {
-                Description = Helpers.TokenExplainer(unaryExpressionAst.TokenKind),
+                Description = description,
                 CommandName = "Unary operator",
-                HelpResult = HelpTableQuery("about_operators"),
+                HelpResult = HelpTableQuery(helpQuery),
                 TextToHighlight = unaryExpressionAst.TokenKind.Text()
             }.AddDefaults(unaryExpressionAst, explanations));
 

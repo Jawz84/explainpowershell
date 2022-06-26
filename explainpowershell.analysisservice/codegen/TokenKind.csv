@@ -1,51 +1,51 @@
-﻿Name;EnumNumber;Explanation
-Ampersand;28;The invocation operator '&'.
-And;53;The logical and operator '-and'.
+﻿Name;EnumNumber;Explanation;HelpQuery
+Ampersand;28;The invocation operator '&'.;about_Operators
+And;53;The logical and operator '-and'.;about_Logical_Operators
 AndAnd;26;The (unimplemented) operator '&&'.
-As;94;The type conversion operator '-as'.
+As;94;The type conversion operator '-as'.;about_Type_Operators
 Assembly;165;The 'assembly' keyword
-AtCurly;23;The opening token of a hash expression '@{'.
-AtParen;22;The opening token of an array expression '@('.
-Band;56;The bitwise and operator '-band'.
+AtCurly;23;The opening token of a hash expression '@{'.;about_Hash_Tables
+AtParen;22;The opening token of an array expression '@('.;about_Operators
+Band;56;The bitwise and operator '-band'.;about_arithmetic_operators
 Base;168;The 'base' keyword
 Begin;119;The 'begin' keyword.
-Bnot;52;The bitwise not operator '-bnot'.
-Bor;57;The bitwise or operator '-bor'.
+Bnot;52;The bitwise not operator '-bnot'.;about_arithmetic_operators
+Bor;57;The bitwise or operator '-bor'.;about_arithmetic_operators
 Break;120;The 'break' keyword.
-Bxor;58;The bitwise exclusive or operator '-xor'.
+Bxor;58;The bitwise exclusive or operator '-xor'.;about_arithmetic_operators
 Catch;121;The 'catch' keyword.
-Ccontains;87;The case sensitive contains operator '-ccontains'.
-Ceq;76;The case sensitive equal operator '-ceq'.
-Cge;78;The case sensitive greater than or equal operator '-cge'.
-Cgt;79;The case sensitive greater than operator '-cgt'.
-Cin;89;The case sensitive in operator '-cin'.
+Ccontains;87;The case sensitive contains operator '-ccontains'.;about_comparison_operators
+Ceq;76;The case sensitive equal operator '-ceq'.;about_comparison_operators
+Cge;78;The case sensitive greater than or equal operator '-cge'.;about_comparison_operators
+Cgt;79;The case sensitive greater than operator '-cgt'.;about_comparison_operators
+Cin;89;The case sensitive in operator '-cin'.;about_comparison_operators
 Class;122;The 'class' keyword.
-Cle;81;The case sensitive less than or equal operator '-cle'.
-Clike;82;The case sensitive like operator '-clike'.
-Clt;80;The case sensitive less than operator '-clt'.
-Cmatch;84;The case sensitive match operator '-cmatch'.
-Cne;77;The case sensitive not equal operator '-cne'.
-Cnotcontains;88;The case sensitive not contains operator '-cnotcontains'.
-Cnotin;90;The case sensitive not in operator '-notin'.
-Cnotlike;83;The case sensitive notlike operator '-cnotlike'.
-Cnotmatch;85;The case sensitive not match operator '-cnotmatch'.
+Cle;81;The case sensitive less than or equal operator '-cle'.;about_comparison_operators
+Clike;82;The case sensitive like operator '-clike'.;about_comparison_operators
+Clt;80;The case sensitive less than operator '-clt'.;about_comparison_operators
+Cmatch;84;The case sensitive match operator '-cmatch'.;about_comparison_operators
+Cne;77;The case sensitive not equal operator '-cne'.;about_comparison_operators
+Cnotcontains;88;The case sensitive not contains operator '-cnotcontains'.;about_comparison_operators
+Cnotin;90;The case sensitive not in operator '-notin'.;about_comparison_operators
+Cnotlike;83;The case sensitive notlike operator '-cnotlike'.;about_comparison_operators
+Cnotmatch;85;The case sensitive not match operator '-cnotmatch'.;about_comparison_operators
 Colon;99;The PS class base class and implemented interfaces operator ':'. Also used in base class ctor calls.
 ColonColon;34;The static member access operator '::'.
 Comma;30;The unary or binary array operator ','.
 Command;166;The 'command' keyword
 Comment;10;A single line comment, or a delimited comment.
-Configuration;155;"The ""configuration"" keyword"
+Configuration;155;The 'configuration' keyword
 Continue;123;The 'continue' keyword.
-Creplace;86;The case sensitive replace operator '-creplace'.
-Csplit;91;The case sensitive split operator '-csplit'.
+Creplace;86;The case sensitive replace operator '-creplace'.;about_comparison_operators
+Csplit;91;The case sensitive split operator '-csplit'.;about_Split
 Data;124;The 'data' keyword.
 Define;125;The (unimplemented) 'define' keyword.
-Divide;38;The division operator '/'.
-DivideEquals;46;The division assignment operator '/='.
+Divide;38;The division operator '/'.;about_arithmetic_operators
+DivideEquals;46;The division assignment operator '/='.;about_assignment_operators
 Do;126;The 'do' keyword.
-DollarParen;24;The opening token of a sub-expression '$('.
-Dot;35;The instance member access or dot source invocation operator '.'.
-DotDot;33;The range operator '..'.
+DollarParen;24;The opening token of a sub-expression '$('.;about_Operators
+Dot;35;The instance member access or dot source invocation operator '.'.;about_Operators
+DotDot;33;The range operator '..'.;about_Operators
 DynamicKeyword;156;The token kind for dynamic keywords
 Dynamicparam;127;The 'dynamicparam' keyword.
 Else;128;The 'else' keyword.
@@ -53,70 +53,70 @@ ElseIf;129;The 'elseif' keyword.
 End;130;The 'end' keyword.
 EndOfInput;11;Marks the end of the input script or file.
 Enum;161;The 'enum' keyword
-Equals;42;The assignment operator '='.
-Exclaim;36;The logical not operator '!'.
+Equals;42;The assignment operator '='.;about_assignment_operators
+Exclaim;36;The logical not operator '!'.;about_Logical_Operators
 Exit;131;The 'exit' keyword.
 Filter;132;The 'filter' keyword.
 Finally;133;The 'finally' keyword.
 For;134;The 'for' keyword.
 Foreach;135;The 'foreach' keyword.
-Format;50;The string format operator '-f'.
+Format;50;The string format operator '-f'.;about_Operators
 From;136;The (unimplemented) 'from' keyword.
 Function;137;The 'function' keyword.
-Generic;7;A token that is only valid as a command name, command argument, function name, or configuration name. It may contain characters not allowed in identifiers. Tokens with this kind are always instances of StringLiteralToken or StringExpandableToken if the token contains variable references or subexpressions.
-HereStringExpandable;15;A double quoted here string literal. Tokens with this kind are always instances of StringExpandableToken. even if there are no nested tokens to expand.
-HereStringLiteral;14;A single quoted here string literal. Tokens with this kind are always instances of StringLiteralToken.
+Generic;7;A token that is only valid as a command name, command argument, function name, or configuration name. It may contain characters not allowed in identifiers. Tokens with this kind are always instances of StringLiteralToken or StringExpandableToken if the token contains variable references or subexpressions.
+HereStringExpandable;15;A double quoted here string literal. Tokens with this kind are always instances of StringExpandableToken. even if there are no nested tokens to expand.
+HereStringLiteral;14;A single quoted here string literal. Tokens with this kind are always instances of StringLiteralToken.
 Hidden;167;The 'hidden' keyword
-Icontains;71;The case insensitive contains operator '-icontains' or '-contains'.
+Icontains;71;The case insensitive contains operator '-icontains' or '-contains'.;about_comparison_operators
 Identifier;6;A simple identifier, always begins with a letter or '', and is followed by letters, numbers, or ''.
-Ieq;60;The case insensitive equal operator '-ieq' or '-eq'.
+Ieq;60;The case insensitive equal operator '-ieq' or '-eq'.;about_comparison_operators
 If;138;The 'if' keyword.
-Ige;62;The case insensitive greater than or equal operator '-ige' or '-ge'.
-Igt;63;The case insensitive greater than operator '-igt' or '-gt'.
-Iin;73;The case insensitive in operator '-iin' or '-in'.
-Ile;65;The case insensitive less than or equal operator '-ile' or '-le'.
-Ilike;66;The case insensitive like operator '-ilike' or '-like'.
-Ilt;64;The case insensitive less than operator '-ilt' or '-lt'.
-Imatch;68;The case insensitive match operator '-imatch' or '-match'.
+Ige;62;The case insensitive greater than or equal operator '-ige' or '-ge'.;about_comparison_operators
+Igt;63;The case insensitive greater than operator '-igt' or '-gt'.;about_comparison_operators
+Iin;73;The case insensitive in operator '-iin' or '-in'.;about_comparison_operators
+Ile;65;The case insensitive less than or equal operator '-ile' or '-le'.;about_comparison_operators
+Ilike;66;The case insensitive like operator '-ilike' or '-like'.;about_comparison_operators
+Ilt;64;The case insensitive less than operator '-ilt' or '-lt'.;about_comparison_operators
+Imatch;68;The case insensitive match operator '-imatch' or '-match'.;about_comparison_operators
 In;139;The 'in' keyword.
-Ine;61;The case insensitive not equal operator '-ine' or '-ne'.
+Ine;61;The case insensitive not equal operator '-ine' or '-ne'.;about_comparison_operators
 InlineScript;154;The 'InlineScript' keyword
-Inotcontains;72;The case insensitive notcontains operator '-inotcontains' or '-notcontains'.
-Inotin;74;The case insensitive notin operator '-inotin' or '-notin'
-Inotlike;67;The case insensitive not like operator '-inotlike' or '-notlike'.
-Inotmatch;69;The case insensitive not match operator '-inotmatch' or '-notmatch'.
+Inotcontains;72;The case insensitive notcontains operator '-inotcontains' or '-notcontains'.;about_comparison_operators
+Inotin;74;The case insensitive notin operator '-inotin' or '-notin'.;about_comparison_operators
+Inotlike;67;The case insensitive not like operator '-inotlike' or '-notlike'.;about_comparison_operators
+Inotmatch;69;The case insensitive not match operator '-inotmatch' or '-notmatch'.;about_comparison_operators
 Interface;160;The 'interface' keyword
-Ireplace;70;The case insensitive replace operator '-ireplace' or '-replace'.
-Is;92;The type test operator '-is'.
-IsNot;93;The type test operator '-isnot'.
-Isplit;75;The case insensitive split operator '-isplit' or '-split'.
-Join;59;The join operator '-join'.
-Label;5;A label token - always begins with ':', followed by the label name. Tokens with this kind are always instances of LabelToken.
+Ireplace;70;The case insensitive replace operator '-ireplace' or '-replace'.;about_comparison_operators
+Is;92;The type test operator '-is'.;about_Type_Operators
+IsNot;93;The type test operator '-isnot'.;about_Type_Operators
+Isplit;75;The case insensitive split operator '-isplit' or '-split'.;about_Split
+Join;59;The join operator '-join'.;about_Join
+Label;5;A label token - always begins with ':', followed by the label name. Tokens with this kind are always instances of LabelToken.
 LBracket;20;The opening square brace token '['.
 LCurly;18;The opening curly brace token '{'.
 LineContinuation;9;A line continuation (backtick followed by newline).
 LParen;16;The opening parenthesis token '('.
-Minus;41;The substraction operator '-'.
-MinusEquals;44;The subtraction assignment operator '-='.
-MinusMinus;31;The pre-decrement operator '--'.
+Minus;41;The substraction operator '-'.;about_arithmetic_operators
+MinusEquals;44;The subtraction assignment operator '-='.;about_assignment_operators
+MinusMinus;31;The pre-decrement operator '--'.;about_assignment_operators
 Module;163;The 'module' keyword
-Multiply;37;The multiplication operator '*'.
-MultiplyEquals;45;The multiplcation assignment operator '*='.
+Multiply;37;The multiplication operator '*'.;about_arithmetic_operators
+MultiplyEquals;45;The multiplcation assignment operator '*='.;about_assignment_operators
 Namespace;162;The 'namespace' keyword
 NewLine;8;A newline (one of '\n', '\r', or '\r\n').
-Not;51;The logical not operator '-not'.
-Number;4;Any numerical literal token. Tokens with this kind are always instances of NumberToken.
-Or;54;The logical or operator '-or'.
+Not;51;The logical not operator '-not'.;about_Logical_Operators
+Number;4;Any numerical literal token. Tokens with this kind are always instances of NumberToken.
+Or;54;The logical or operator '-or'.;about_Logical_Operators
 OrOr;27;The (unimplemented) operator '||'.
 Parallel;152;The 'parallel' keyword.
 Param;140;The 'param' keyword.
-Parameter;3;A parameter to a command, always begins with a dash ('-'), followed by the parameter name. Tokens with this kind are always instances of ParameterToken.
+Parameter;3;A parameter to a command, always begins with a dash ('-'), followed by the parameter name. Tokens with this kind are always instances of ParameterToken.
 Pipe;29;The pipe operator '|'.
-Plus;40;The addition operator '+'.
-PlusEquals;43;The addition assignment operator '+='.
-PlusPlus;32;The pre-increment operator '++'.
-PostfixMinusMinus;96;The post-decrement operator '--'.
-PostfixPlusPlus;95;The post-increment operator '++'.
+Plus;40;The addition operator '+'.;about_arithmetic_operators
+PlusEquals;43;The addition assignment operator '+='.;about_assignment_operators
+PlusPlus;32;The pre-increment operator '++'.;about_assignment_operators
+PostfixMinusMinus;96;The post-decrement operator '--'.;about_assignment_operators
+PostfixPlusPlus;95;The post-increment operator '++'.;about_assignment_operators
 Private;158;The 'private' keyword
 Process;141;The 'process' keyword.
 Public;157;The 'public' keyword
@@ -127,20 +127,20 @@ QuestionQuestion;102;
 QuestionQuestionEquals;101;
 RBracket;21;The closing square brace token ']'.
 RCurly;19;The closing curly brace token '}'.
-RedirectInStd;49;The (unimplemented) stdin redirection operator '<'.
-Redirection;48;A redirection operator such as '2>&1' or '>>'.
-Rem;39;The modulo division (remainder) operator '%'.
-RemainderEquals;47;The modulo division (remainder) assignment operator '%='.
+RedirectInStd;49;The (unimplemented) stdin redirection operator '<'.;about_Redirection
+Redirection;48;A redirection operator such as '2>&1' or '>>'.;about_Redirection
+Rem;39;The modulo division (remainder) operator '%'.;about_arithmetic_operators
+RemainderEquals;47;The modulo division (remainder) assignment operator '%='.;about_assignment_operators
 Return;142;The 'return' keyword.
 RParen;17;The closing parenthesis token ')'.
 Semi;25;"The statement terminator ';'."
 Sequence;153;The 'sequence' keyword.
-Shl;97;The shift left operator.
-Shr;98;The shift right operator.
-SplattedVariable;2;A splatted variable token, always begins with '@' and followed by the variable name. Tokens with this kind are always instances of VariableToken.
+Shl;97;The shift left operator.;about_arithmetic_operators
+Shr;98;The shift right operator.;about_arithmetic_operators
+SplattedVariable;2;A splatted variable token, always begins with '@' and followed by the variable name. Tokens with this kind are always instances of VariableToken.
 Static;159;The 'static' keyword
-StringExpandable;13;A double quoted string literal. Tokens with this kind are always instances of StringExpandableToken even if there are no nested tokens to expand.
-StringLiteral;12;A single quoted string literal. Tokens with this kind are always instances of StringLiteralToken.
+StringExpandable;13;A double quoted string literal. Tokens with this kind are always instances of StringExpandableToken even if there are no nested tokens to expand.
+StringLiteral;12;A single quoted string literal. Tokens with this kind are always instances of StringLiteralToken.
 Switch;143;The 'switch' keyword.
 Throw;144;The 'throw' keyword.
 Trap;145;The 'trap' keyword.
@@ -150,7 +150,7 @@ Unknown;0;An unknown token, signifies an error condition.
 Until;147;The 'until' keyword.
 Using;148;The (unimplemented) 'using' keyword.
 Var;149;The (unimplemented) 'var' keyword.
-Variable;1;A variable token, always begins with '$' and followed by the variable name, possibly enclose in curly braces. Tokens with this kind are always instances of VariableToken.
+Variable;1;A variable token, always begins with '$' and followed by the variable name, possibly enclose in curly braces. Tokens with this kind are always instances of VariableToken.
 While;150;The 'while' keyword.
 Workflow;151;The 'workflow' keyword.
-Xor;55;The logical exclusive or operator '-xor'.
+Xor;55;The logical exclusive or operator '-xor'.;about_Logical_Operators

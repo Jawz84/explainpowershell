@@ -8,16 +8,18 @@ using System.Management.Automation.Language;
 namespace ExplainPowershell.SyntaxAnalyzer
 {
     public static partial class Helpers {
-        public static string TokenExplainer(TokenKind tokenKind)
+        public static (string, string) TokenExplainer(TokenKind tokenKind)
         {
-            var suffix = "";
+            var description = string.Empty;
+            var helpQuery = string.Empty;
+
             switch (tokenKind)
             {
 '@
 
 $post = @'
             }
-            return suffix;
+            return (description, helpQuery);
         }
     }
 }
@@ -28,7 +30,8 @@ $tokenKind = Import-Csv -Delimiter ';' -Path "$PSScriptRoot\TokenKind.csv"
 $generatedCode = $tokenKind | ForEach-Object {
 @"
                 case TokenKind.$($_.Name):
-                    suffix = "$($_.Explanation.Replace('"',''''))";
+                    description = "$($_.Explanation)";
+                    helpQuery = "$($_.HelpQuery)";
                     break;
 "@
 }
