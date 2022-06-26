@@ -462,7 +462,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
                     break;
                 case TokenKind.Pipe:
                     description = "The pipe operator '|'.";
-                    helpQuery = "";
+                    helpQuery = "about_pipelines";
                     break;
                 case TokenKind.Plus:
                     description = "The addition operator '+'.";

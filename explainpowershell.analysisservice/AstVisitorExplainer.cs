@@ -154,12 +154,12 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitAssignmentStatement(AssignmentStatementAst assignmentStatementAst)
         {
-            var operatorExplanation = Helpers.TokenExplainer(assignmentStatementAst.Operator);
+            var (operatorExplanation, tokenHelpQuery) = Helpers.TokenExplainer(assignmentStatementAst.Operator);
             explanations.Add(
                 new Explanation()
                 {
                     CommandName = $"Assignment operator '{assignmentStatementAst.Operator.Text()}'",
-                    HelpResult = HelpTableQuery("about_assignment_operators"),
+                    HelpResult = HelpTableQuery(tokenHelpQuery),
                     Description = $"{operatorExplanation} Assigns a value to '{assignmentStatementAst.Left.Extent.Text}'.",
                     TextToHighlight = assignmentStatementAst.Operator.Text()
                 }.AddDefaults(assignmentStatementAst, explanations));
@@ -762,11 +762,13 @@ namespace ExplainPowershell.SyntaxAnalyzer
             _ = Parser.ParseInput(pipelineAst.Extent.Text, out Token[] tokensInPipeline, out _);
             if (tokensInPipeline.Any(t => t.Kind == TokenKind.Pipe))
             {
+                var (tokenDescription, tokenHelpQuery) = Helpers.TokenExplainer(TokenKind.Pipe);
+
                 explanations.Add(new Explanation()
                 {
-                    Description = Helpers.TokenExplainer(TokenKind.Pipe) + $" Takes each element that results from the left hand side code, and passes it to the right hand side one by one.",
+                    Description = $"{tokenDescription} Takes each element that results from the left hand side code, and passes it to the right hand side one by one.",
                     CommandName = "Pipeline",
-                    HelpResult = HelpTableQuery("about_pipelines"),
+                    HelpResult = HelpTableQuery(tokenHelpQuery),
                     TextToHighlight = "|"
                 }.AddDefaults(pipelineAst, explanations));
                 explanations.Last().OriginalExtent = "'|'";

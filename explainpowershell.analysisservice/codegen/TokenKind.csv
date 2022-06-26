@@ -111,7 +111,7 @@ OrOr;27;The (unimplemented) operator '||'.
 Parallel;152;The 'parallel' keyword.
 Param;140;The 'param' keyword.
 Parameter;3;A parameter to a command, always begins with a dash ('-'), followed by the parameter name. Tokens with this kind are always instances of ParameterToken.
-Pipe;29;The pipe operator '|'.
+Pipe;29;The pipe operator '|'.;about_pipelines
 Plus;40;The addition operator '+'.;about_arithmetic_operators
 PlusEquals;43;The addition assignment operator '+='.;about_assignment_operators
 PlusPlus;32;The pre-increment operator '++'.;about_assignment_operators
