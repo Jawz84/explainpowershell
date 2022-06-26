@@ -55,7 +55,7 @@ Describe "Invoke-SyntaxAnalyzer" {
         $code = 'get-help -full'
         [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
         $content = $result.Content | ConvertFrom-Json
-        $content.Explanations[1].Description.StartsWith("Displays the entire help article for a cmdlet.") | Should -BeTrue
+        $content.Explanations[1].Description | Should -BeLike "Displays the entire help article for a cmdlet.*"
     }
 
     It "Provides descriptions for parameters, also where the parameter appears to be abmiguous, but one of them is a dynamic parameter (static params take precedence)" {
@@ -86,9 +86,9 @@ Describe "Invoke-SyntaxAnalyzer" {
         $code = '[ordered]@{key1 = "value"}'
         [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
         $content = $result.Content | ConvertFrom-Json
-        $content.Explanations[2].Description | Should -BeExactly "An object that holds key-value pairs, optimized for hash-searching for keys. This hash table has the following keys: 'key1'"
-        $content.Explanations[2].CommandName | Should -BeExactly "Hash table"
-        $content.Explanations[2].HelpResult.DocumentationLink | Should -Match "about_hash_tables"
+        $content.Explanations[1].Description | Should -BeExactly "An object that holds key-value pairs, optimized for hash-searching for keys. This hash table has the following keys: 'key1'"
+        $content.Explanations[1].CommandName | Should -BeExactly "Hash table"
+        $content.Explanations[1].HelpResult.DocumentationLink | Should -Match "about_hash_tables"
     }
 
 
