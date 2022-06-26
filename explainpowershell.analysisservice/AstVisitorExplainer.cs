@@ -154,12 +154,12 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitAssignmentStatement(AssignmentStatementAst assignmentStatementAst)
         {
-            var operatorExplanation = Helpers.TokenExplainer(assignmentStatementAst.Operator);
+            var (operatorExplanation, tokenHelpQuery) = Helpers.TokenExplainer(assignmentStatementAst.Operator);
             explanations.Add(
                 new Explanation()
                 {
                     CommandName = $"Assignment operator '{assignmentStatementAst.Operator.Text()}'",
-                    HelpResult = HelpTableQuery("about_assignment_operators"),
+                    HelpResult = HelpTableQuery(tokenHelpQuery),
                     Description = $"{operatorExplanation} Assigns a value to '{assignmentStatementAst.Left.Extent.Text}'.",
                     TextToHighlight = assignmentStatementAst.Operator.Text()
                 }.AddDefaults(assignmentStatementAst, explanations));
@@ -197,12 +197,16 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitBinaryExpression(BinaryExpressionAst binaryExpressionAst)
         {
+            var (tokenDescription, helpQuery) = Helpers.TokenExplainer(binaryExpressionAst.Operator);
+            helpQuery ??= "about_operators";
+            var helpResult = HelpTableQuery(helpQuery);
+
             explanations.Add(
                 new Explanation()
                 {
-                    CommandName = $"Operator",
-                    HelpResult = HelpTableQuery("about_operators"),
-                    Description = Helpers.TokenExplainer(binaryExpressionAst.Operator),
+                    CommandName = "Operator",
+                    HelpResult = helpResult,
+                    Description = $"{tokenDescription} This works from left to right, so targeting '{binaryExpressionAst.Right.Extent.Text}'",
                     TextToHighlight = binaryExpressionAst.Operator.Text()
                 }.AddDefaults(binaryExpressionAst, explanations));
 
@@ -294,9 +298,10 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
             if (commandAst.InvocationOperator != TokenKind.Unknown)
             {
+                var (tokenDescription, _) = Helpers.TokenExplainer(commandAst.InvocationOperator);
                 string invocationOperatorExplanation = commandAst.InvocationOperator == TokenKind.Dot ?
                     "The dot source invocation operator '.'" :
-                    Helpers.TokenExplainer(commandAst.InvocationOperator);
+                    tokenDescription;
 
                 description = invocationOperatorExplanation + " " + description;
             }
@@ -683,10 +688,19 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitMemberExpression(MemberExpressionAst memberExpressionAst)
         {
+            var objectOrClass = "object";
+            var stat = "";
+
+            if (memberExpressionAst.Static)
+            {
+                objectOrClass = "class";
+                stat = "static ";
+            }
+
             explanations.Add(
                 new Explanation
                 {
-                    Description = $"Access the property '{memberExpressionAst.Member}' on object '{memberExpressionAst.Expression}'",
+                    Description = $"Access the {stat}property '{memberExpressionAst.Member}' on {objectOrClass} '{memberExpressionAst.Expression}'",
                     CommandName = "Property",
                     HelpResult = HelpTableQuery("about_Properties")
                 }.AddDefaults(memberExpressionAst, explanations));
@@ -748,11 +762,13 @@ namespace ExplainPowershell.SyntaxAnalyzer
             _ = Parser.ParseInput(pipelineAst.Extent.Text, out Token[] tokensInPipeline, out _);
             if (tokensInPipeline.Any(t => t.Kind == TokenKind.Pipe))
             {
+                var (tokenDescription, tokenHelpQuery) = Helpers.TokenExplainer(TokenKind.Pipe);
+
                 explanations.Add(new Explanation()
                 {
-                    Description = Helpers.TokenExplainer(TokenKind.Pipe) + $" Takes each element that results from the left hand side code, and passes it to the right hand side one by one.",
+                    Description = $"{tokenDescription} Takes each element that results from the left hand side code, and passes it to the right hand side one by one.",
                     CommandName = "Pipeline",
-                    HelpResult = HelpTableQuery("about_pipelines"),
+                    HelpResult = HelpTableQuery(tokenHelpQuery),
                     TextToHighlight = "|"
                 }.AddDefaults(pipelineAst, explanations));
                 explanations.Last().OriginalExtent = "'|'";
@@ -892,7 +908,9 @@ namespace ExplainPowershell.SyntaxAnalyzer
         public override AstVisitAction VisitTypeConstraint(TypeConstraintAst typeConstraintAst)
         {
             if (typeConstraintAst.Parent is CatchClauseAst)
+            {
                 return base.VisitTypeConstraint(typeConstraintAst);
+            }
 
             var typeName = typeConstraintAst.TypeName.Name;
             var accelerator = ".";
@@ -906,6 +924,10 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 accelerator = $", which is a type accelerator for '{acceleratorFullTypeName}'";
                 help = HelpTableQuery("about_type_accelerators");
                 cmdName = "Type accelerator";
+            }
+            else if (typeConstraintAst.Parent is ConvertExpressionAst)
+            {
+                return base.VisitTypeConstraint(typeConstraintAst);
             }
 
             explanations.Add(
@@ -921,18 +943,49 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitTypeExpression(TypeExpressionAst typeExpressionAst)
         {
-            // TODO: document why
-            // AstExplainer(typeExpressionAst);
+            if (typeExpressionAst.Parent is BinaryExpressionAst ||
+                typeExpressionAst.Parent is CommandExpressionAst ||
+                typeExpressionAst.Parent is AssignmentStatementAst)
+            {
+                HelpEntity help = null;
+                var description = string.Empty;
+
+                if (typeExpressionAst.TypeName.IsArray)
+                {
+                    description = $"Array of '{typeExpressionAst.TypeName.Name}'";
+                    help = new HelpEntity() {
+                        DocumentationLink = "https://docs.microsoft.com/en-us/powershell/scripting/lang-spec/chapter-04"
+                    };
+                }
+                else if (typeExpressionAst.TypeName.IsGeneric)
+                {
+                    description = $"Generic type";
+                    help = new HelpEntity() {
+                        DocumentationLink = "https://docs.microsoft.com/en-us/powershell/scripting/lang-spec/chapter-04#44-generic-types"
+                    };
+                }
+
+                explanations.Add(new Explanation()
+                {
+                    Description = description,
+                    CommandName = "Type expression",
+                    HelpResult = help
+                }.AddDefaults(typeExpressionAst, explanations));
+
+            }
             return base.VisitTypeExpression(typeExpressionAst);
         }
 
         public override AstVisitAction VisitUnaryExpression(UnaryExpressionAst unaryExpressionAst)
         {
+            var (description, helpQuery) = Helpers.TokenExplainer(unaryExpressionAst.TokenKind);
+            helpQuery ??= "about_operators";
+
             explanations.Add(new Explanation()
             {
-                Description = Helpers.TokenExplainer(unaryExpressionAst.TokenKind),
+                Description = description,
                 CommandName = "Unary operator",
-                HelpResult = HelpTableQuery("about_operators"),
+                HelpResult = HelpTableQuery(helpQuery),
                 TextToHighlight = unaryExpressionAst.TokenKind.Text()
             }.AddDefaults(unaryExpressionAst, explanations));
 

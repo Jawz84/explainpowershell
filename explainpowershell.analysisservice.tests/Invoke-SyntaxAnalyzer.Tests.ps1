@@ -7,8 +7,24 @@ Describe "Invoke-SyntaxAnalyzer" {
         . $PSScriptRoot/Test-IsAzuriteUp.ps1
     }
 
+    It "Should display correct help for assigment operators" {
+        $code = '$D=[Datetime]::Now'
+        [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
+        $content = $result.Content | ConvertFrom-Json
+        $content.Explanations[0].Description | Should -Be "The assignment operator '='. Assigns a value to '`$D'."
+        $content.Explanations[0].HelpResult.DocumentationLink | Should -Match "about_Assignment_Operators"
+    }
+
+    It "Should correctly explain static properties on classes" {
+        $code = '[Datetime]::Now'
+        [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
+        $content = $result.Content | ConvertFrom-Json
+        $content.Explanations[0].Description | Should -Be "Access the static property 'Now' on class '[Datetime]'"
+        $content.Explanations[0].HelpResult.DocumentationLink | Should -Match "about_Properties"
+    }
+
     It "Should not fail explaining ``. {gci -path 'sdf'}``" {
-        $code = '. {}'
+        $code = '. {gci -path "sdf"}'
         [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
         $content = $result.Content | ConvertFrom-Json
         $content.Explanations | Should -Not -BeNullOrEmpty
@@ -55,7 +71,7 @@ Describe "Invoke-SyntaxAnalyzer" {
         $code = 'get-help -full'
         [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
         $content = $result.Content | ConvertFrom-Json
-        $content.Explanations[1].Description.StartsWith("Displays the entire help article for a cmdlet.") | Should -BeTrue
+        $content.Explanations[1].Description | Should -BeLike "Displays the entire help article for a cmdlet.*"
     }
 
     It "Provides descriptions for parameters, also where the parameter appears to be abmiguous, but one of them is a dynamic parameter (static params take precedence)" {
@@ -86,9 +102,9 @@ Describe "Invoke-SyntaxAnalyzer" {
         $code = '[ordered]@{key1 = "value"}'
         [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
         $content = $result.Content | ConvertFrom-Json
-        $content.Explanations[2].Description | Should -BeExactly "An object that holds key-value pairs, optimized for hash-searching for keys. This hash table has the following keys: 'key1'"
-        $content.Explanations[2].CommandName | Should -BeExactly "Hash table"
-        $content.Explanations[2].HelpResult.DocumentationLink | Should -Match "about_hash_tables"
+        $content.Explanations[1].Description | Should -BeExactly "An object that holds key-value pairs, optimized for hash-searching for keys. This hash table has the following keys: 'key1'"
+        $content.Explanations[1].CommandName | Should -BeExactly "Hash table"
+        $content.Explanations[1].HelpResult.DocumentationLink | Should -Match "about_hash_tables"
     }
 
 
@@ -350,9 +366,5 @@ Describe "Invoke-SyntaxAnalyzer" {
     It "Can handle all kinds of different oneliners without freaking out: <PowerShellCode>" -ForEach $testCase {
             $result = Invoke-SyntaxAnalyzer -PowerShellCode $PowerShellCode
             $result.StatusCode | Should -Be 200
-    }
-
-    AfterAll {
-        Get-Job | Stop-Job -PassThru | Remove-Job -Force
     }
 }

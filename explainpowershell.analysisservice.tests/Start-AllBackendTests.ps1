@@ -25,7 +25,12 @@ Push-Location -Path $PSScriptRoot/
     if (-not $SkipIntegrationTests) {
         # Integration Tests
         Write-Host -ForegroundColor Cyan "`n####`n#### Starting Integration tests`n"
+        . ./Test-IsPrerequisitesRunning.ps1
+        $werePrerequisitesAlreadyRunning = Test-IsPrerequisitesRunning -ports 7071
         Invoke-Pester -Configuration $c
+        if (-not $werePrerequisitesAlreadyRunning) {
+            Get-Job | Stop-Job -PassThru | Remove-Job -Force
+        }
     }
     if (-not $SkipUnitTests) {
         # Unit Tests
