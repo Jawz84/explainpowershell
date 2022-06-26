@@ -941,8 +941,36 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitTypeExpression(TypeExpressionAst typeExpressionAst)
         {
-            // TODO: document why
-            // AstExplainer(typeExpressionAst);
+            if (typeExpressionAst.Parent is BinaryExpressionAst ||
+                typeExpressionAst.Parent is CommandExpressionAst ||
+                typeExpressionAst.Parent is AssignmentStatementAst)
+            {
+                HelpEntity help = null;
+                var description = string.Empty;
+
+                if (typeExpressionAst.TypeName.IsArray)
+                {
+                    description = $"Array of '{typeExpressionAst.TypeName.Name}'";
+                    help = new HelpEntity() {
+                        DocumentationLink = "https://docs.microsoft.com/en-us/powershell/scripting/lang-spec/chapter-04"
+                    };
+                }
+                else if (typeExpressionAst.TypeName.IsGeneric)
+                {
+                    description = $"Generic type";
+                    help = new HelpEntity() {
+                        DocumentationLink = "https://docs.microsoft.com/en-us/powershell/scripting/lang-spec/chapter-04#44-generic-types"
+                    };
+                }
+
+                explanations.Add(new Explanation()
+                {
+                    Description = description,
+                    CommandName = "Type expression",
+                    HelpResult = help
+                }.AddDefaults(typeExpressionAst, explanations));
+
+            }
             return base.VisitTypeExpression(typeExpressionAst);
         }
 
