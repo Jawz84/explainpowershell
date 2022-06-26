@@ -97,6 +97,10 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         private void ExpandAliasesInExtent(CommandAst cmd, string resolvedCmd)
         {
+            if (string.IsNullOrEmpty(resolvedCmd)) {
+                return;
+            }
+
             int start = offSet + cmd.Extent.StartOffset;
             int length = offSet + cmd.CommandElements[0].Extent.EndOffset - start;
             extent = extent
@@ -260,11 +264,6 @@ namespace ExplainPowershell.SyntaxAnalyzer
             }
 
             string resolvedCmd = Helpers.ResolveAlias(cmdName) ?? cmdName;
-
-            if (string.IsNullOrEmpty(resolvedCmd))
-            {
-                resolvedCmd = cmdName;
-            }
 
             HelpEntity helpResult;
             if (string.IsNullOrEmpty(moduleName))
