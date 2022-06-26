@@ -892,7 +892,9 @@ namespace ExplainPowershell.SyntaxAnalyzer
         public override AstVisitAction VisitTypeConstraint(TypeConstraintAst typeConstraintAst)
         {
             if (typeConstraintAst.Parent is CatchClauseAst)
+            {
                 return base.VisitTypeConstraint(typeConstraintAst);
+            }
 
             var typeName = typeConstraintAst.TypeName.Name;
             var accelerator = ".";
@@ -906,6 +908,10 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 accelerator = $", which is a type accelerator for '{acceleratorFullTypeName}'";
                 help = HelpTableQuery("about_type_accelerators");
                 cmdName = "Type accelerator";
+            }
+            else if (typeConstraintAst.Parent is ConvertExpressionAst)
+            {
+                return base.VisitTypeConstraint(typeConstraintAst);
             }
 
             explanations.Add(
