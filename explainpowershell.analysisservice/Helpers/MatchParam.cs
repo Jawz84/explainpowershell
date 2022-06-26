@@ -10,22 +10,31 @@ namespace ExplainPowershell.SyntaxAnalyzer
 {
     public static partial class Helpers
     {
+        private readonly static JsonSerializerOptions customJsonSerializerOptions = new() {
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+        };
         public static ParameterData MatchParam(string foundParameter, string json)
         {
-            List<ParameterData> doc;
+            List<dynamic> rawDoc;
             List<ParameterData> matchedParam = new();
 
-            try {
-                doc = JsonSerializer.Deserialize<List<ParameterData>>(json, new JsonSerializerOptions() {DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull});
+            try
+            {
+                rawDoc = JsonSerializer.Deserialize<List<dynamic>>(json, customJsonSerializerOptions);
             }
-            catch {
+            catch (JsonException e)
+            {
+                Console.WriteLine(e.Message);
                 json = DeCompress.Decompress(json);
-                doc = JsonSerializer.Deserialize<List<ParameterData>>(json, new JsonSerializerOptions() {DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull});
+                rawDoc = JsonSerializer.Deserialize<List<dynamic>>(json, customJsonSerializerOptions);
             }
 
-            if (null == doc) {
+            if (null == rawDoc) {
                 return matchedParam.FirstOrDefault();
             }
+
+            var doc = rawDoc as List<ParameterData>;
 
             // First check for aliases, because they take precendence
             if (!string.Equals(foundParameter, "none", StringComparison.OrdinalIgnoreCase))
