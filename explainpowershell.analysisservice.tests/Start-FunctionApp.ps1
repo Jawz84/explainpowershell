@@ -15,7 +15,6 @@ function IsTimedOut {
     return $IsTimedOut
 }
 
-$global:_isPrerequisitesRunning = $false
 $timeOut = 120
 
 Write-Host "Checking if function app is running.."
@@ -36,9 +35,6 @@ if (-not (Test-IsPrerequisitesRunning -ports 7071)) {
         throw $_
         Write-Warning "Error: $($_.Message)"
     }
-}
-else {
-    $global:_isPrerequisitesRunning = $true
 }
 
 Write-Host "OK - Function App running" -ForegroundColor Green
