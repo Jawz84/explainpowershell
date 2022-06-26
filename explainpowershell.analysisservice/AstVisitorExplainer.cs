@@ -688,10 +688,19 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitMemberExpression(MemberExpressionAst memberExpressionAst)
         {
+            var objectOrClass = "object";
+            var stat = "";
+
+            if (memberExpressionAst.Static)
+            {
+                objectOrClass = "class";
+                stat = "static ";
+            }
+
             explanations.Add(
                 new Explanation
                 {
-                    Description = $"Access the property '{memberExpressionAst.Member}' on object '{memberExpressionAst.Expression}'",
+                    Description = $"Access the {stat}property '{memberExpressionAst.Member}' on {objectOrClass} '{memberExpressionAst.Expression}'",
                     CommandName = "Property",
                     HelpResult = HelpTableQuery("about_Properties")
                 }.AddDefaults(memberExpressionAst, explanations));
