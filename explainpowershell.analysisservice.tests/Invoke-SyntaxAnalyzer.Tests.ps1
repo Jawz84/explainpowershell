@@ -7,6 +7,13 @@ Describe "Invoke-SyntaxAnalyzer" {
         . $PSScriptRoot/Test-IsAzuriteUp.ps1
     }
 
+    It "Should not fail explaining ``. {}``" {
+        $code = '. {}'
+        [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
+        $content = $result.Content | ConvertFrom-Json
+        $content.Explanations | Should -Not -BeNullOrEmpty
+    }
+
     It "Switches to the right module on demand" {
         $code = 'myTestModule\get-testinfo'
         [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code

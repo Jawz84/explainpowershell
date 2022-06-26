@@ -250,7 +250,8 @@ namespace ExplainPowershell.SyntaxAnalyzer
         public override AstVisitAction VisitCommand(CommandAst commandAst)
         {
             string moduleName = string.Empty;
-            string cmdName = commandAst.GetCommandName();
+            string cmdName = commandAst.GetCommandName() ?? string.Empty;
+
             if (cmdName.IndexOf('\\') != -1)
             {
                 var s = cmdName.Split('\\');
