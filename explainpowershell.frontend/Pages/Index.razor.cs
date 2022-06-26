@@ -77,6 +77,8 @@ namespace explainpowershell.frontend.Pages
             Waiting = false;
             RequestHasError = false;
             ReasonPhrase = string.Empty;
+            TreeItems = new HashSet<TreeItem<Explanation>>();
+            ExpandedCode = null;
 
             if (string.IsNullOrEmpty(InputValue))
                 return;

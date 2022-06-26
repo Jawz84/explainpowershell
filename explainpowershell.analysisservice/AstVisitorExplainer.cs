@@ -97,6 +97,10 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         private void ExpandAliasesInExtent(CommandAst cmd, string resolvedCmd)
         {
+            if (string.IsNullOrEmpty(resolvedCmd)) {
+                return;
+            }
+
             int start = offSet + cmd.Extent.StartOffset;
             int length = offSet + cmd.CommandElements[0].Extent.EndOffset - start;
             extent = extent
@@ -250,7 +254,8 @@ namespace ExplainPowershell.SyntaxAnalyzer
         public override AstVisitAction VisitCommand(CommandAst commandAst)
         {
             string moduleName = string.Empty;
-            string cmdName = commandAst.GetCommandName();
+            string cmdName = commandAst.GetCommandName() ?? string.Empty;
+
             if (cmdName.IndexOf('\\') != -1)
             {
                 var s = cmdName.Split('\\');
@@ -259,11 +264,6 @@ namespace ExplainPowershell.SyntaxAnalyzer
             }
 
             string resolvedCmd = Helpers.ResolveAlias(cmdName) ?? cmdName;
-
-            if (string.IsNullOrEmpty(resolvedCmd))
-            {
-                resolvedCmd = cmdName;
-            }
 
             HelpEntity helpResult;
             if (string.IsNullOrEmpty(moduleName))
