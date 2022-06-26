@@ -1,5 +1,6 @@
 function Test-IsPrerequisitesRunning {
     param(
+        [parameter(mandatory)]
         [int[]]$ports
     )
 

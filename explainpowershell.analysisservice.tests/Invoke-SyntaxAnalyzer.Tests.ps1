@@ -353,6 +353,8 @@ Describe "Invoke-SyntaxAnalyzer" {
     }
 
     AfterAll {
-        Get-Job | Stop-Job -PassThru | Remove-Job -Force
+        if (-not $global:_isPrerequisitesRunning) {
+            Get-Job | Stop-Job -PassThru | Remove-Job -Force
+        }
     }
 }
