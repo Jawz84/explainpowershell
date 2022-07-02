@@ -89,7 +89,7 @@ if ($null -eq $profileContents -or
 
 if (!(Test-Path '~/.local/share/powershell/Help/en-US/about_History.help.txt')) {
     Write-Host -ForegroundColor green 'Updating local PowerShell Help files..'
-    #Update-Help -Force -ErrorAction SilentlyContinue -ErrorVariable updateerrors
+    Update-Help -Force -ErrorAction SilentlyContinue -ErrorVariable updateerrors
     Write-Warning "$($updateerrors -join `"`n`")"
 }
 
