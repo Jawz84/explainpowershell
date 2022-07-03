@@ -1,11 +1,5 @@
 using namespace Microsoft.PowerShell.Commands
 
-if (!(Test-Path '~/.local/share/powershell/Help/en-US/about_History.help.txt')) {
-    Write-Host -Foregroundcolor green "Updating local PowerShell Help files.."
-    Update-Help -Force -ErrorAction SilentlyContinue -ErrorVariable updateerrors
-    Write-Warning "$($updateerrors -join `"`n`")"
-}
-
 Write-Host -Foregroundcolor green "Get all built-in 'about_..' articles, and get missing short descriptions from text.."
 $aboutArticles = Get-Help About_*
 
