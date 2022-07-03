@@ -122,8 +122,8 @@ $targetVersions = $outdated | Select-String '> ' -Raw | ForEach-Object {
     }
 }
 
-Get-ChildItem -Path $PSScriptRoot/.. *.csproj -Recurse -Depth 2 | ForEach-Object {
-    $file = $_
+$files = Get-ChildItem -Path $PSScriptRoot/.. *.csproj -Recurse -Depth 2 
+foreach ($file in $files) {
     $xml = [xml](Get-Content $file)
 
     for ($i = 0; $i -lt $xml.project.ItemGroup.PackageReference.Length; $i++) {
