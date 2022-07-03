@@ -19,13 +19,13 @@ dotnet restore
 dotnet clean --verbosity minimal
 try {
     $ErrorActionPreference = 'stop'
-    push-location ./explainpowershell.analysisservice.tests/
-        dotnet restore
-        dotnet clean --verbosity minimal
-    pop-location
+    Push-Location ./explainpowershell.analysisservice.tests/
+    dotnet restore
+    dotnet clean --verbosity minimal
+    Pop-Location
 }
 catch {
-    Write-Warning "For a correct result, run this script from the root of the project."
+    Write-Warning 'For a correct result, run this script from the root of the project.'
     break
 }
 finally {
@@ -87,9 +87,9 @@ if ($null -eq $profileContents -or
         | Join-Path -ChildPath 'Microsoft.VSCode_profile.ps1') -Force
 }
 
-if ($Force -or !(Test-Path '~/.local/share/powershell/Help/en-US/about_History.help.txt')) {
-    Write-Host -ForegroundColor green 'Updating local PowerShell Help files..'
-    Update-Help -Force -ErrorAction SilentlyContinue -ErrorVariable updateerrors
+Write-Host -ForegroundColor green 'Updating local PowerShell Help files..'
+Update-Help -Force -ErrorAction SilentlyContinue -ErrorVariable updateerrors
+if ($updateerrors) {
     Write-Warning "$($updateerrors -join `"`n`")"
 }
 
