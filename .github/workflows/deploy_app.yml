@@ -1,96 +1,70 @@
 name: Deploy app to Azure
-
 on:
   push:
-    branches: [ main ]
-  workflow_dispatch:
-
+    branches:
+    - main
+  workflow_dispatch: 
 jobs:
-  buildFrontend:
-    name: Build Frontend
-    runs-on: ubuntu-latest
+  deployBackend:
     steps:
-    - uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: '6.0'
-
-    - uses: actions/checkout@v1
-
-    - name: Set api url to correct url manually
-      shell: pwsh
-      run: |
-          $uri = "https://$("${{ secrets.FUNCTION_APP_NAME }}".trim()).azurewebsites.net/api/"
-          Set-Content -Path ./explainpowershell.frontend/wwwroot/appsettings.json -Value (@{BaseAddress = $uri} | ConvertTo-Json)
-          Get-Content -path ./explainpowershell.frontend/wwwroot/appsettings.json
-
-    - name: Run code generators
-      shell: pwsh
-      run: Get-ChildItem -Path ./explainpowershell.frontend/ -Recurse -Filter *_code_generator.ps1 | ForEach-Object { & $_.FullName }
-
-    - name: Build with dotnet
-      run: dotnet build --configuration Release explainpowershell.frontend
-
-    - name: Publish with dotnet
-      run: dotnet publish --configuration Release explainpowershell.frontend
-
-    - name: Publish artifacts
-      uses: actions/upload-artifact@master
-      with:
-        name: webapp
-        path: ./explainpowershell.frontend/bin/Release/net6.0/publish/wwwroot
-
-  buildBackend:
-    name: Build Backend api
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: '6.0'
-
-      - uses: actions/checkout@v1
-
-      - name: Run code generators
-        shell: pwsh
-        run: Get-ChildItem -Path ./explainpowershell.analysisservice/ -Recurse -Filter *_code_generator.ps1 | ForEach-Object { & $_.FullName }
-
-      - name: Build with dotnet
-        shell: pwsh
-        run: |
-          Set-Location ./explainpowershell.analysisservice
-          dotnet build --configuration Release
-
-      - name: Publish artifacts
-        uses: actions/upload-artifact@master
-        with:
-          name: api
-          path: ./explainpowershell.analysisservice/bin/Release/net6.0
-
-  deployFrontend:
-    needs: buildFrontend
-    name: Deploy Frontend
-    runs-on: ubuntu-latest
-    steps:
-
     - name: Download artifacts
-      uses: actions/download-artifact@master
       with:
-        name: webapp
-
+        name: api
+      uses: actions/download-artifact@master
     - name: Authenticate with Azure
-      uses: azure/login@v1
       with:
         creds: ${{ secrets.AZURE_SERVICE_PRINCIPAL }}
+      uses: azure/login@v1
+    - name: Get functionapp publish profile
+      shell: pwsh
+      id: publishprofile
+      run: |
+        $json = az functionapp deployment list-publishing-profiles --name "${{ secrets.FUNCTION_APP_NAME }}".trim() --resource-group "${{ secrets.RESOURCE_GROUP_NAME }}".trim()
+        $funcProfile = $(
+            "<publishData>"
+            foreach ($publishProfile in ($json | ConvertFrom-Json)) {
+                "<publishProfile "
+                foreach ($prop in $publishProfile.psobject.Properties | where name -ne databases) {
+                    "$($prop.Name)=`"$($prop.Value)`" "
+                }
+                "><databases /></publishProfile>"
+            }
+            "</publishData>"
+        ) -join ''
 
+        ##Write-Output "::add-mask::$funcProfile"
+        write-output $funcProfile
+        Write-Output "::set-output name=profile::$funcProfile"
+    - name: Run Azure Functions Action
+      id: fa
+      with:
+        package: ./
+        app-name: ${{ secrets.FUNCTION_APP_NAME }}
+        publish-profile: ${{ steps.publishprofile.outputs.profile }}
+      uses: Azure/functions-action@v1
+    - name: Calculate new HelpMetaData
+      shell: pwsh
+      run: "az functionapp list |\n  ConvertFrom-Json |\n  where {$_.defaulthostname -match 'powershellexplainer' -and $_.state -eq 'running'} | \n  ForEach-Object { Invoke-RestMethod -Uri \"https://$($_.DefaultHostName)/api/MetaData?refresh=true\" }\n"
+    needs: buildBackend
+    name: Deploy Backend api
+    runs-on: ubuntu-latest
+  deployFrontend:
+    steps:
+    - name: Download artifacts
+      with:
+        name: webapp
+      uses: actions/download-artifact@master
+    - name: Authenticate with Azure
+      with:
+        creds: ${{ secrets.AZURE_SERVICE_PRINCIPAL }}
+      uses: azure/login@v1
     - name: Clean up previous deployment
       shell: pwsh
-      run: |
-          az storage blob delete-batch --account-name "${{ secrets.STORAGE_ACCOUNT_NAME }}".trim() --source `$web 
-
+      run: "az storage blob delete-batch --account-name \"${{ secrets.STORAGE_ACCOUNT_NAME }}\".trim() --source `$web \n"
     - name: Deploy to storage account
       shell: pwsh
       run: |
-          az storage blob upload-batch --account-name "${{ secrets.STORAGE_ACCOUNT_NAME }}".trim() --source ./ --destination `$web
-
+        az storage blob upload-batch --account-name "${{ secrets.STORAGE_ACCOUNT_NAME }}".trim() --source ./ --destination `$web
     - name: Purge Azure CDN
       shell: pwsh
       run: |
@@ -98,55 +72,54 @@ jobs:
           az cdn endpoint purge -n "${{ secrets.AZURE_CDN_ENDPOINT }}".trim() --profile-name "${{ secrets.AZURE_CDN_ENDPOINT }}".trim() --content-paths "/*" --resource-group "${{ secrets.RESOURCE_GROUP_NAME }}".trim()
           "Az CDN endpoint purged"
         }
-
-  deployBackend:
-    needs: buildBackend
-    name: Deploy Backend api
+    needs: buildFrontend
+    name: Deploy Frontend
     runs-on: ubuntu-latest
+  buildBackend:
     steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@master
-        with:
-          name: api
+    - with:
+        dotnet-version: "6.0"
+      uses: actions/setup-dotnet@v1
+    - uses: actions/checkout@v1
+    - name: Run code generators
+      shell: pwsh
+      run: Get-ChildItem -Path ./explainpowershell.analysisservice/ -Recurse -Filter *_code_generator.ps1 | ForEach-Object { & $_.FullName }
+    - name: Build with dotnet
+      shell: pwsh
+      run: |
+        Set-Location ./explainpowershell.analysisservice
+        dotnet build --configuration Release
+    - name: Publish artifacts
+      with:
+        name: api
+        path: ./explainpowershell.analysisservice/bin/Release/net6.0
+      uses: actions/upload-artifact@master
+    name: Build Backend api
+    runs-on: ubuntu-latest
+  buildFrontend:
+    steps:
+    - with:
+        dotnet-version: "6.0"
+      uses: actions/setup-dotnet@v1
+    - uses: actions/checkout@v1
+    - name: Set api url to correct url manually
+      shell: pwsh
+      run: |
+        $uri = "https://$("${{ secrets.FUNCTION_APP_NAME }}".trim()).azurewebsites.net/api/"
+        Set-Content -Path ./explainpowershell.frontend/wwwroot/appsettings.json -Value (@{BaseAddress = $uri} | ConvertTo-Json)
+        Get-Content -path ./explainpowershell.frontend/wwwroot/appsettings.json
+    - name: Run code generators
+      shell: pwsh
+      run: Get-ChildItem -Path ./explainpowershell.frontend/ -Recurse -Filter *_code_generator.ps1 | ForEach-Object { & $_.FullName }
+    - name: Build with dotnet
+      run: dotnet build --configuration Release explainpowershell.frontend
+    - name: Publish with dotnet
+      run: dotnet publish --configuration Release explainpowershell.frontend
+    - name: Publish artifacts
+      with:
+        name: webapp
+        path: ./explainpowershell.frontend/bin/Release/net6.0/publish/wwwroot
+      uses: actions/upload-artifact@master
+    name: Build Frontend
+    runs-on: ubuntu-latest
 
-      - name: Authenticate with Azure
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_SERVICE_PRINCIPAL }}
-
-      - name: Get functionapp publish profile
-        id: publishprofile
-        shell: pwsh
-        run: |
-          $json = az functionapp deployment list-publishing-profiles --name "${{ secrets.FUNCTION_APP_NAME }}".trim() --resource-group "${{ secrets.RESOURCE_GROUP_NAME }}".trim()
-          $funcProfile = $(
-              "<publishData>"
-              foreach ($publishProfile in ($json | ConvertFrom-Json)) {
-                  "<publishProfile "
-                  foreach ($prop in $publishProfile.psobject.Properties | where name -ne databases) {
-                      "$($prop.Name)=`"$($prop.Value)`" "
-                  }
-                  "><databases /></publishProfile>"
-              }
-              "</publishData>"
-          ) -join ''
-
-          ##Write-Output "::add-mask::$funcProfile"
-          write-output $funcProfile
-          Write-Output "::set-output name=profile::$funcProfile"
-
-      - name: 'Run Azure Functions Action'
-        uses: Azure/functions-action@v1
-        id: fa
-        with:
-          app-name: ${{ secrets.FUNCTION_APP_NAME }}
-          package: ./
-          publish-profile: ${{ steps.publishprofile.outputs.profile }}
-
-      - name: Calculate new HelpMetaData
-        shell: pwsh
-        run: |
-          az functionapp list |
-            ConvertFrom-Json |
-            where {$_.defaulthostname -match 'powershellexplainer' -and $_.state -eq 'running'} | 
-            ForEach-Object { Invoke-RestMethod -Uri "https://$($_.DefaultHostName)/api/MetaData?refresh=true" }

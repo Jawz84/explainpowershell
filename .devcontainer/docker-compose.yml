@@ -1,30 +1,23 @@
-version: '3.8'
-
+version: "3.8"
 services:
-  database:
-    container_name: azurite
-    image: mcr.microsoft.com/azure-storage/azurite:latest
-    restart: unless-stopped
-    volumes:
-        - /azurite:/data
-
   app:
-    build: 
-      context: .
-      dockerfile: Dockerfile
+    network_mode: service:database
+    build:
       args:
         USER_UID: 1000
         USER_GID: 1000
-
+      context: .
+      dockerfile: Dockerfile
     init: true
+    command: sleep infinity
     volumes:
-      - ..:/workspace:cached
-
-    # Overrides default command so things don't shut down after the process ends.
-    command: sleep infinity 
-
-    network_mode: service:database
-
+    - ..:/workspace:cached
+  database:
+    restart: unless-stopped
+    image: mcr.microsoft.com/azure-storage/azurite:3.18.0
+    volumes:
+    - /azurite:/data
+    container_name: azurite
 volumes:
-    azurite: {}
+  azurite: {}
 
