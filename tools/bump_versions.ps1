@@ -139,4 +139,11 @@ foreach ($file in $files) {
     $xml.Save( $file.FullName )
 }
 
+Push-Location $PSScriptRoot/..
+
+dotnet restore
+dotnet clean --verbosity minimal
+
+Pop-Location
+
 Write-Host -ForegroundColor Magenta 'All done. Usually it is a good idea to REBUILD the dev containers now.'
