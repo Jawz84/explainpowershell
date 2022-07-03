@@ -85,12 +85,18 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         private List<HelpEntity> HelpTableQueryRange(string resolvedCmd)
         {
+            if (string.IsNullOrEmpty(resolvedCmd))
+            {
+                return new List<HelpEntity>{ new HelpEntity() };
+            }
+
             // Getting a range from Azure Table storage works based on ascii char filtering. You can match prefixes. I use a space ' ' (char)32 as a divider 
             // between the name of a command and the name of its module for commands that appear in more than one module. Filtering this way makes sure I 
             // only match entries with '<myCommandName> <myModuleName>'.
             // filterChar = (char)33 = '!'.
+            string rowKeyFilter = $"{resolvedCmd.ToLower()}{filterChar}";
             string filter = TableServiceClient.CreateQueryFilter(
-                $"PartitionKey eq {PartitionKey} and RowKey ge {resolvedCmd.ToLower()} and RowKey lt {resolvedCmd.ToLower()}{filterChar}");
+                $"PartitionKey eq {PartitionKey} and RowKey ge {resolvedCmd.ToLower()} and RowKey lt {rowKeyFilter}");
             var entities = tableClient.Query<HelpEntity>(filter: filter);
             return entities.ToList();
         }
