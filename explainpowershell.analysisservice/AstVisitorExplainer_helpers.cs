@@ -1,12 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Management.Automation;
 using System.Management.Automation.Language;
 using System.Text.RegularExpressions;
+
 using explainpowershell.models;
 using explainpowershell.SyntaxAnalyzer.ExtensionMethods;
-using Microsoft.Extensions.Logging;
 using Azure.Data.Tables;
+using Microsoft.Extensions.Logging;
 
 namespace ExplainPowershell.SyntaxAnalyzer
 {
@@ -85,7 +87,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
         {
             if (string.IsNullOrEmpty(resolvedCmd))
             {
-                return new List<HelpEntity>{ new HelpEntity() };
+                return new List<HelpEntity> { new HelpEntity() };
             }
 
             // Getting a range from Azure Table storage works based on ascii char filtering. You can match prefixes. I use a space ' ' (char)32 as a divider 
@@ -101,7 +103,8 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         private void ExpandAliasesInExtent(CommandAst cmd, string resolvedCmd)
         {
-            if (string.IsNullOrEmpty(resolvedCmd)) {
+            if (string.IsNullOrEmpty(resolvedCmd))
+            {
                 return;
             }
 
@@ -130,6 +133,28 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 }.AddDefaults(ast, explanations));
 
             log.LogWarning($"Unhandled ast: {splitAstType}");
+        }
+
+        public static List<string> GetApprovedVerbs()
+        {
+            List<string> approvedVerbs = new();
+            var verbTypes = new Type[] {
+                    typeof(VerbsCommon), typeof(VerbsCommunications), typeof(VerbsData),
+                    typeof(VerbsDiagnostic), typeof(VerbsLifecycle), typeof(VerbsOther), typeof(VerbsSecurity) };
+
+            foreach (Type type in verbTypes)
+            {
+                // FieldInfo referenced explicitly, to prevent a using statement at the top from masking explainpowershell.models.Module by System.Reflection.Module.
+                foreach (System.Reflection.FieldInfo field in type.GetFields())
+                {
+                    if (field.IsLiteral)
+                    {
+                        approvedVerbs.Add(field.Name);
+                    }
+                }
+            }
+
+            return approvedVerbs;
         }
     }
 }

@@ -45,10 +45,35 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 }
             }
 
-            var description = helpResult?.Synopsis?.ToString() ?? "";
-            resolvedCmd = helpResult?.CommandName ?? resolvedCmd;
+            var description = helpResult?.Synopsis?.ToString();
 
-            ExpandAliasesInExtent(commandAst, resolvedCmd);
+            if (string.IsNullOrEmpty(description))
+            {
+                // Try to find out if this may be a cmdlet
+                if (resolvedCmd.IndexOf('-') > 0)
+                {
+                    var approvedVerbs = GetApprovedVerbs();
+                    var possibleVerb = resolvedCmd[..resolvedCmd.IndexOf('-')];
+
+                    if (approvedVerbs.Any(v => v.IndexOf(possibleVerb, StringComparison.OrdinalIgnoreCase) == 0))
+                    {
+                        description = "Unrecognized cmdlet. Try finding the module that contains this cmdlet and add it to my database. See issue #43 on GitHub.";
+                    }
+                    else
+                    {
+                        description = "Unrecognized command.";
+                    }
+                }
+                else
+                {
+                    description = "Unrecognized command.";
+                }
+            }
+
+            resolvedCmd = helpResult?.CommandName ?? resolvedCmd;
+            if (! string.IsNullOrEmpty(helpResult?.CommandName)) {
+                ExpandAliasesInExtent(commandAst, resolvedCmd);
+            }
 
             if (commandAst.InvocationOperator != TokenKind.Unknown)
             {
@@ -89,7 +114,8 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 {
                     matchedParameter = Helpers.MatchParam(commandParameterAst.ParameterName, parentCommandExplanation.HelpResult?.Parameters);
 
-                    if (matchedParameter != null) {
+                    if (matchedParameter != null)
+                    {
 
                         if (!string.Equals(commandParameterAst.ParameterName, matchedParameter.Name, StringComparison.OrdinalIgnoreCase))
                         {

@@ -4,5 +4,11 @@
   "azureFunctions.projectRuntime": "~4",
   "debug.internalConsoleOptions": "neverOpen",
   "azureFunctions.preDeployTask": "publish",
-  "razor.disableBlazorDebugPrompt": true
+  "razor.disableBlazorDebugPrompt": true,
+  "testExplorer.useNativeTesting": true,
+  "dotnetCoreExplorer.logpanel": true,
+  "dotnetCoreExplorer.searchpatterns": "explainpowershell.analysisservice.tests/**/bin/**/explain*tests.dll",
+  "dotnetAcquisitionExtension.existingDotnetPath": [
+    "/usr/bin/dotnet"
+  ]
 }

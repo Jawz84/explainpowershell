@@ -5,6 +5,9 @@
     "ms-vscode.powershell",
     "ms-dotnettools.vscode-dotnet-runtime",
     "ms-dotnettools.blazorwasm-companion",
-    "vsls-contrib.codetour"
+    "vsls-contrib.codetour",
+    "derivitec-ltd.vscode-dotnet-adapter",
+    "ms-vscode.test-adapter-converter",
+    "hbenl.vscode-test-explorer"
   ]
 }
