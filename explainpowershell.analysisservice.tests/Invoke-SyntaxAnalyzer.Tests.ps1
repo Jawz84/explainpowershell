@@ -7,6 +7,14 @@ Describe "Invoke-SyntaxAnalyzer" {
         . $PSScriptRoot/Test-IsAzuriteUp.ps1
     }
 
+    It "Should explain Classes and constructors" {
+        $code = 'class Person {[int]$age ; Person($a) {$this.age = $a}}; class Child : Person {[string]$School; Child([int]$a, [string]$s ) : base($a) { $this.School = $s}}'
+        [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
+        $content = $result.Content | ConvertFrom-Json
+        $content.Explanations[0].Description | Should -BeLike "Defines a 'class', with the name 'Person'. A class is a blueprint for a type.*"
+        $content.Explanations[0].HelpResult.DocumentationLink | Should -Match "about_Classes"
+    }
+
     It "Should display correct help for assigment operators" {
         $code = '$D=[Datetime]::Now'
         [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code

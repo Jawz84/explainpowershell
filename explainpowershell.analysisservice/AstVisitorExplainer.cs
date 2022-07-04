@@ -1162,20 +1162,41 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitFunctionMember(FunctionMemberAst functionMemberAst)
         {
+            string description;
             var helpResult = HelpTableQuery("about_classes");
-            helpResult.DocumentationLink += "#class-methods";
 
             var attributes = functionMemberAst.Attributes.Count > 0 ?
                 $", with attributes '{string.Join(", ", functionMemberAst.Attributes.Select(m => m.TypeName.Name))}'." :
                 ".";
 
-            var modifier = "M";
-            modifier = functionMemberAst.IsHidden ? "A hidden m" : modifier;
-            modifier = functionMemberAst.IsStatic ? "A static m" : modifier;
+            if (functionMemberAst.IsConstructor) {
+                StringBuilder parameterSignature = new();
+                foreach (var par in functionMemberAst.Parameters)
+                {
+                    parameterSignature
+                        .Append(par.StaticType.Name)
+                        .Append(' ')
+                        .Append(par.Name.VariablePath.UserPath)
+                        .Append(", ");
+                }
+                parameterSignature.Remove(parameterSignature.Length-2,2);
+
+                var howManyParameters = functionMemberAst.Parameters.Count == 0 ? string.Empty : $"has {functionMemberAst.Parameters.Count} parameters and ";
+
+                description = $"A constructor, a special method, used to set things up within the object. Constructors have the same name as the class. This constructor {howManyParameters}is called when [{(functionMemberAst.Parent as TypeDefinitionAst).Name}]::new({parameterSignature}) is used.";
+                helpResult.DocumentationLink += "#constructor";
+            }
+            else {
+                helpResult.DocumentationLink += "#class-methods";
+                var modifier = "M";
+                modifier = functionMemberAst.IsHidden ? "A hidden m" : modifier;
+                modifier = functionMemberAst.IsStatic ? "A static m" : modifier;
+                description = $"{modifier}ethod '{functionMemberAst.Name}' that returns type '{functionMemberAst.ReturnType.TypeName.FullName}'{attributes}";
+            }
 
             explanations.Add(new Explanation()
             {
-                Description = $"{modifier}ethod '{functionMemberAst.Name}' that returns type '{functionMemberAst.ReturnType.TypeName.FullName}'{attributes}",
+                Description = description,
                 CommandName = "Method member",
                 HelpResult = helpResult,
                 TextToHighlight = functionMemberAst.Name
