@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 
 using Azure.Data.Tables;
 using explainpowershell.models;
-using ExplainPowershell.SyntaxAnalyzer;
 using NUnit.Framework;
 
 namespace ExplainPowershell.SyntaxAnalyzer.Tests
@@ -30,6 +29,26 @@ namespace ExplainPowershell.SyntaxAnalyzer.Tests
                 string.Empty,
                 tableClient,
                 mockILogger);
+        }
+
+        [Test]
+        public void ShoudGenerateHelpForClasses()
+        {
+            ScriptBlock.Create("class Person {[int]$age ; Person($a) {$this.age = $a}}; class Child : Person {[string]$School; Child([int]$a, [string]$s ) : base($a) { $this.School = $s}}").Ast.Visit(explainer);
+            AnalysisResult res = explainer.GetAnalysisResult();
+
+            Assert.AreEqual(
+                "Defines a 'class', with the name 'Person'. A class is a blueprint for a type. Create a new instance of this type with [Person]::new().",
+                res.Explanations[0].Description);
+        }
+
+        [Test]
+        public void ShoudGenerateHelpForConstructors()
+        {
+            ScriptBlock.Create("class Person {[int]$age ; Person($a) {$this.age = $a}}; class Child : Person {[string]$School; Child([int]$a, [string]$s ) : base($a) { $this.School = $s}}").Ast.Visit(explainer);
+            AnalysisResult res = explainer.GetAnalysisResult();
+
+            Assert.IsTrue(res.Explanations[3].Description.StartsWith("A constructor, a special method"));
         }
 
         [Test]
