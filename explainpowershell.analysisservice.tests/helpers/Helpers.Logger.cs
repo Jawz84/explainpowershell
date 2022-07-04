@@ -30,9 +30,7 @@ namespace ExplainPowershell.SyntaxAnalyzer.Tests
 
         public class LoggingScope : IDisposable
         {
-            public void Dispose()
-            {
-            }
+            public void Dispose() => GC.SuppressFinalize(this);
         }
     }
 
