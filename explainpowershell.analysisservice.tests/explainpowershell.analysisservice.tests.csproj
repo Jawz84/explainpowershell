@@ -13,12 +13,4 @@
     <ProjectReference Include="..\explainpowershell.analysisservice\explainpowershell.csproj" />
     <ProjectReference Include="..\explainpowershell.models\explainpowershell.models.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Reference Include="explainpowershell">
-      <HintPath>..\explainpowershell.analysisservice\bin\Debug\net6.0\explainpowershell.dll</HintPath>
-    </Reference>
-    <Reference Include="explainpowershell.models">
-      <HintPath>..\explainpowershell.models\bin\Debug\net6.0\explainpowershell.models.dll</HintPath>
-    </Reference>
-  </ItemGroup>
 </Project>
