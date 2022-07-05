@@ -88,7 +88,7 @@ if ($null -eq $profileContents -or
 }
 
 Write-Host -ForegroundColor green 'Updating local PowerShell Help files..'
-Update-Help -Force -ErrorAction SilentlyContinue -ErrorVariable updateerrors
+Update-Help -Force -ErrorAction SilentlyContinue -ErrorVariable updateerrors -UICulture en-us
 if ($updateerrors) {
     Write-Warning "$($updateerrors -join `"`n`")"
 }
