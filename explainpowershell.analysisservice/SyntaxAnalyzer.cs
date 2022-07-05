@@ -41,14 +41,14 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
             log.LogInformation("PowerShell code sent: " + code); // LogAnalytics does not log the body of requests, so we have to log this ourselves.
 
-            ScriptBlockAst ast = Parser.ParseInput(code, out _, out ParseError[] parseErrors);
+            ScriptBlockAst ast = Parser.ParseInput(code, out Token[] tokens, out ParseError[] parseErrors);
 
             if (string.IsNullOrEmpty(ast.Extent.Text))
                 return ResponseHelper(HttpStatusCode.BadRequest, "Empty request. Pass powershell code in the request body for an AST analysis.");
 
             try
             {
-                var visitor = new AstVisitorExplainer(ast.Extent.Text, tableClient, log);
+                var visitor = new AstVisitorExplainer(ast.Extent.Text, tableClient, log, tokens);
                 ast.Visit(visitor);
                 analysisResult = visitor.GetAnalysisResult();
             }

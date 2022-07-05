@@ -15,9 +15,21 @@ namespace explainpowershell.SyntaxAnalyzer.ExtensionMethods
             return explanation;
         }
 
+        public static Explanation AddDefaults(this Explanation explanation, Token token, List<Explanation> explanations)
+        {
+            explanation.OriginalExtent = token.Extent.Text;
+            explanation.Id = token.GenerateId();
+            explanation.ParentId = TryFindParentExplanation(token, explanations);
+            return explanation;
+        }
         private static string GenerateId(this Ast ast)
         {
-            return ast.Extent.StartLineNumber + ast.Extent.StartColumnNumber + ast.Extent.EndColumnNumber + ast.GetType().Name;
+            return $"{ast.Extent.StartLineNumber}.{ast.Extent.StartOffset}.{ast.Extent.EndOffset}.{ast.GetType().Name}";
+        }
+
+        private static string GenerateId(this Token token)
+        {
+            return $"{token.Extent.StartLineNumber}.{token.Extent.StartOffset}.{token.Extent.EndOffset}.{token.Kind}";
         }
 
         public static string TryFindParentExplanation(Ast ast, List<Explanation> explanations, int level = 0)
@@ -33,9 +45,28 @@ namespace explainpowershell.SyntaxAnalyzer.ExtensionMethods
             }
 
             if (level >= 99)
-                return null;
+                return string.Empty;
 
             return parentId;
+        }
+
+        public static string TryFindParentExplanation(Token token, List<Explanation> explanations)
+        {
+            var start = token.Extent.StartOffset;
+            var explanationsBeforeToken = explanations.Where(e => GetEndOffSet(e) <= start);
+
+            if (!explanationsBeforeToken.Any())
+            {
+                return string.Empty;
+            }
+
+            var closestNeigbour = explanationsBeforeToken.Max(e => GetEndOffSet(e));
+            return explanationsBeforeToken.FirstOrDefault(t => GetEndOffSet(t) == closestNeigbour).Id;
+        }
+
+        private static int GetEndOffSet(Explanation e)
+        {
+            return int.Parse(e.Id.Split('.')[2]);
         }
     }
 }

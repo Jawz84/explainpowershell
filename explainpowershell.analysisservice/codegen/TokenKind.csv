@@ -133,7 +133,7 @@ Rem;39;The modulo division (remainder) operator '%'.;about_arithmetic_operators
 RemainderEquals;47;The modulo division (remainder) assignment operator '%='.;about_assignment_operators
 Return;142;The 'return' keyword.
 RParen;17;The closing parenthesis token ')'.
-Semi;25;"The statement terminator ';'."
+Semi;25;"The statement terminator ';' (semicolon)."
 Sequence;153;The 'sequence' keyword.
 Shl;97;The shift left operator.;about_arithmetic_operators
 Shr;98;The shift right operator.;about_arithmetic_operators
