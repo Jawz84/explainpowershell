@@ -55,7 +55,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
                     var approvedVerbs = GetApprovedVerbs();
                     var possibleVerb = resolvedCmd[..resolvedCmd.IndexOf('-')];
 
-                    if (approvedVerbs.Any(v => v.IndexOf(possibleVerb, StringComparison.OrdinalIgnoreCase) == 0))
+                    if (approvedVerbs.Any(approvedVerb => string.Equals(approvedVerb, possibleVerb, StringComparison.OrdinalIgnoreCase)))
                     {
                         description = "Unrecognized cmdlet. Try finding the module that contains this cmdlet and add it to my database. See issue #43 on GitHub.";
                     }
