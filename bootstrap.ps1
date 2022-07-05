@@ -87,10 +87,14 @@ if ($null -eq $profileContents -or
         | Join-Path -ChildPath 'Microsoft.VSCode_profile.ps1') -Force
 }
 
-Write-Host -ForegroundColor green 'Updating local PowerShell Help files..'
-Update-Help -Force -ErrorAction SilentlyContinue -ErrorVariable updateerrors -UICulture en-us
-if ($updateerrors) {
-    Write-Warning "$($updateerrors -join `"`n`")"
+if ($Force -or -not [bool](Get-ChildItem -Path / -Filter 'about_Pwsh.help.txt' -Recurse -Depth 3 -ErrorAction SilentlyContinue)) {
+    Write-Host -ForegroundColor green 'Updating local PowerShell Help files..'
+    # The `-UICulture en-us` param is important, because at container build, this script is called, but the UICulture is 
+    # `Invariant Culture` which results in no help available. Setting it to `en-us` manually makes sure we have updated help.
+    Update-Help -Force -ErrorAction SilentlyContinue -ErrorVariable updateErrors -UICulture en-us
+    if ($updateErrors) {
+        Write-Warning "$($updateErrors -join `"`n`")"
+    }
 }
 
 $fileName = "$PSScriptRoot/explainpowershell.helpcollector/help.about_articles.cache.user"
