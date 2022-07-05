@@ -12,12 +12,16 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Reflection;
 using Azure.Data.Tables;
+using Azure;
 
 namespace explainpowershell.analysisservice
 {
     public static class MetaData
     {
         private const string HelpTableName = "HelpData";
+        private const string MetaDataPartitionKey = "HelpMetaData";
+        private const string MetaDataRowKey = "HelpMetaData";
+        private const string CommandHelpPartitionKey = "CommandHelp";
 
         [FunctionName("MetaData")]
         public static IActionResult Run(
@@ -35,12 +39,11 @@ namespace explainpowershell.analysisservice
             else
             {
                 log.LogInformation("Trying to get HelpMetaData from cache");
-                string filter = TableServiceClient.CreateQueryFilter($"PartitionKey eq 'HelpMetaData'");
-                var entities = client.Query<HelpMetaData>(filter);
-
-                helpMetaData = entities.FirstOrDefault();
-
-                if ( helpMetaData == null )
+                try
+                {
+                    helpMetaData = client.GetEntity<HelpMetaData>(MetaDataPartitionKey, MetaDataRowKey);
+                }
+                catch (RequestFailedException)
                 {
                     helpMetaData = CalculateMetaData(client, log);
                 }
@@ -55,7 +58,7 @@ namespace explainpowershell.analysisservice
         {
             log.LogInformation("Calculating meta data on HelpTable");
 
-            string filter = TableServiceClient.CreateQueryFilter($"PartitionKey eq 'CommandHelp'");
+            string filter = TableServiceClient.CreateQueryFilter($"PartitionKey eq {CommandHelpPartitionKey}");
             var select = new string[] { "CommandName", "ModuleName" };
             var entities = client.Query<HelpEntity>(filter: filter, select: select);
 
@@ -67,13 +70,13 @@ namespace explainpowershell.analysisservice
 
             var moduleNames = entities
                 .Select(r => r.ModuleName)
-                .Where(m => !string.IsNullOrEmpty(m))
+                .Where(moduleName => !string.IsNullOrEmpty(moduleName))
                 .Distinct();
 
             var helpMetaData = new HelpMetaData()
             {
-                PartitionKey = "HelpMetaData",
-                RowKey = "HelpMetaData",
+                PartitionKey = MetaDataPartitionKey,
+                RowKey = MetaDataRowKey,
                 NumberOfAboutArticles = numAbout,
                 NumberOfCommands = entities.Count() - numAbout,
                 NumberOfModules = moduleNames.Count(),
@@ -81,7 +84,16 @@ namespace explainpowershell.analysisservice
                 LastPublished = Helpers.GetBuildDate(Assembly.GetExecutingAssembly()).ToLongDateString()
             };
 
-            _ = client.UpsertEntity(helpMetaData);
+            var metaDataEntity = new HelpMetaData();
+            try
+            {
+                metaDataEntity = client.GetEntity<HelpMetaData>(MetaDataPartitionKey, MetaDataRowKey);
+                _ = client.UpsertEntity(helpMetaData);
+            }
+            catch (RequestFailedException)
+            {
+                _ = client.AddEntity(helpMetaData);
+            }
 
             return helpMetaData;
         }
