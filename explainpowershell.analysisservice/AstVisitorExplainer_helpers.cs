@@ -59,12 +59,19 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         private void ExplainSemiColons()
         {
+            if (tokens == null)
+            {
+                return;
+            }
+
             var semiColons = tokens.Where(t => t.Kind == TokenKind.Semi);
             foreach (var semiColon in semiColons)
             {
                 var (description, _) = Helpers.TokenExplainer(TokenKind.Semi);
-                var help = new HelpEntity();
-                help.DocumentationLink = "https://docs.microsoft.com/en-us/powershell/scripting/lang-spec/chapter-08#82-pipeline-statements";
+                var help = new HelpEntity
+                {
+                    DocumentationLink = "https://docs.microsoft.com/en-us/powershell/scripting/lang-spec/chapter-08#82-pipeline-statements"
+                };
 
                 explanations.Add(
                     new Explanation()
