@@ -549,7 +549,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
                     helpQuery = "";
                     break;
                 case TokenKind.Semi:
-                    description = "The statement terminator ';'.";
+                    description = "The statement terminator ';' (semicolon).";
                     helpQuery = "";
                     break;
                 case TokenKind.Sequence:

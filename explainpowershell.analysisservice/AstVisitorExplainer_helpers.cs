@@ -23,10 +23,13 @@ namespace ExplainPowershell.SyntaxAnalyzer
         private int offSet = 0;
         private readonly TableClient tableClient;
         private readonly ILogger log;
+        private readonly Token[] tokens;
 
         public AnalysisResult GetAnalysisResult()
         {
             var modules = new List<Module>();
+
+            ExplainSemiColons();
 
             foreach (var exp in explanations)
             {
@@ -54,11 +57,39 @@ namespace ExplainPowershell.SyntaxAnalyzer
             return analysisResult;
         }
 
-        public AstVisitorExplainer(string extentText, TableClient client, ILogger log)
+        private void ExplainSemiColons()
+        {
+            if (tokens == null)
+            {
+                return;
+            }
+
+            var semiColons = tokens.Where(t => t.Kind == TokenKind.Semi);
+            foreach (var semiColon in semiColons)
+            {
+                var (description, _) = Helpers.TokenExplainer(TokenKind.Semi);
+                var help = new HelpEntity
+                {
+                    DocumentationLink = "https://docs.microsoft.com/en-us/powershell/scripting/lang-spec/chapter-08#82-pipeline-statements"
+                };
+
+                explanations.Add(
+                    new Explanation()
+                    {
+                        CommandName = "Statement terminator",
+                        HelpResult = help,
+                        Description = description,
+                        TextToHighlight = ";"
+                    }.AddDefaults(semiColon, explanations));
+            }
+        }
+
+        public AstVisitorExplainer(string extentText, TableClient client, ILogger log, Token[] tokens)
         {
             tableClient = client;
             this.log = log;
             extent = extentText;
+            this.tokens = tokens;
         }
 
         private static bool HasSpecialVars(string varName)

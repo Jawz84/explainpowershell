@@ -26,9 +26,10 @@ namespace ExplainPowershell.SyntaxAnalyzer.Tests
                 "HelpData");
 
             explainer = new(
-                string.Empty,
-                tableClient,
-                mockILogger);
+                extentText: string.Empty,
+                client: tableClient,
+                log: mockILogger,
+                tokens: null);
         }
 
         [Test]
