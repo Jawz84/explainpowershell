@@ -198,7 +198,11 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitSwitchStatement(SwitchStatementAst switchStatementAst)
         {
-            // TODO: add switch statement explanation
+            // TODO: work out help for clauses, conditino and default.
+            var clauses = switchStatementAst.Clauses;
+            var condition = switchStatementAst.Condition;
+            var deft = switchStatementAst.Default;
+
             AstExplainer(switchStatementAst);
             return base.VisitSwitchStatement(switchStatementAst);
         }
@@ -227,7 +231,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 TextToHighlight = "try"
             }.AddDefaults(tryStatementAst, explanations));
 
-            return AstVisitAction.Continue;
+            return base.VisitTryStatement(tryStatementAst);
         }
 
         public override AstVisitAction VisitWhileStatement(WhileStatementAst whileStatementAst)
