@@ -36,7 +36,7 @@ namespace ExplainPowershell.SyntaxAnalyzer.Tests
 
     public class LogEntry
     {
-        public LogEntry(LogLevel logLevel, EventId eventId, object state, Exception exception)
+        public LogEntry(LogLevel logLevel, EventId eventId, object? state, Exception? exception)
         {
             LogLevel = logLevel;
             EventId = eventId;
@@ -46,7 +46,7 @@ namespace ExplainPowershell.SyntaxAnalyzer.Tests
 
         public LogLevel LogLevel { get; }
         public EventId EventId { get; }
-        public object State { get; }
-        public Exception Exception { get; }
+        public object? State { get; }
+        public Exception? Exception { get; }
     }
 }

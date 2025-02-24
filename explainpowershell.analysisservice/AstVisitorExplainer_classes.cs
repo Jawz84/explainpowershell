@@ -10,13 +10,15 @@ namespace ExplainPowershell.SyntaxAnalyzer
     {
         public override AstVisitAction VisitInvokeMemberExpression(InvokeMemberExpressionAst methodCallAst)
         {
-            var args = "";
+            var args = string.Empty;
             var argsText = " without arguments";
             var objectOrClass = "object";
-            var stat = "";
+            var stat = string.Empty;
 
-            if (methodCallAst.Arguments != null)
+            if (methodCallAst.Arguments?.Any() == true)
+            {
                 args = string.Join(", ", methodCallAst.Arguments.Select(args => args.Extent.Text));
+            }
 
             if (methodCallAst.Static)
             {
@@ -24,8 +26,10 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 stat = "static ";
             }
 
-            if (args != "")
+            if (!string.IsNullOrEmpty(args))
+            {
                 argsText = $", with arguments '{args}'";
+            }
 
             explanations.Add(
                 new Explanation
@@ -74,36 +78,50 @@ namespace ExplainPowershell.SyntaxAnalyzer
         {
             string description;
             var helpResult = HelpTableQuery("about_classes");
-
-            var attributes = functionMemberAst.Attributes.Count > 0 ?
+            var attributes = functionMemberAst.Attributes?.Count > 0 ?
                 $", with attributes '{string.Join(", ", functionMemberAst.Attributes.Select(m => m.TypeName.Name))}'." :
                 ".";
 
             if (functionMemberAst.IsConstructor)
             {
-                StringBuilder parameterSignature = new();
+                var parameterSignature = new StringBuilder();
                 foreach (var par in functionMemberAst.Parameters)
                 {
-                    parameterSignature
-                        .Append(par.StaticType.Name)
-                        .Append(' ')
-                        .Append(par.Name.VariablePath.UserPath)
-                        .Append(", ");
+                    if (par?.StaticType?.Name != null && par.Name?.VariablePath?.UserPath != null)
+                    {
+                        parameterSignature
+                            .Append(par.StaticType.Name)
+                            .Append(' ')
+                            .Append(par.Name.VariablePath.UserPath)
+                            .Append(", ");
+                    }
                 }
-                parameterSignature.Remove(parameterSignature.Length - 2, 2);
+                if (parameterSignature.Length > 2)
+                {
+                    parameterSignature.Length -= 2; // Remove last ", "
+                }
 
+                var parentType = functionMemberAst.Parent as TypeDefinitionAst;
+                var className = parentType?.Name ?? "Unknown";
                 var howManyParameters = functionMemberAst.Parameters.Count == 0 ? string.Empty : $"has {functionMemberAst.Parameters.Count} parameters and ";
-
-                description = $"A constructor, a special method, used to set things up within the object. Constructors have the same name as the class. This constructor {howManyParameters}is called when [{(functionMemberAst.Parent as TypeDefinitionAst).Name}]::new({parameterSignature}) is used.";
-                helpResult.DocumentationLink += "#constructor";
+                description = $"A constructor, a special method, used to set things up within the object. Constructors have the same name as the class. This constructor {howManyParameters}is called when [{className}]::new({parameterSignature}) is used.";
+                
+                if (helpResult?.DocumentationLink != null)
+                {
+                    helpResult.DocumentationLink += "#constructor";
+                }
             }
             else
             {
-                helpResult.DocumentationLink += "#class-methods";
+                if (helpResult?.DocumentationLink != null)
+                {
+                    helpResult.DocumentationLink += "#class-methods";
+                }
+
                 var modifier = "M";
                 modifier = functionMemberAst.IsHidden ? "A hidden m" : modifier;
                 modifier = functionMemberAst.IsStatic ? "A static m" : modifier;
-                description = $"{modifier}ethod '{functionMemberAst.Name}' that returns type '{functionMemberAst.ReturnType.TypeName.FullName}'{attributes}";
+                description = $"{modifier}ethod '{functionMemberAst.Name}' that returns type '{functionMemberAst.ReturnType?.TypeName?.FullName ?? "void"}'{attributes}";
             }
 
             explanations.Add(new Explanation()
@@ -119,20 +137,23 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitPropertyMember(PropertyMemberAst propertyMemberAst)
         {
-            HelpEntity helpResult = null;
-            var description = "";
+            HelpEntity? helpResult = null;
+            var description = string.Empty;
+            var parentType = propertyMemberAst.Parent as TypeDefinitionAst;
 
-            if ((propertyMemberAst.Parent as TypeDefinitionAst).IsClass)
+            if (parentType?.IsClass == true)
             {
-                var attributes = propertyMemberAst.Attributes.Count >= 0 ?
+                var attributes = propertyMemberAst.Attributes?.Count > 0 ?
                     $", with attributes '{string.Join(", ", propertyMemberAst.Attributes.Select(p => p.TypeName.Name))}'." :
                     ".";
-                description = $"Property '{propertyMemberAst.Name}' of type '{propertyMemberAst.PropertyType.TypeName.FullName}'{attributes}";
+                description = $"Property '{propertyMemberAst.Name}' of type '{propertyMemberAst.PropertyType?.TypeName?.FullName ?? "unknown"}'{attributes}";
                 helpResult = HelpTableQuery("about_classes");
-                helpResult.DocumentationLink += "#class-properties";
+                if (helpResult != null)
+                {
+                    helpResult.DocumentationLink += "#class-properties";
+                }
             }
-
-            if ((propertyMemberAst.Parent as TypeDefinitionAst).IsEnum)
+            else if (parentType?.IsEnum == true)
             {
                 description = $"Enum label '{propertyMemberAst.Name}', with value '{propertyMemberAst.InitialValue}'.";
                 helpResult = HelpTableQuery("about_enum");
@@ -151,22 +172,18 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitTypeDefinition(TypeDefinitionAst typeDefinitionAst)
         {
-            var highlight = "";
-            var about = "";
-            var attributes = ".";
-            var synopsis = "";
-
-            if (typeDefinitionAst.Attributes.Count > 0)
-            {
-                attributes = $", with the attributes '{string.Join(", ", typeDefinitionAst.Attributes.Select(a => a.TypeName.Name))}'.";
-            }
+            var highlight = string.Empty;
+            var about = string.Empty;
+            var synopsis = string.Empty;
+            var attributes = typeDefinitionAst.Attributes?.Count > 0 ?
+                $", with the attributes '{string.Join(", ", typeDefinitionAst.Attributes.Select(a => a.TypeName.Name))}'." :
+                ".";
 
             if (typeDefinitionAst.IsClass)
             {
                 highlight = "class";
                 about = "about_classes";
                 synopsis = $"A class is a blueprint for a type. Create a new instance of this type with [{typeDefinitionAst.Name}]::new().";
-
             }
             else if (typeDefinitionAst.IsEnum)
             {

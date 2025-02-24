@@ -131,13 +131,16 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitExitStatement(ExitStatementAst exitStatementAst)
         {
-            var returning = string.IsNullOrEmpty(exitStatementAst.Pipeline?.Extent?.Text) ?
-                "." :
-                $", with an exit code of '{exitStatementAst.Pipeline.Extent.Text}'.";
-
             var helpResult = HelpTableQuery("about_language_keywords");
+            if (helpResult == null)
+            {
+                helpResult = new HelpEntity();
+            }
             helpResult.DocumentationLink += "#exit";
-
+            
+            var exitCode = exitStatementAst.Pipeline?.Extent?.Text;
+            var returning = string.IsNullOrEmpty(exitCode) ? "." : $", with an exit code of '{exitCode}'.";
+            
             explanations.Add(
                 new Explanation()
                 {
@@ -146,7 +149,6 @@ namespace ExplainPowershell.SyntaxAnalyzer
                     Description = $"Causes PowerShell to exit a script or a PowerShell instance{returning}",
                     TextToHighlight = "exit"
                 }.AddDefaults(exitStatementAst, explanations));
-
             return base.VisitExitStatement(exitStatementAst);
         }
 

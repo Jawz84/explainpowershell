@@ -10,9 +10,9 @@ namespace ExplainPowershell.SyntaxAnalyzer
 {
     public static partial class Helpers
     {
-        public static ParameterData MatchParam(string foundParameter, string json)
+        public static ParameterData? MatchParam(string foundParameter, string json)
         {
-            List<ParameterData> doc;
+            List<ParameterData>? doc;
             List<ParameterData> matchedParam = new();
 
             try {
@@ -23,15 +23,15 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 doc = JsonSerializer.Deserialize<List<ParameterData>>(json, new JsonSerializerOptions() {DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull});
             }
 
-            if (null == doc) {
-                return matchedParam.FirstOrDefault();
+            if (doc == null) {
+                return null;
             }
 
             // First check for aliases, because they take precendence
             if (!string.Equals(foundParameter, "none", StringComparison.OrdinalIgnoreCase))
             {
                 matchedParam = doc.Where(
-                    p => p.Aliases.Split(", ")
+                    p => (p.Aliases ?? string.Empty).Split(", ")
                         .All(
                             q => q.StartsWith(
                                 foundParameter,
@@ -42,7 +42,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
             {
                 // If no aliases match, then try partial parameter names for static params (aliases and static params take precedence)
                 matchedParam = doc.Where(
-                    p => ! (p.IsDynamic ?? false) && 
+                    p => !(p.IsDynamic ?? false) && 
                         p.Name.StartsWith(foundParameter, StringComparison.OrdinalIgnoreCase)).ToList();
             }
 
@@ -60,7 +60,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
             if (matchedParam.Count > 1)
             {
-                throw new ArgumentException($"Abiguous parameter: {foundParameter}");
+                throw new ArgumentException($"Ambiguous parameter: {foundParameter}");
             }
 
             return matchedParam.FirstOrDefault();

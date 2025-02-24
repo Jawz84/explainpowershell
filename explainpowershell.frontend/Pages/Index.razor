@@ -40,7 +40,7 @@
                                 <MudTooltip Text="click for more details" Placement="Placement.End">
                                     <MudItem @onclick="@(() => ToggleCommandDetailsPopoverIsOpen(context.Item.Id))" >
                                         <ExplainCard Context="@context.Item"/>
-                                        <MudPopover Class="ma-2" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" OverflowBehavior="OverflowBehavior.FlipNever" Direction="Direction.Bottom" Open="@CommandDetailsPopoverIsOpen[context.Item.Id]"> 
+                                        <MudPopover Class="ma-2" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" OverflowBehavior="OverflowBehavior.FlipNever" Open="@CommandDetailsPopoverIsOpen[context.Item.Id]"> 
                                             <MudSimpleTable Class="pa-2" Style="width:auto;">
                                                 <tbody>
                                                     @if(! string.IsNullOrEmpty(@context.Item.HelpResult?.Description))
@@ -108,7 +108,7 @@
                                     <MudButton Class="ma-2" OnClick="@(() => ToggleSyntaxPopoverIsOpen(context.Item.Id))">Syntax</MudButton>
                                 </MudItem>
                                 <MudItem>
-                                    <MudPopover Class="pa-2" Style="width:auto;" AnchorOrigin="Origin.TopRight" TransformOrigin="Origin.TopLeft" OverflowBehavior="OverflowBehavior.FlipNever" Direction="Direction.Right" Open="@SyntaxPopoverIsOpen[context.Item.Id]">
+                                    <MudPopover Class="pa-2" Style="width:auto;" AnchorOrigin="Origin.TopRight" TransformOrigin="Origin.TopLeft" OverflowBehavior="OverflowBehavior.FlipNever" Open="@SyntaxPopoverIsOpen[context.Item.Id]">
                                         @foreach (var line in @context.Item.HelpResult?.Syntax.Split("\n")) {
                                             @foreach (var param in line
                                                 .Replace(context.Item.CommandName,$"{context.Item.CommandName}\n")

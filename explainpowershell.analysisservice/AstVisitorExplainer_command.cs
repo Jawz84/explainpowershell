@@ -13,22 +13,21 @@ namespace ExplainPowershell.SyntaxAnalyzer
         {
             string moduleName = string.Empty;
             string cmdName = commandAst.GetCommandName() ?? string.Empty;
-
             if (cmdName.IndexOf('\\') != -1)
             {
                 var s = cmdName.Split('\\');
                 moduleName = s[0];
-                cmdName = s[1];
+                cmdName = s.Length > 1 ? s[1] : string.Empty;
             }
 
             string resolvedCmd = Helpers.ResolveAlias(cmdName) ?? cmdName;
+            HelpEntity? helpResult = null;
 
-            HelpEntity helpResult;
             if (string.IsNullOrEmpty(moduleName))
             {
                 var helpResults = HelpTableQueryRange(resolvedCmd);
                 helpResult = helpResults?.FirstOrDefault();
-                if (helpResults.Count > 1)
+                if (helpResults?.Count > 1)
                 {
                     this.errorMessage = $"The command '{helpResult?.CommandName}' is present in more than one module: '{string.Join("', '", helpResults.Select(r => r.ModuleName))}'. Explicitly prepend the module name to the command to select one: '{helpResults.First().ModuleName}\\{helpResult?.CommandName}'";
                 }
@@ -46,7 +45,6 @@ namespace ExplainPowershell.SyntaxAnalyzer
             }
 
             var description = helpResult?.Synopsis?.ToString();
-
             if (string.IsNullOrEmpty(description))
             {
                 // Try to find out if this may be a cmdlet
@@ -54,7 +52,6 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 {
                     var approvedVerbs = GetApprovedVerbs();
                     var possibleVerb = resolvedCmd[..resolvedCmd.IndexOf('-')];
-
                     if (approvedVerbs.Any(approvedVerb => string.Equals(approvedVerb, possibleVerb, StringComparison.OrdinalIgnoreCase)))
                     {
                         description = "Unrecognized cmdlet. Try finding the module that contains this cmdlet and add it to my database. See issue #43 on GitHub.";
@@ -71,7 +68,8 @@ namespace ExplainPowershell.SyntaxAnalyzer
             }
 
             resolvedCmd = helpResult?.CommandName ?? resolvedCmd;
-            if (! string.IsNullOrEmpty(helpResult?.CommandName)) {
+            if (!string.IsNullOrEmpty(helpResult?.CommandName))
+            {
                 ExpandAliasesInExtent(commandAst, resolvedCmd);
             }
 
@@ -81,7 +79,6 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 string invocationOperatorExplanation = commandAst.InvocationOperator == TokenKind.Dot ?
                     "The dot source invocation operator '.'" :
                     tokenDescription;
-
                 description = invocationOperatorExplanation + " " + description;
             }
 
@@ -89,7 +86,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 new Explanation()
                 {
                     CommandName = resolvedCmd,
-                    Description = description,
+                    Description = description ?? "No description available",
                     HelpResult = helpResult,
                     TextToHighlight = cmdName
                 }.AddDefaults(commandAst, explanations));
@@ -106,37 +103,29 @@ namespace ExplainPowershell.SyntaxAnalyzer
             }.AddDefaults(commandParameterAst, explanations);
 
             var parentCommandExplanation = explanations.FirstOrDefault(e => e.Id == exp.ParentId);
-
-            ParameterData matchedParameter;
-            if (parentCommandExplanation.HelpResult?.Parameters != null)
+            if (parentCommandExplanation?.HelpResult?.Parameters != null)
             {
                 try
                 {
-                    matchedParameter = Helpers.MatchParam(commandParameterAst.ParameterName, parentCommandExplanation.HelpResult?.Parameters);
-
+                    var matchedParameter = Helpers.MatchParam(commandParameterAst.ParameterName, parentCommandExplanation.HelpResult.Parameters);
                     if (matchedParameter != null)
                     {
-
                         if (!string.Equals(commandParameterAst.ParameterName, matchedParameter.Name, StringComparison.OrdinalIgnoreCase))
                         {
                             exp.CommandName += $" '-{matchedParameter.Name}'";
                         }
-
                         if (matchedParameter.SwitchParameter ?? false)
                         {
                             exp.CommandName = "Switch " + exp.CommandName;
                         }
-
                         if (string.Equals(matchedParameter.Required, "true", StringComparison.OrdinalIgnoreCase))
                         {
                             exp.CommandName = "Mandatory " + exp.CommandName;
                         }
-
                         if (!(matchedParameter.SwitchParameter ?? false) && !string.IsNullOrEmpty(matchedParameter.TypeName))
                         {
                             exp.CommandName += $" of type [{matchedParameter.TypeName}]";
                         }
-
                         if (string.Equals(matchedParameter.Globbing, "true", StringComparison.OrdinalIgnoreCase))
                         {
                             exp.CommandName += " (supports wildcards like '*' and '?')";
@@ -144,25 +133,19 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
                         exp.Description = matchedParameter.Description;
 
-                        if (!string.IsNullOrEmpty(
-                            parentCommandExplanation
-                                .HelpResult?
-                                .ParameterSetNames))
+                        if (!string.IsNullOrEmpty(parentCommandExplanation.HelpResult?.ParameterSetNames))
                         {
-                            var availableParamSets = parentCommandExplanation
-                                .HelpResult?
-                                .ParameterSetNames
+                            var availableParamSets = parentCommandExplanation.HelpResult.ParameterSetNames
                                 .Split(", ")
                                 .Append("__AllParameterSets")
                                 .ToArray();
 
                             var paramSetData = Helpers.GetParameterSetData(matchedParameter, availableParamSets);
-
-                            if (paramSetData.Count > 1)
+                            if (paramSetData?.Count > 1)
                             {
                                 exp.Description += $"\nThis parameter is present in more than one parameter set: {string.Join(", ", paramSetData.Select(p => p.ParameterSetName))}";
                             }
-                            if (paramSetData.Count == 1)
+                            else if (paramSetData?.Count == 1)
                             {
                                 var paramSetName = paramSetData.Select(p => p.ParameterSetName).FirstOrDefault();
                                 if (paramSetName == "__AllParameterSets")

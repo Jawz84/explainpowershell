@@ -18,12 +18,12 @@ namespace ExplainPowershell.SyntaxAnalyzer
         private const char separatorChar = ' ';
         private const string PartitionKey = "CommandHelp";
         private readonly List<Explanation> explanations = new();
-        private string errorMessage;
+        private string errorMessage = string.Empty;
         private string extent;
         private int offSet = 0;
         private readonly TableClient tableClient;
         private readonly ILogger log;
-        private readonly Token[] tokens;
+        private readonly Token[]? tokens;
 
         public AnalysisResult GetAnalysisResult()
         {
@@ -31,17 +31,14 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
             ExplainSemiColons();
 
-            foreach (var exp in explanations)
+            foreach (var exp in explanations.Where(e => e.HelpResult != null))
             {
-                if (exp.HelpResult == null)
-                    continue;
-
-                if (!modules.Any(m => m.ModuleName == exp.HelpResult.ModuleName))
+                if (!modules.Any(m => m.ModuleName == exp.HelpResult?.ModuleName))
                 {
                     modules.Add(
                         new Module()
                         {
-                            ModuleName = exp.HelpResult.ModuleName
+                            ModuleName = exp.HelpResult?.ModuleName ?? string.Empty
                         });
                 }
             }
@@ -50,7 +47,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
             {
                 Explanations = explanations,
                 DetectedModules = modules,
-                ExpandedCode = extent,
+                ExpandedCode = extent ?? string.Empty,
                 ParseErrorMessage = errorMessage
             };
 
@@ -84,11 +81,11 @@ namespace ExplainPowershell.SyntaxAnalyzer
             }
         }
 
-        public AstVisitorExplainer(string extentText, TableClient client, ILogger log, Token[] tokens)
+        public AstVisitorExplainer(string extentText, TableClient client, ILogger log, Token[]? tokens)
         {
-            tableClient = client;
-            this.log = log;
-            extent = extentText;
+            tableClient = client ?? throw new ArgumentNullException(nameof(client));
+            this.log = log ?? throw new ArgumentNullException(nameof(log));
+            extent = extentText ?? string.Empty;
             this.tokens = tokens;
         }
 
@@ -100,15 +97,14 @@ namespace ExplainPowershell.SyntaxAnalyzer
             return false;
         }
 
-        private HelpEntity HelpTableQuery(string resolvedCmd)
+        private HelpEntity? HelpTableQuery(string resolvedCmd)
         {
             string filter = TableServiceClient.CreateQueryFilter($"PartitionKey eq {PartitionKey} and RowKey eq {resolvedCmd.ToLower()}");
             var entities = tableClient.Query<HelpEntity>(filter: filter);
-            var helpResult = entities.FirstOrDefault();
-            return helpResult;
+            return entities.FirstOrDefault();
         }
 
-        private HelpEntity HelpTableQuery(string resolvedCmd, string moduleName)
+        private HelpEntity? HelpTableQuery(string resolvedCmd, string moduleName)
         {
             var rowKey = $"{resolvedCmd.ToLower()}{separatorChar}{moduleName.ToLower()}";
             return HelpTableQuery(rowKey);
@@ -129,12 +125,12 @@ namespace ExplainPowershell.SyntaxAnalyzer
             string filter = TableServiceClient.CreateQueryFilter(
                 $"PartitionKey eq {PartitionKey} and RowKey ge {resolvedCmd.ToLower()} and RowKey lt {rowKeyFilter}");
             var entities = tableClient.Query<HelpEntity>(filter: filter);
-            return entities.ToList();
+            return entities?.ToList() ?? new List<HelpEntity>();
         }
 
-        private void ExpandAliasesInExtent(CommandAst cmd, string resolvedCmd)
+        private void ExpandAliasesInExtent(CommandAst cmd, string? resolvedCmd)
         {
-            if (string.IsNullOrEmpty(resolvedCmd))
+            if (string.IsNullOrEmpty(resolvedCmd) || cmd.CommandElements.Count == 0)
             {
                 return;
             }
@@ -150,11 +146,18 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public static string SplitCamelCase(string input)
         {
-            return Regex.Replace(input, @"([A-Z])", " $1", RegexOptions.Compiled).Trim();
+            return input != null ? 
+                Regex.Replace(input, @"([A-Z])", " $1", RegexOptions.Compiled).Trim() :
+                string.Empty;
         }
 
         private void AstExplainer(Ast ast)
         {
+            if (ast == null)
+            {
+                return;
+            }
+
             var astType = ast.GetType().Name.Replace("Ast", "");
             var splitAstType = SplitCamelCase(astType);
             explanations.Add(

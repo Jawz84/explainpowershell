@@ -1,62 +1,57 @@
-using System;
-using System.IO;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
+using System.Net;
 using System.Text.Json;
-using explainpowershell.models;
-using System.Linq;
-using System.Collections.Generic;
-using System.Reflection;
-using Azure.Data.Tables;
 using Azure;
+using Azure.Data.Tables;
+using explainpowershell.models;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Http;
+using System.Reflection;
+using Microsoft.Extensions.Logging;
 
 namespace explainpowershell.analysisservice
 {
-    public static class MetaData
+    public class MetaData
     {
         private const string HelpTableName = "HelpData";
         private const string MetaDataPartitionKey = "HelpMetaData";
         private const string MetaDataRowKey = "HelpMetaData";
         private const string CommandHelpPartitionKey = "CommandHelp";
 
-        [FunctionName("MetaData")]
-        public static IActionResult Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequest req,
-            [Table(HelpTableName)] TableClient client,
-            ILogger log)
+        [Function("MetaData")]
+        public async Task<HttpResponseData> Run(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequestData req,
+            [TableInput(HelpTableName)] TableClient client,
+            FunctionContext context)
         {
+            var logger = context.GetLogger<MetaData>();
             HelpMetaData helpMetaData;
-            var refresh = req.Query["refresh"].ToString();
 
+            var refresh = req.Query["refresh"]?.ToString() ?? "false";
             if (refresh == "true")
             {
-                helpMetaData = CalculateMetaData(client, log);
+                helpMetaData = CalculateMetaData(client, logger);
             }
             else
             {
-                log.LogInformation("Trying to get HelpMetaData from cache");
+                logger.LogInformation("Trying to get HelpMetaData from cache");
                 try
                 {
                     helpMetaData = client.GetEntity<HelpMetaData>(MetaDataPartitionKey, MetaDataRowKey);
                 }
                 catch (RequestFailedException)
                 {
-                    helpMetaData = CalculateMetaData(client, log);
+                    helpMetaData = CalculateMetaData(client, logger);
                 }
             }
 
-            var json = JsonSerializer.Serialize(helpMetaData);
-
-            return new OkObjectResult(json);
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            await response.WriteAsJsonAsync(helpMetaData);
+            return response;
         }
 
-        public static HelpMetaData CalculateMetaData(TableClient client, ILogger log)
+        private static HelpMetaData CalculateMetaData(TableClient client, ILogger logger)
         {
-            log.LogInformation("Calculating meta data on HelpTable");
+            logger.LogInformation("Calculating meta data on HelpTable");
 
             string filter = TableServiceClient.CreateQueryFilter($"PartitionKey eq {CommandHelpPartitionKey}");
             var select = new string[] { "CommandName", "ModuleName" };
@@ -84,10 +79,9 @@ namespace explainpowershell.analysisservice
                 LastPublished = Helpers.GetBuildDate(Assembly.GetExecutingAssembly()).ToLongDateString()
             };
 
-            var metaDataEntity = new HelpMetaData();
             try
             {
-                metaDataEntity = client.GetEntity<HelpMetaData>(MetaDataPartitionKey, MetaDataRowKey);
+                _ = client.GetEntity<HelpMetaData>(MetaDataPartitionKey, MetaDataRowKey);
                 _ = client.UpsertEntity(helpMetaData);
             }
             catch (RequestFailedException)

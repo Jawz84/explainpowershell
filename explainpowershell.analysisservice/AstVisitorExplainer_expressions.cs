@@ -12,8 +12,11 @@ namespace ExplainPowershell.SyntaxAnalyzer
          public override AstVisitAction VisitArrayExpression(ArrayExpressionAst arrayExpressionAst)
         {
             var helpResult = HelpTableQuery("about_arrays");
-            helpResult.DocumentationLink += "#the-array-sub-expression-operator";
-
+            if (helpResult != null)
+            {
+                helpResult.DocumentationLink += "#the-array-sub-expression-operator";
+            }
+            
             explanations.Add(
                 new Explanation()
                 {
@@ -209,9 +212,8 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 typeExpressionAst.Parent is CommandExpressionAst ||
                 typeExpressionAst.Parent is AssignmentStatementAst)
             {
-                HelpEntity help = null;
+                HelpEntity? help = null;
                 var description = string.Empty;
-
                 if (typeExpressionAst.TypeName.IsArray)
                 {
                     description = $"Array of '{typeExpressionAst.TypeName.Name}'";
@@ -226,14 +228,13 @@ namespace ExplainPowershell.SyntaxAnalyzer
                         DocumentationLink = "https://docs.microsoft.com/en-us/powershell/scripting/lang-spec/chapter-04#44-generic-types"
                     };
                 }
-
                 explanations.Add(new Explanation()
                 {
                     Description = description,
                     CommandName = "Type expression",
-                    HelpResult = help
+                    HelpResult = help,
+                    TextToHighlight = typeExpressionAst.TypeName.Name
                 }.AddDefaults(typeExpressionAst, explanations));
-
             }
             return base.VisitTypeExpression(typeExpressionAst);
         }
@@ -361,7 +362,12 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 suffix = ", with the 'using' scope modifier: a local variable used in a remote scope.";
                 explanation.HelpResult = HelpTableQuery("about_Remote_Variables");
                 explanation.CommandName = "Scoped variable";
-                explanation.HelpResult.RelatedLinks += HelpTableQuery("about_Scopes")?.DocumentationLink;
+                
+                var scopesHelp = HelpTableQuery("about_Scopes");
+                if (explanation.HelpResult?.RelatedLinks != null && scopesHelp?.DocumentationLink != null)
+                {
+                    explanation.HelpResult.RelatedLinks += scopesHelp.DocumentationLink;
+                }
             }
 
             explanation.Description = $"A{prefix}variable {standard}{suffix}";
@@ -374,7 +380,10 @@ namespace ExplainPowershell.SyntaxAnalyzer
         public override AstVisitAction VisitTernaryExpression(TernaryExpressionAst ternaryExpressionAst)
         {
             var helpResult = HelpTableQuery("about_if");
-            helpResult.DocumentationLink += "#using-the-ternary-operator-syntax";
+            if (helpResult != null)
+            {
+                helpResult.DocumentationLink += "#using-the-ternary-operator-syntax";
+            }
 
             explanations.Add(new Explanation()
             {

@@ -63,7 +63,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
         public override AstVisitAction VisitHashtable(HashtableAst hashtableAst)
         {
             var keys = string.Join(", ", hashtableAst.KeyValuePairs.Select(p => p.Item1.ToString()));
-            var keysString = keys == null ? "" : $" This hash table has the following keys: '{keys}'";
+            var keysString = string.IsNullOrEmpty(keys) ? string.Empty : $" This hash table has the following keys: '{keys}'";
 
             explanations.Add(
                 new Explanation()
@@ -175,10 +175,10 @@ namespace ExplainPowershell.SyntaxAnalyzer
             var typeName = typeConstraintAst.TypeName.Name;
             var accelerator = ".";
             var cmdName = "Type constraint";
-            HelpEntity help = null;
+            HelpEntity? help = null;
 
             var (acceleratorName, acceleratorFullTypeName) = Helpers.ResolveAccelerator(typeName);
-            if (acceleratorName != null)
+            if (!string.IsNullOrEmpty(acceleratorName))
             {
                 typeName = acceleratorName;
                 accelerator = $", which is a type accelerator for '{acceleratorFullTypeName}'";

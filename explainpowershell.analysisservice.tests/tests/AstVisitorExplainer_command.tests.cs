@@ -15,7 +15,7 @@ namespace ExplainPowershell.SyntaxAnalyzer.Tests
 {
     public class GetAstVisitorExplainer_commandTests
     {
-        AstVisitorExplainer explainer;
+        private AstVisitorExplainer explainer = null!;
 
         [SetUp]
         public void Setup()
@@ -29,7 +29,7 @@ namespace ExplainPowershell.SyntaxAnalyzer.Tests
                 extentText: string.Empty,
                 client: tableClient,
                 log: mockILogger,
-                tokens: null);
+                tokens: Array.Empty<Token>());
         }
 
         [Test]
@@ -41,9 +41,8 @@ namespace ExplainPowershell.SyntaxAnalyzer.Tests
 
             AnalysisResult res = explainer.GetAnalysisResult();
 
-            Assert.AreEqual(
-                "Unrecognized command.",
-                res.Explanations[0].Description);
+            Assert.That(res.Explanations[0].Description, Is.EqualTo(
+                "Unrecognized command."));
         }
 
         [Test]
@@ -56,11 +55,8 @@ namespace ExplainPowershell.SyntaxAnalyzer.Tests
             AnalysisResult res = explainer.GetAnalysisResult();
 
             Assert.That(
-                res
-                .Explanations[0]
-                .Description
-                .StartsWith(
-                    "Unrecognized cmdlet. Try finding the module that contains this cmdlet and add it to my database."));
+                res.Explanations[0].Description,
+                Does.StartWith("Unrecognized cmdlet. Try finding the module that contains this cmdlet and add it to my database."));
         }
 
         [Test]
@@ -72,9 +68,8 @@ namespace ExplainPowershell.SyntaxAnalyzer.Tests
 
             AnalysisResult res = explainer.GetAnalysisResult();
 
-            Assert.AreEqual(
-                "Unrecognized command.",
-                res.Explanations[0].Description);
+            Assert.That(res.Explanations[0].Description, Is.EqualTo(
+                "Unrecognized command."));
         }
     }
 }

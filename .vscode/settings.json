@@ -11,6 +11,5 @@
   "dotnetAcquisitionExtension.existingDotnetPath": [
     "/usr/bin/dotnet"
   ],
-  "azurite.location": ".azurite",
-  "azurite.workspace": ".azurite"
+  "azurite.location": ".azurite"
 }
