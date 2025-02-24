@@ -8,7 +8,7 @@
                 "./explainpowershell.analysisservice/SyntaxAnalyzer.cs",
                 "./explainpowershell.frontend/Pages/Index.razor"
             ],
-            //"preLaunchTask": "startstorageemulator"
+            "preLaunchTask": "start storage emulator"
         }
     ],
     "configurations": [
@@ -18,14 +18,16 @@
             "request": "launch",
             "script": "${workspaceFolder}/explainpowershell.analysisservice.tests/Start-AllBackendTests.ps1",
             "cwd": "${workspaceFolder}",
-            "internalConsoleOptions": "openOnSessionStart"
+            "internalConsoleOptions": "openOnSessionStart",
+            "preLaunchTask": "start storage emulator"
         },
         {
             "name": "debug functionApp",
             "type": "coreclr",
             "request": "attach",
             "processId": "${command:azureFunctions.pickProcess}",
-            "internalConsoleOptions": "neverOpen"
+            "internalConsoleOptions": "neverOpen",
+            "preLaunchTask": "start storage emulator"
         },
         {
             "name": "debug wasm",

@@ -29,28 +29,38 @@ I envision something like this:
 ![azure resources](./img/AzViz.png)
 
 ## Development
+This repository provides a simple setup script to get your development environment ready.
 
-This repo offers a development container, with a bootstrap script to get you fully up and running.
-- Clone repo
-- MAKE SURE THAT THE FILE `.devcontainer\library-scripts\azcli-debian.sh` HAS 'LF' LINE ENDINGS (NOT CRLF).
-  You can very easily convert them to LF in VSCode by opening the file, going to the statusbar in the bottom right, you will find it saying either LF or CRLF. If it says CRLF, change it to LF and save the file.
-- Open in VSCode, and accept the offer to open in development container
-- Container is built, and automatically runs the `bootstrap.ps1` script which will:
-    - Check permissions on your repo so dotnet works without sudo
-    - Perform `dotnet restore`
-    - Install all necessary PowerShell modules
-    - Fill local Azurite Table emulator with the necessary database
-    - Run all tests for you, so you know everything is working
+### Prerequisites
+- Windows 10/11
+- Windows Package Manager (winget) - comes pre-installed on recent Windows versions
+- PowerShell 7 or later
 
-There are multiple preconfigured launch configurations and tasks. Use the `Watch run ..` tasks if you want to iterate quickly without debugging (these use dotnet watch under the hood).
+### Setup
+1. Clone the repository
+2. Open PowerShell as Administrator
+3. Run the setup script:
+```powershell
+.\setup.ps1
+```
 
-> Please note that in the Development Container, the BlazorWasmDebugginExtension extension does not work, but it is loaded/wasm is detected. Because of this, when running the solution, you will see these two errors, which can be completely ignored:
-![errors at run time that can be ignored](./img/screenshot-errors.png)
+The script will install all necessary dependencies:
+- .NET SDK
+- PowerShell 7
+- Azure CLI
+- Git
+- Node.js and Azurite (for local storage emulation)
+- Visual Studio Code with recommended extensions
 
-### Access to local emulated db
+### Starting the Development Environment
+1. Start Azurite from VS Code:
+   - Open Command Palette (Ctrl+Shift+P)
+   - Type and select 'Azurite: Start'
+2. Open the solution in Visual Studio Code
+3. Use the pre-configured launch configurations and tasks. Use the `Watch run ..` tasks if you want to iterate quickly without debugging (these use dotnet watch under the hood).
 
-The local emulated db lives in the Azurite container. This container is automatically started when you open the repository in a Development Container. It should be accessible through `http://localhost:10002/devstoreaccount1/HelpData` with for instance [Azure Storage Explorer](https://azure.microsoft.com/en-us/features/storage-explorer/), with the default development keys. See [Azurite documentation](https://docs.microsoft.com/en-us/azure/storage/common/storage-use-azurite) for more info. 
-Keep in mind that the Azurite container access works with timing based auth. If the docker container clock deviates from the system clock, you cannot authenticate. On Windows, this has been a bug, that is fixed in WSL2 kernel `5.10.16.3`. To see your WSL2 kernel version, use `uname -r`. [Read more information](https://devblogs.microsoft.com/commandline/servicing-the-windows-subsystem-for-linux-wsl-2-linux-kernel/#bug-fix-clock-sync)
+### Access to Local Emulated DB
+The local emulated db runs through the Azurite VS Code extension. It's accessible through `http://localhost:10002/devstoreaccount1/HelpData` using [Azure Storage Explorer](https://azure.microsoft.com/en-us/features/storage-explorer/) with the default development keys. See [Azurite documentation](https://docs.microsoft.com/en-us/azure/storage/common/storage-use-azurite) for more info.
 
 ## Deploying to Azure
 
@@ -68,4 +78,3 @@ Alternatively, you can retrieve it with `az`:
 ```powershell
 $myStorageAccountName = ".."
 (az storage account show --name $myStorageAccountName | convertfrom-json).primaryEndpoints.web
-```

@@ -10,5 +10,7 @@
   "dotnetCoreExplorer.searchpatterns": "explainpowershell.analysisservice.tests/**/bin/**/explain*tests.dll",
   "dotnetAcquisitionExtension.existingDotnetPath": [
     "/usr/bin/dotnet"
-  ]
+  ],
+  "azurite.location": ".azurite",
+  "azurite.workspace": ".azurite"
 }
