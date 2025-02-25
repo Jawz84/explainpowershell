@@ -4,8 +4,14 @@ using System.Linq;
 
 namespace explainpowershell.frontend
 {
-    public class TreeItem<T>
+    public class TreeItem<T> where T : notnull
     {
+        public TreeItem(T item)
+        {
+            Item = item;
+            Children = new HashSet<TreeItem<T>>();
+        }
+
         public T Item { get; set; }
         public HashSet<TreeItem<T>> Children { get; set; }
 
@@ -36,14 +42,17 @@ namespace explainpowershell.frontend
             this IEnumerable<T> collection,
             Func<T, K> id_selector,
             Func<T, K> parent_id_selector,
-            K root_id = default)
+            K root_id = default) where T : notnull
         {
+            ArgumentNullException.ThrowIfNull(collection);
+            ArgumentNullException.ThrowIfNull(id_selector);
+            ArgumentNullException.ThrowIfNull(parent_id_selector);
+
             var hashset = new HashSet<TreeItem<T>>();
             foreach (var c in collection.Where(c => EqualityComparer<K>.Default.Equals(parent_id_selector(c), root_id)))
             {
-                hashset.Add(new TreeItem<T>
+                hashset.Add(new TreeItem<T>(c)
                 {
-                    Item = c,
                     Children = collection.GenerateTree(id_selector, parent_id_selector, id_selector(c))
                 });
             }

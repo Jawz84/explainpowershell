@@ -55,16 +55,15 @@ namespace explainpowershell.analysisservice
 
             string filter = TableServiceClient.CreateQueryFilter($"PartitionKey eq {CommandHelpPartitionKey}");
             var select = new string[] { "CommandName", "ModuleName" };
-            var entities = client.Query<HelpEntity>(filter: filter, select: select);
+            var entities = client.Query<HelpEntity>(filter: filter, select: select).ToList();
 
             var numAbout = entities
-                .Where(r => r
-                    .CommandName
-                    .StartsWith("about_", StringComparison.OrdinalIgnoreCase))
+                .Where(r => r.CommandName != null && 
+                    r.CommandName.StartsWith("about_", StringComparison.OrdinalIgnoreCase))
                 .Count();
 
             var moduleNames = entities
-                .Select(r => r.ModuleName)
+                .Select(r => r.ModuleName ?? string.Empty)
                 .Where(moduleName => !string.IsNullOrEmpty(moduleName))
                 .Distinct();
 
@@ -73,7 +72,7 @@ namespace explainpowershell.analysisservice
                 PartitionKey = MetaDataPartitionKey,
                 RowKey = MetaDataRowKey,
                 NumberOfAboutArticles = numAbout,
-                NumberOfCommands = entities.Count() - numAbout,
+                NumberOfCommands = entities.Count - numAbout,
                 NumberOfModules = moduleNames.Count(),
                 ModuleNames = string.Join(',', moduleNames),
                 LastPublished = Helpers.GetBuildDate(Assembly.GetExecutingAssembly()).ToLongDateString()

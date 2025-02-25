@@ -13,6 +13,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
     public class SyntaxAnalyzer
     {
         private const string HelpTableName = "HelpData";
+        private const string EmptyRequestMessage = "Empty request. JSON property 'PowershellCode' required in the request body for an AST analysis.";
 
         [Function("SyntaxAnalyzer")]
         public async Task<HttpResponseData> Run(
@@ -25,7 +26,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
             if (string.IsNullOrEmpty(requestBody))
             {
-                return await ResponseHelper(req, HttpStatusCode.BadRequest, "Empty request. Pass powershell code in the request body for an AST analysis.");
+                return await ResponseHelper(req, HttpStatusCode.BadRequest, EmptyRequestMessage);
             }
 
             var code = JsonSerializer.Deserialize<Code>(requestBody ?? string.Empty)?.PowershellCode ?? string.Empty;
@@ -40,7 +41,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
             var astText = ast.Extent?.Text ?? string.Empty;
             if (string.IsNullOrEmpty(astText))
             {
-                return await ResponseHelper(req, HttpStatusCode.BadRequest, "Empty request. Pass powershell code in the request body for an AST analysis.");
+                return await ResponseHelper(req, HttpStatusCode.BadRequest, EmptyRequestMessage);
             }
 
             AnalysisResult analysisResult;

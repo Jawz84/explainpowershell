@@ -1,3 +1,5 @@
+@using System.ComponentModel.DataAnnotations
+@inherits ComponentBase
 <MudCard Class="mb-2 px-3 py-2" Elevation="2" >
     <MudItem Style="font-size: var(--mud-typography-h6-size);
         font-family: var(--mud-typography-h6-family);
@@ -31,7 +33,12 @@
 </MudCard>
 
 @code {
-    [Parameter]
+    public ExplainCard()
+    {
+        Context = null!; // Will be set by parameter binding
+    }
+
+    [Parameter, Required]
     public Explanation Context { get; set; }
 
     string moduleInfo => string.Join(" ", Context.HelpResult?.ModuleName, Context.HelpResult?.ModuleVersion);

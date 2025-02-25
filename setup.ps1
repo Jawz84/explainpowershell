@@ -17,7 +17,7 @@ if (-not (Get-Command pwsh -ErrorAction SilentlyContinue)) {
 
 # Install .NET SDK
 Write-Host "Installing .NET SDK..."
-winget install Microsoft.DotNet.SDK.7
+winget install Microsoft.DotNet.SDK.8
 
 # Install Azure CLI
 Write-Host "Installing Azure CLI..."

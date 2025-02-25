@@ -4,18 +4,26 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
-
 using explainpowershell.models;
 using System.Linq;
 using System.Net.Http.Json;
+using System.Text.Json.Nodes;
 
 namespace explainpowershell.frontend.Pages
 {
     public partial class Index : ComponentBase {
+        public Index()
+        {
+            Http = null!; // Will be injected by DI
+            ReasonPhrase = string.Empty;
+            ExpandedCode = string.Empty;
+            _inputValue = string.Empty;
+        }
+
         [Inject]
         private HttpClient Http { get; set; }
-        private string TitleMargin { get; set; }= "mt-16";
-        private Dictionary<string, bool> SyntaxPopoverIsOpen { get; set; }= new();
+        private string TitleMargin { get; set; } = "mt-16";
+        private Dictionary<string, bool> SyntaxPopoverIsOpen { get; set; } = new();
         private Dictionary<string, bool> CommandDetailsPopoverIsOpen { get; set; } = new();
         private bool RequestHasError { get; set; }
         private string ReasonPhrase { get; set; }
@@ -23,12 +31,10 @@ namespace explainpowershell.frontend.Pages
         private bool HideExpandedCode { get; set; }
         private string ExpandedCode { get; set; }
         private HashSet<TreeItem<Explanation>> TreeItems { get; set; } = new HashSet<TreeItem<Explanation>>();
-        private bool ShouldShrinkTitle { get; set; } = false;
+        private bool ShouldShrinkTitle { get; set; }
         private bool HasNoExplanations => TreeItems.Count <= 0;
         private string InputValue {
-            get {
-                return _inputValue;
-            }
+            get => _inputValue;
             set {
                 // The MudTextField can be overloaded with large amounts of text. Prevent this with a hard string length limit.
                 if (value.Length <= 255)
@@ -46,7 +52,7 @@ namespace explainpowershell.frontend.Pages
 
         private void AcknowledgeAlert() {
             RequestHasError = false;
-            ReasonPhrase = "";
+            ReasonPhrase = string.Empty;
         }
 
         protected override Task OnInitializedAsync()
@@ -73,24 +79,22 @@ namespace explainpowershell.frontend.Pages
 
         private async Task DoSearch()
         {
-            HideExpandedCode = true;
-            Waiting = false;
-            RequestHasError = false;
-            ReasonPhrase = string.Empty;
-            TreeItems = new HashSet<TreeItem<Explanation>>();
-            ExpandedCode = null;
-
             if (string.IsNullOrEmpty(InputValue))
                 return;
 
+            HideExpandedCode = true;
+            RequestHasError = false;
+            ReasonPhrase = string.Empty;
+            TreeItems = new HashSet<TreeItem<Explanation>>();
+            ExpandedCode = string.Empty;
+            
             ShrinkTitle();
-
-            Waiting = true;
+            Waiting = true; // Set waiting state before making the request
             var code = new Code() { PowershellCode = InputValue };
-
-            HttpResponseMessage temp;
+            HttpResponseMessage? temp;
+            
             try {
-                temp = await Http.PostAsJsonAsync<Code>("SyntaxAnalyzer", code);
+                temp = await Http.PostAsJsonAsync<Code>("SyntaxAnalyzer", code, options: new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             }
             catch {
                 RequestHasError = true;
@@ -98,7 +102,7 @@ namespace explainpowershell.frontend.Pages
                 ReasonPhrase = "oops!";
                 return;
             }
-
+            
             if (!temp.IsSuccessStatusCode)
             {
                 RequestHasError = true;
@@ -108,6 +112,12 @@ namespace explainpowershell.frontend.Pages
             }
 
             var analysisResult = await JsonSerializer.DeserializeAsync<AnalysisResult>(temp.Content.ReadAsStream());
+            if (analysisResult == null)
+            {
+                RequestHasError = true;
+                ReasonPhrase = "Failed to deserialize response";
+                return;
+            }
 
             if (!string.IsNullOrEmpty(analysisResult.ParseErrorMessage))
             {
@@ -117,21 +127,21 @@ namespace explainpowershell.frontend.Pages
 
             Waiting = false;
             HideExpandedCode = false;
-
+            
             SyntaxPopoverIsOpen.Clear();
             foreach (var syntaxedExplanation in analysisResult.Explanations.Where(i => i.HelpResult?.Syntax != null))
             {
                 SyntaxPopoverIsOpen.Add(syntaxedExplanation.Id, false);
             }
-
+            
             CommandDetailsPopoverIsOpen.Clear();
             foreach (var CommandDetails in analysisResult.Explanations.Where(i => i.HelpResult?.Syntax != null))
             {
                 CommandDetailsPopoverIsOpen.Add(CommandDetails.Id, false);
             }
-
+            
             TreeItems = analysisResult.Explanations.GenerateTree(expl => expl.Id, expl => expl.ParentId);
-            ExpandedCode = analysisResult.ExpandedCode;
+            ExpandedCode = analysisResult.ExpandedCode ?? string.Empty;
         }
 
         private string _inputValue;

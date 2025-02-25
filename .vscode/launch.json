@@ -34,7 +34,11 @@
             "type": "blazorwasm",
             "request": "launch",
             "cwd": "${workspaceFolder}/explainpowershell.frontend/",
-            "browser": "edge"
+            "browser": "edge",
+            "url": "http://localhost:5000",
+            "webRoot": "${workspaceFolder}/explainpowershell.frontend/",
+            "sourceMaps": true,
+            "preLaunchTask": "build frontend"
         },
         {
             "name": "PowerShell Launch Current File",

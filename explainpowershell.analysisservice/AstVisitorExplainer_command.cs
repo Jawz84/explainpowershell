@@ -29,7 +29,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 helpResult = helpResults?.FirstOrDefault();
                 if (helpResults?.Count > 1)
                 {
-                    this.errorMessage = $"The command '{helpResult?.CommandName}' is present in more than one module: '{string.Join("', '", helpResults.Select(r => r.ModuleName))}'. Explicitly prepend the module name to the command to select one: '{helpResults.First().ModuleName}\\{helpResult?.CommandName}'";
+                    this.errorMessage = $"The command '{helpResult?.CommandName}' is present in more than one module: '{string.Join("', '", helpResults.Select(r => r.ModuleName ?? string.Empty))}'. Explicitly prepend the module name to the command to select one: '{helpResults.First().ModuleName ?? string.Empty}\\{helpResult?.CommandName}'";
                 }
             }
             else
@@ -39,7 +39,8 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 {
                     helpResult = new()
                     {
-                        ModuleName = moduleName
+                        ModuleName = moduleName,
+                        CommandName = resolvedCmd
                     };
                 }
             }
@@ -67,7 +68,10 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 }
             }
 
+            // Ensure resolvedCmd is never null
             resolvedCmd = helpResult?.CommandName ?? resolvedCmd;
+            
+            // Only attempt to expand aliases if we have a valid command name
             if (!string.IsNullOrEmpty(helpResult?.CommandName))
             {
                 ExpandAliasesInExtent(commandAst, resolvedCmd);
@@ -131,7 +135,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
                             exp.CommandName += " (supports wildcards like '*' and '?')";
                         }
 
-                        exp.Description = matchedParameter.Description;
+                        exp.Description = matchedParameter?.Description ?? string.Empty;
 
                         if (!string.IsNullOrEmpty(parentCommandExplanation.HelpResult?.ParameterSetNames))
                         {
@@ -140,7 +144,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
                                 .Append("__AllParameterSets")
                                 .ToArray();
 
-                            var paramSetData = Helpers.GetParameterSetData(matchedParameter, availableParamSets);
+                            var paramSetData = Helpers.GetParameterSetData(matchedParameter!, availableParamSets);
                             if (paramSetData?.Count > 1)
                             {
                                 exp.Description += $"\nThis parameter is present in more than one parameter set: {string.Join(", ", paramSetData.Select(p => p.ParameterSetName))}";

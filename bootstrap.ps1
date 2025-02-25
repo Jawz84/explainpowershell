@@ -25,7 +25,7 @@ finally {
 
 Write-Host -ForegroundColor Green 'Checking PowerShell modules..'
 $modules = @(
-    @{Name = 'Pester'; MinimumVersion = '5.0.0'; AllowClobber = $true; Force = $true},
+    @{Name = 'Pester'; MinimumVersion = '5.0.0'; AllowClobber = $true; Force = $Force},
     'Az.Storage',
     'Posh-Git'
 )
@@ -35,29 +35,36 @@ foreach ($module in $modules) {
     $force = $module.GetType().Name -eq 'Hashtable' ? $module.Force : $false
     $allowClobber = $module.GetType().Name -eq 'Hashtable' ? $module.AllowClobber : $false
     
-    if (($m = Get-Module -ListAvailable $moduleName)) {
-        if (!$Force) {
-            if ($version -and ($m.Version -lt [Version]$version)) {
-                Write-Host "Module '$moduleName' version $($m.Version) is below required version $version. Installing..."
-                Remove-Module $moduleName -Force -ErrorAction SilentlyContinue
-                Uninstall-Module $moduleName -AllVersions -Force -ErrorAction SilentlyContinue
-                Install-Module -Name $moduleName -MinimumVersion $version -Force -Scope CurrentUser -AllowClobber:$allowClobber
-            } else {
-                continue
+    $existingModule = Get-Module -ListAvailable $moduleName | Sort-Object Version -Descending | Select-Object -First 1
+    $needsInstall = $false
+
+    if ($existingModule) {
+        if ($version) {
+            if ($existingModule.Version -lt [Version]$version) {
+                Write-Host "Module '$moduleName' highest version $($existingModule.Version) is below required version $version. Installing version $version..."
+                $needsInstall = $true
             }
         }
-        else {
-            Write-Host "Module '$moduleName' version $($m.Version) already installed. Force installing latest version..."
-            Remove-Module $moduleName -Force -ErrorAction SilentlyContinue
-            Uninstall-Module $moduleName -AllVersions -Force -ErrorAction SilentlyContinue
-            Install-Module -Name $moduleName -Force -Scope CurrentUser -AllowClobber:$allowClobber
+        if ($Force) {
+            Write-Host "Module '$moduleName' version $($existingModule.Version) already installed. Force installing latest version..."
+            $needsInstall = $true
         }
     } else {
-        Write-Host -ForegroundColor Green "Install PowerShell module '$moduleName'.."
+        Write-Host -ForegroundColor Green "Module '$moduleName' not found. Installing..."
+        $needsInstall = $true
+    }
+
+    if ($needsInstall) {
+        # Don't try to remove older versions for Pester, as version 3 might be system-installed
+        if ($moduleName -ne 'Pester') {
+            Remove-Module $moduleName -Force -ErrorAction SilentlyContinue
+            Uninstall-Module $moduleName -AllVersions -Force -ErrorAction SilentlyContinue
+        }
+        
         $params = @{
             Name = $moduleName
-            Force = $force
-            Scope = 'CurrentUser'  
+            Force = $true
+            Scope = 'CurrentUser'
             AllowClobber = $allowClobber
         }
         if ($version) {

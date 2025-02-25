@@ -18,12 +18,14 @@ namespace explainpowershell.frontend
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
             builder.RootComponents.Add<App>("#app");
 
+            var baseAddress = builder.Configuration.GetValue<string>("BaseAddress") 
+                ?? throw new InvalidOperationException("BaseAddress configuration is required");
+
             builder.Services.AddScoped(sp => new HttpClient {
-                BaseAddress = new Uri(
-                    builder.Configuration.GetValue<string>("BaseAddress"))});
-
+                BaseAddress = new Uri(baseAddress)
+            });
+            
             builder.Services.AddMudServices();
-
             await builder.Build().RunAsync();
         }
     }

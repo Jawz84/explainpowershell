@@ -6,7 +6,7 @@ using System.Collections.Generic;
 namespace ExplainPowershell.SyntaxAnalyzer
 {
     public static partial class Helpers {
-        public static string? ResolveAlias(string cmdName)
+        public static string ResolveAlias(string cmdName)
         {
             var dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {

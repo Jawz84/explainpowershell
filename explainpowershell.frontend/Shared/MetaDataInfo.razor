@@ -19,21 +19,18 @@
             </MudList>
         </MudItem>
         <MudItem>
-            <MudSelect  T="string" Dense="true" MaxHeight="500" Text="Module names..">
-                @if(metaData != null) 
+            <MudSelect T="string" Dense="true" MaxHeight="500" Text="Module names..">
+                @if(metaData?.ModuleNames != null)
                 {
-                    @if(metaData.ModuleNames != null)
+                    @foreach (var module in metaData.ModuleNames.Split(',').OrderBy(name => name))
                     {
-                        @foreach (var module in metaData.ModuleNames.Split(',').OrderBy(name => name))
-                        {
-                            <MudSelectItem T="string" Value="@module">@module</MudSelectItem>
-                        }
+                        <MudSelectItem T="string" Value="@module">@module</MudSelectItem>
                     }
                 }
             </MudSelect>
         </MudItem>
         <MudItem>
-            <MudButton Link="https://github.com/Jawz84/explainpowershell/issues/43"
+            <MudButton Href="https://github.com/Jawz84/explainpowershell/issues/43"
                 Target="_blank"
                 Variant="Variant.Filled"
                 EndIcon="@Icons.Custom.Brands.GitHub"
@@ -45,27 +42,27 @@
     {
         <MudItem>
             <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Small"/>
-            <MudText Typo="Typo.caption" >Warming up backend.. </MudText>
+            <MudText Typo="Typo.caption">Warming up backend.. </MudText>
         </MudItem>
     }
 </MudGrid>
 
 @code {
     private bool hasMetaData { get; set; }
-    private HelpMetaData metaData { get; set; }
+    private HelpMetaData? metaData { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
             metaData = await Http.GetFromJsonAsync<HelpMetaData>("MetaData");
-            hasMetaData = true;
+            hasMetaData = metaData != null;
             StateHasChanged();
-            return;
         }
         catch
         {
-            return;
+            metaData = null;
+            hasMetaData = false;
         }
     }
 }
