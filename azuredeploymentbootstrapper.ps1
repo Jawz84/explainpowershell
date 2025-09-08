@@ -9,7 +9,7 @@ param(
     [parameter(mandatory, HelpMessage="For valid values, see 'az account list-locations'")]
     $AzureLocation
 )
-
+$ErrorActionPreferencea = "Stop"
 $spnName = $ResourceGroupName
 
 az account show --output none
@@ -19,7 +19,7 @@ if ($LASTEXITCODE) {
 
 $ghStatus = gh auth status
 if ($ghStatus.StartsWith("You are not logged into")) {
-    gh auth login --hostname github.com --git-protocol string https --web
+    gh auth login --hostname github.com --git-protocol https --web
 }
 
 az account set --subscription $SubscriptionId
