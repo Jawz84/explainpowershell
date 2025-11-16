@@ -62,9 +62,10 @@
 			"options": {
 				"cwd": "${workspaceFolder}/explainpowershell.analysisservice/"
 			},
-			"command": "host start --no-build false",
+			"command": "host start",
 			"isBackground": true,
-			"problemMatcher": "$func-dotnet-watch"
+			"problemMatcher": "$func-dotnet-watch",
+			"dependsOn": "startstorageemulator"
 		},
 		{
 			"label": "watch run frontend",
@@ -95,6 +96,12 @@
 					"DOTNET_USE_POLLING_FILE_WATCHER": "false"
 				}
 			}
+		},
+		{
+			"label": "startstorageemulator",
+			"command": "${command:azurite.start}",
+			"isBackground": true,
+			"problemMatcher": []
 		}
-	]
+	]	
 }
