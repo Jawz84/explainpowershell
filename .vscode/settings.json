@@ -1,5 +1,5 @@
 {
-  "azureFunctions.deploySubpath": "bin/Release/net6.0/publish",
+  "azureFunctions.deploySubpath": "bin/Release/net10.0/publish",
   "azureFunctions.projectLanguage": "C#",
   "azureFunctions.projectRuntime": "~4",
   "debug.internalConsoleOptions": "neverOpen",
@@ -10,5 +10,6 @@
   "dotnetCoreExplorer.searchpatterns": "explainpowershell.analysisservice.tests/**/bin/**/explain*tests.dll",
   "dotnetAcquisitionExtension.existingDotnetPath": [
     "/usr/bin/dotnet"
-  ]
+  ],
+  "azurite.location": ".azurite"
 }

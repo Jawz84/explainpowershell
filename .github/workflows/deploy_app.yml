@@ -52,7 +52,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - with:
-        dotnet-version: "6.0"
+      dotnet-version: "10.0"
       uses: actions/setup-dotnet@v1
     - uses: actions/checkout@v1
     - run: Get-ChildItem -Path ./explainpowershell.analysisservice/ -Recurse -Filter *_code_generator.ps1 | ForEach-Object { & $_.FullName }
@@ -67,13 +67,13 @@ jobs:
       name: Publish artifacts
       with:
         name: api
-        path: ./explainpowershell.analysisservice/bin/Release/net6.0
+        path: ./explainpowershell.analysisservice/bin/Release/net10.0
     name: Build Backend api
   buildFrontend:
     runs-on: ubuntu-latest
     steps:
     - with:
-        dotnet-version: "6.0"
+      dotnet-version: "10.0"
       uses: actions/setup-dotnet@v1
     - uses: actions/checkout@v1
     - run: |
@@ -93,7 +93,7 @@ jobs:
       name: Publish artifacts
       with:
         name: webapp
-        path: ./explainpowershell.frontend/bin/Release/net6.0/publish/wwwroot
+        path: ./explainpowershell.frontend/bin/Release/net10.0/publish/wwwroot
     name: Build Frontend
   deployFrontend:
     runs-on: ubuntu-latest

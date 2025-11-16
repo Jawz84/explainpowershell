@@ -110,9 +110,9 @@ Describe "Invoke-SyntaxAnalyzer" {
         $code = '[ordered]@{key1 = "value"}'
         [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code
         $content = $result.Content | ConvertFrom-Json
-        $content.Explanations[1].Description | Should -BeExactly "An object that holds key-value pairs, optimized for hash-searching for keys. This hash table has the following keys: 'key1'"
-        $content.Explanations[1].CommandName | Should -BeExactly "Hash table"
-        $content.Explanations[1].HelpResult.DocumentationLink | Should -Match "about_hash_tables"
+        $content.Explanations[1].Description | Should -BeExactly "Constrains the type to 'ordered', which is a type accelerator for 'System.Collections.Specialized.OrderedDictionary'"
+        $content.Explanations[1].CommandName | Should -BeExactly "Type accelerator"
+        $content.Explanations[1].HelpResult.DocumentationLink | Should -Match "about_Type_Accelerators"
     }
 
 

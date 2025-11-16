@@ -1,6 +1,8 @@
-using Microsoft.AspNetCore.Http;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Extensions.Http;
+using Azure.Data.Tables;
+using explainpowershell.analysisservice;
+using explainpowershell.models;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
@@ -8,54 +10,57 @@ using System.IO;
 using System.Linq;
 using System.Management.Automation.Language;
 using System.Net;
-using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
-using explainpowershell.models;
-using Azure.Data.Tables;
-
 namespace ExplainPowershell.SyntaxAnalyzer
 {
-    public class SyntaxAnalyzer
+    public sealed class SyntaxAnalyzerFunction
     {
         private const string HelpTableName = "HelpData";
+        private readonly ILogger<SyntaxAnalyzerFunction> logger;
 
-        [FunctionName("SyntaxAnalyzer")]
-        public static async Task<HttpResponseMessage> Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequest req,
-            [Table(HelpTableName)] TableClient tableClient,
-            ILogger log)
+        public SyntaxAnalyzerFunction(ILogger<SyntaxAnalyzerFunction> logger)
         {
-            AnalysisResult analysisResult;
-            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+            this.logger = logger;
+        }
+
+        [Function("SyntaxAnalyzer")]
+        public async Task<HttpResponseData> Run(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
+        {
+            var tableClient = TableClientFactory.Create(HelpTableName);
+            string requestBody = await new StreamReader(req.Body).ReadToEndAsync().ConfigureAwait(false);
 
             if (string.IsNullOrEmpty(requestBody))
             {
-                return ResponseHelper(HttpStatusCode.BadRequest, "Empty request. Pass powershell code in the request body for an AST analysis.");
+                return CreateResponse(req, HttpStatusCode.BadRequest, "Empty request. Pass powershell code in the request body for an AST analysis.");
             }
 
             var code = JsonConvert
                 .DeserializeObject<Code>(requestBody)
                 ?.PowershellCode;
 
-            log.LogInformation("PowerShell code sent: " + code); // LogAnalytics does not log the body of requests, so we have to log this ourselves.
+            logger.LogInformation("PowerShell code sent: {Code}", code);
 
             ScriptBlockAst ast = Parser.ParseInput(code, out Token[] tokens, out ParseError[] parseErrors);
 
             if (string.IsNullOrEmpty(ast.Extent.Text))
-                return ResponseHelper(HttpStatusCode.BadRequest, "Empty request. Pass powershell code in the request body for an AST analysis.");
+            {
+                return CreateResponse(req, HttpStatusCode.BadRequest, "Empty request. Pass powershell code in the request body for an AST analysis.");
+            }
 
+            AnalysisResult analysisResult;
             try
             {
-                var visitor = new AstVisitorExplainer(ast.Extent.Text, tableClient, log, tokens);
+                var visitor = new AstVisitorExplainer(ast.Extent.Text, tableClient, logger, tokens);
                 ast.Visit(visitor);
                 analysisResult = visitor.GetAnalysisResult();
             }
             catch (Exception e)
             {
-                log.LogError(e, "error");
-                return ResponseHelper(HttpStatusCode.InternalServerError, "Oops, someting went wrong internally. Please file an issue with the PowerShell code you submitted when this occurred.");
+                logger.LogError(e, "An error occurred while analyzing the AST");
+                return CreateResponse(req, HttpStatusCode.InternalServerError, "Oops, someting went wrong internally. Please file an issue with the PowerShell code you submitted when this occurred.");
             }
 
             analysisResult.ParseErrorMessage = string.IsNullOrEmpty(analysisResult.ParseErrorMessage)
@@ -63,16 +68,15 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 : analysisResult.ParseErrorMessage + "\n" + parseErrors?.FirstOrDefault()?.Message;
 
             var json = System.Text.Json.JsonSerializer.Serialize(analysisResult);
-
-            return ResponseHelper(HttpStatusCode.OK, json, "application/json");
+            return CreateResponse(req, HttpStatusCode.OK, json, "application/json");
         }
 
-        private static HttpResponseMessage ResponseHelper(HttpStatusCode status, string message, string mediaType = "text/plain")
+        private static HttpResponseData CreateResponse(HttpRequestData req, HttpStatusCode status, string message, string mediaType = "text/plain")
         {
-            return new HttpResponseMessage(status)
-            {
-                Content = new StringContent(message, Encoding.UTF8, mediaType)
-            };
+            var response = req.CreateResponse(status);
+            response.Headers.Add("Content-Type", mediaType);
+            response.WriteString(message, Encoding.UTF8);
+            return response;
         }
     }
 }
