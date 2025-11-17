@@ -36,7 +36,7 @@ Describe "dotnet sdk versions" {
     It "should be up-to-date" {
         # dotnet sdk check checks for dotnet sdk and runtimes. Should be "Up to date" for Major dotnet version (other versions don't matter)
         $dotnetMajorVersions = "$($requiredDotnetVersions.Major)"
-        (dotnet sdk check) -match "[$dotnetMajorVersions](\.\d+)+\s\s+"
+        (dotnet sdk check) -match "$dotnetMajorVersions(\.\d+)+\s\s+"
         | Where-Object {$_ -notmatch "Up to date"}
         | Should -BeNullOrEmpty
     }

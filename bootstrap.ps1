@@ -33,7 +33,10 @@ finally {
 }
 
 Write-Host -ForegroundColor Green 'Checking PowerShell modules..'
-$modules = 'Pester', 'Az.Storage', 'Posh-Git', 'Microsoft.PowerShell.UnixCompleters'
+$modules = @('Pester', 'Az.Storage', 'Posh-Git')
+if ($IsLinux) {
+    $modules += 'Microsoft.PowerShell.UnixCompleters'
+}
 foreach ($module in $modules) {
     if (($m = Get-Module -ListAvailable $module)) {
         if (!$Force) {
@@ -51,7 +54,9 @@ foreach ($module in $modules) {
 Import-Module Posh-Git
 if ($IsLinux) {
     dotnet dev-certs https
-    Import-UnixCompleters
+    if (Get-Module -ListAvailable Microsoft.PowerShell.UnixCompleters) {
+        Import-UnixCompleters
+    }
 }
 else {
     dotnet dev-certs https --trust
@@ -139,6 +144,6 @@ foreach ($module in $modulesToProcess) {
 }
 
 Write-Host -ForegroundColor Green 'Running tests to see if everything works'
-& $PSScriptRoot/explainpowershell.analysisservice.tests/Start-AllBackendTests.ps1
+& $PSScriptRoot/explainpowershell.analysisservice.tests/Start-AllBackendTests.ps1 -Output Detailed
 
 Write-Host -ForegroundColor Green "Done. You now have the functions 'Get-HelpDatabaseData', 'Invoke-SyntaxAnalyzer' and 'Get-MetaData' available for ease of testing."

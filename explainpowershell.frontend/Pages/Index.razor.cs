@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using explainpowershell.models;
 using System.Linq;
 using System.Net.Http.Json;
+using MudBlazor;
 
 namespace explainpowershell.frontend.Pages
 {
@@ -22,9 +23,9 @@ namespace explainpowershell.frontend.Pages
         private bool Waiting { get; set; }
         private bool HideExpandedCode { get; set; }
         private string ExpandedCode { get; set; }
-        private HashSet<TreeItem<Explanation>> TreeItems { get; set; } = new HashSet<TreeItem<Explanation>>();
+        private List<TreeItemData<Explanation>> TreeItems { get; set; } = new();
         private bool ShouldShrinkTitle { get; set; } = false;
-        private bool HasNoExplanations => TreeItems.Count <= 0;
+        private bool HasNoExplanations => TreeItems.Count == 0;
         private string InputValue {
             get {
                 return _inputValue;
@@ -77,7 +78,7 @@ namespace explainpowershell.frontend.Pages
             Waiting = false;
             RequestHasError = false;
             ReasonPhrase = string.Empty;
-            TreeItems = new HashSet<TreeItem<Explanation>>();
+            TreeItems = new();
             ExpandedCode = null;
 
             if (string.IsNullOrEmpty(InputValue))

@@ -8,6 +8,7 @@
     "vsls-contrib.codetour",
     "derivitec-ltd.vscode-dotnet-adapter",
     "ms-vscode.test-adapter-converter",
-    "hbenl.vscode-test-explorer"
+    "hbenl.vscode-test-explorer",
+    "azurite.azurite"
   ]
 }

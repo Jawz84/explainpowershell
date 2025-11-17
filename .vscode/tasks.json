@@ -8,7 +8,7 @@
 				"isDefault": true
 			},
 			"type": "shell",
-			"command": "Invoke-Pester -Path ./explainpowershell.analysisservice.tests -Output Detailed -CI",
+			"command": "Invoke-Pester -Configuration (New-PesterConfiguration -Hashtable @{ Run = @{ Path = './explainpowershell.analysisservice.tests' }; Output = @{ Verbosity = 'Detailed' } })",
 			"presentation": {
 				"echo": true,
 				"reveal": "always",
@@ -17,15 +17,6 @@
 				"showReuseMessage": true,
 				"clear": false
 			}
-		},
-		{
-			"label": "start storage emulator",
-			"command": "docker",
-			"args": [
-				"run", "-p", "10002:10002", "-v", "/azurite:/data", "mcr.microsoft.com/azure-storage/azurite"
-			],
-			"type": "process",
-			"problemMatcher": "$msCompile"
 		},
 		{
 			"label": "clean",
@@ -71,9 +62,10 @@
 			"options": {
 				"cwd": "${workspaceFolder}/explainpowershell.analysisservice/"
 			},
-			"command": "host start --no-build false",
+			"command": "host start",
 			"isBackground": true,
-			"problemMatcher": "$func-dotnet-watch"
+			"problemMatcher": "$func-dotnet-watch",
+			"dependsOn": "startstorageemulator"
 		},
 		{
 			"label": "watch run frontend",
@@ -104,6 +96,12 @@
 					"DOTNET_USE_POLLING_FILE_WATCHER": "false"
 				}
 			}
+		},
+		{
+			"label": "startstorageemulator",
+			"command": "${command:azurite.start}",
+			"isBackground": true,
+			"problemMatcher": []
 		}
-	]
+	]	
 }

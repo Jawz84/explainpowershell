@@ -29,69 +29,70 @@
     <MudText Align="Align.Center" hidden="@HideExpandedCode">@ExpandedCode</MudText>
     <MudDivider DividerType="DividerType.Middle" Class="my-6" hidden="@HasNoExplanations"/>
     <MudContainer MaxWidth="MaxWidth.Medium">
-        <MudTreeView Items="TreeItems">
+        <MudTreeView T="Explanation" Items="TreeItems">
             <ItemTemplate>
-                <MudTreeViewItem @bind-Expanded="@context.IsExpanded" Items="@context.Children" >
+                <MudTreeViewItem T="Explanation" @bind-Expanded="@context.Expanded" Items="@context.Children" >
                     <Content>
-                        <MudTreeViewItemToggleButton @bind-Expanded="@context.IsExpanded" Visible="@context.HasChildren" /> 
-                        @if(!string.IsNullOrEmpty(@context.Item.HelpResult?.Syntax)) 
+                        <MudTreeViewItemToggleButton @bind-Expanded="@context.Expanded" Visible="@context.HasChildren" /> 
+                        @if(context.Value is Explanation explanation && !string.IsNullOrEmpty(explanation.HelpResult?.Syntax)) 
                         {
+                            var helpResult = explanation.HelpResult!;
                             <MudGrid Spacing="0">
                                 <MudTooltip Text="click for more details" Placement="Placement.End">
-                                    <MudItem @onclick="@(() => ToggleCommandDetailsPopoverIsOpen(context.Item.Id))" >
-                                        <ExplainCard Context="@context.Item"/>
-                                        <MudPopover Class="ma-2" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" OverflowBehavior="OverflowBehavior.FlipNever" Direction="Direction.Bottom" Open="@CommandDetailsPopoverIsOpen[context.Item.Id]"> 
+                                    <MudItem @onclick="@(() => ToggleCommandDetailsPopoverIsOpen(explanation.Id))" >
+                                        <ExplainCard Context="@explanation"/>
+                                        <MudPopover Class="ma-2" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" OverflowBehavior="OverflowBehavior.FlipNever" Open="@CommandDetailsPopoverIsOpen[explanation.Id]"> 
                                             <MudSimpleTable Class="pa-2" Style="width:auto;">
                                                 <tbody>
-                                                    @if(! string.IsNullOrEmpty(@context.Item.HelpResult?.Description))
+                                                    @if(! string.IsNullOrEmpty(helpResult.Description))
                                                     {
                                                         <tr>
                                                             <td>Description</td>
-                                                            <td>@context.Item.HelpResult?.Description</td>
+                                                            <td>@helpResult.Description</td>
                                                         </tr>
                                                     }
-                                                    @if(! string.IsNullOrEmpty(@context.Item.HelpResult?.Aliases))
+                                                    @if(! string.IsNullOrEmpty(helpResult.Aliases))
                                                     {
                                                         <tr>
                                                             <td>Aliases</td>
-                                                            <td>@context.Item.HelpResult?.Aliases</td>
+                                                            <td>@helpResult.Aliases</td>
                                                         </tr>
                                                     }
-                                                    @if(! string.IsNullOrEmpty(@context.Item.HelpResult?.ParameterSetNames))
+                                                    @if(! string.IsNullOrEmpty(helpResult.ParameterSetNames))
                                                     {
                                                         <tr>
                                                             <td>ParameterSetNames</td>
-                                                            <td>@context.Item.HelpResult?.ParameterSetNames</td>
+                                                            <td>@helpResult.ParameterSetNames</td>
                                                         </tr>
                                                     }
-                                                    @if(! string.IsNullOrEmpty(@context.Item.HelpResult?.DefaultParameterSet))
+                                                    @if(! string.IsNullOrEmpty(helpResult.DefaultParameterSet))
                                                     {
                                                         <tr>
                                                             <td>DefaultParameterSet</td>
-                                                            <td>@context.Item.HelpResult?.DefaultParameterSet</td>
+                                                            <td>@helpResult.DefaultParameterSet</td>
                                                         </tr>
                                                     }
-                                                    @if(! string.IsNullOrEmpty(@context.Item.HelpResult?.InputTypes))
+                                                    @if(! string.IsNullOrEmpty(helpResult.InputTypes))
                                                     {
                                                         <tr>
                                                             <td>InputTypes</td>
-                                                            <td>@context.Item.HelpResult?.InputTypes</td>
+                                                            <td>@helpResult.InputTypes</td>
                                                         </tr>
                                                     }
-                                                    @if(! string.IsNullOrEmpty(@context.Item.HelpResult?.ReturnValues))
+                                                    @if(! string.IsNullOrEmpty(helpResult.ReturnValues))
                                                     {
                                                         <tr>
                                                             <td>ReturnValues</td>
-                                                            <td>@context.Item.HelpResult?.ReturnValues</td>
+                                                            <td>@helpResult.ReturnValues</td>
                                                         </tr>
                                                     }
-                                                    @if(! string.IsNullOrEmpty(@context.Item.HelpResult?.RelatedLinks))
+                                                    @if(! string.IsNullOrEmpty(helpResult.RelatedLinks))
                                                     {
                                                         <tr>
                                                             <td>RelatedLinks</td>
                                                             <td>
                                                                 <ul style="list-style:disc">
-                                                                    @foreach(var link in context.Item.HelpResult?.RelatedLinks.Split(", ")) {
+                                                                    @foreach(var link in helpResult.RelatedLinks.Split(", ")) {
                                                                         <li><MudLink Href="@link" Target="_blank">@link</MudLink></li>
                                                                     }
                                                                 </ul>
@@ -100,41 +101,45 @@
                                                     }
                                                 </tbody>
                                             </MudSimpleTable>
-                                            <MudButton Class="ma-2" OnClick="@(() => ToggleCommandDetailsPopoverIsOpen(context.Item.Id))">Close</MudButton>
+                                            <MudButton Class="ma-2" OnClick="@(() => ToggleCommandDetailsPopoverIsOpen(explanation.Id))">Close</MudButton>
                                         </MudPopover>
                                     </MudItem>
                                 </MudTooltip>
                                 <MudItem>
-                                    <MudButton Class="ma-2" OnClick="@(() => ToggleSyntaxPopoverIsOpen(context.Item.Id))">Syntax</MudButton>
+                                    <MudButton Class="ma-2" OnClick="@(() => ToggleSyntaxPopoverIsOpen(explanation.Id))">Syntax</MudButton>
                                 </MudItem>
                                 <MudItem>
-                                    <MudPopover Class="pa-2" Style="width:auto;" AnchorOrigin="Origin.TopRight" TransformOrigin="Origin.TopLeft" OverflowBehavior="OverflowBehavior.FlipNever" Direction="Direction.Right" Open="@SyntaxPopoverIsOpen[context.Item.Id]">
-                                        @foreach (var line in @context.Item.HelpResult?.Syntax.Split("\n")) {
+                                    <MudPopover Class="pa-2" Style="width:auto;" AnchorOrigin="Origin.TopRight" TransformOrigin="Origin.TopLeft" OverflowBehavior="OverflowBehavior.FlipNever" Open="@SyntaxPopoverIsOpen[explanation.Id]">
+                                        @foreach (var line in helpResult.Syntax.Split("\n")) {
                                             @foreach (var param in line
-                                                .Replace(context.Item.CommandName,$"{context.Item.CommandName}\n")
+                                                .Replace(explanation.CommandName,$"{explanation.CommandName}\n")
                                                 .Replace("] [","]\n[")
                                                 .Replace("[-", "\n[-")
                                                 .Replace(" -","\n-")
                                                 .Replace("[\n","[")
-                                                .Replace($"\n{context.Item.CommandName}",$"\n--\n{context.Item.CommandName}")
+                                                .Replace($"\n{explanation.CommandName}",$"\n--\n{explanation.CommandName}")
                                                 .Split("\n")) {
                                                 <MudItem>
                                                     <MudHighlighter 
                                                         Class="mud-primary-text"
                                                         Style="background-color:transparent;font-weight:bold"
                                                         Text="@param" 
-                                                        HighlightedText="@context.Item.CommandName" />
+                                                        HighlightedText="@explanation.CommandName" />
                                                 </MudItem>
                                             }
                                         }
-                                        <MudButton Class="ma-2" OnClick="@(() => ToggleSyntaxPopoverIsOpen(context.Item.Id))">Close</MudButton>
+                                        <MudButton Class="ma-2" OnClick="@(() => ToggleSyntaxPopoverIsOpen(explanation.Id))">Close</MudButton>
                                     </MudPopover>
                                 </MudItem>
                             </MudGrid>
                         }
+                        else if (context.Value is Explanation explanationWithoutSyntax)
+                        {
+                            <ExplainCard Context="@explanationWithoutSyntax" />
+                        }
                         else
                         {
-                            <ExplainCard Context="@context.Item" />
+                            <MudText>No explanation data available.</MudText>
                         }
                     </Content>
                 </MudTreeViewItem>

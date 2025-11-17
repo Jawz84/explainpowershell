@@ -4,18 +4,18 @@
     @if (@hasMetaData)
     {
         <MudItem>
-            <MudList>
-                <MudListItem><b>Last published: </b></MudListItem>
-                <MudListItem>@metaData?.LastPublished</MudListItem>
+            <MudList T="string">
+                <MudListItem T="string"><b>Last published: </b></MudListItem>
+                <MudListItem T="string">@metaData?.LastPublished</MudListItem>
                 <MudDivider DividerType="DividerType.Middle"/>
-                <MudListItem><b>Number of commands: </b></MudListItem>
-                <MudListItem>@metaData?.NumberOfCommands.ToString()</MudListItem>
+                <MudListItem T="string"><b>Number of commands: </b></MudListItem>
+                <MudListItem T="string">@metaData?.NumberOfCommands.ToString()</MudListItem>
                 <MudDivider DividerType="DividerType.Middle"/>
-                <MudListItem><b>Number of about-articles: </b></MudListItem>
-                <MudListItem>@metaData?.NumberOfAboutArticles.ToString()</MudListItem>
+                <MudListItem T="string"><b>Number of about-articles: </b></MudListItem>
+                <MudListItem T="string">@metaData?.NumberOfAboutArticles.ToString()</MudListItem>
                 <MudDivider DividerType="DividerType.Middle"/>
-                <MudListItem><b>Number of modules: </b></MudListItem>
-                <MudListItem>@metaData?.NumberOfModules.ToString()</MudListItem>
+                <MudListItem T="string"><b>Number of modules: </b></MudListItem>
+                <MudListItem T="string">@metaData?.NumberOfModules.ToString()</MudListItem>
             </MudList>
         </MudItem>
         <MudItem>
@@ -33,7 +33,7 @@
             </MudSelect>
         </MudItem>
         <MudItem>
-            <MudButton Link="https://github.com/Jawz84/explainpowershell/issues/43"
+            <MudButton Href="https://github.com/Jawz84/explainpowershell/issues/43"
                 Target="_blank"
                 Variant="Variant.Filled"
                 EndIcon="@Icons.Custom.Brands.GitHub"

@@ -30,27 +30,16 @@ I envision something like this:
 
 ## Development
 
-This repo offers a development container, with a bootstrap script to get you fully up and running.
-- Clone repo
-- MAKE SURE THAT THE FILE `.devcontainer\library-scripts\azcli-debian.sh` HAS 'LF' LINE ENDINGS (NOT CRLF).
-  You can very easily convert them to LF in VSCode by opening the file, going to the statusbar in the bottom right, you will find it saying either LF or CRLF. If it says CRLF, change it to LF and save the file.
-- Open in VSCode, and accept the offer to open in development container
-- Container is built, and automatically runs the `bootstrap.ps1` script which will:
-    - Check permissions on your repo so dotnet works without sudo
-    - Perform `dotnet restore`
-    - Install all necessary PowerShell modules
-    - Fill local Azurite Table emulator with the necessary database
-    - Run all tests for you, so you know everything is working
+The repo now runs directly on your host machine; no devcontainers are required. A typical setup looks like this:
 
-There are multiple preconfigured launch configurations and tasks. Use the `Watch run ..` tasks if you want to iterate quickly without debugging (these use dotnet watch under the hood).
-
-> Please note that in the Development Container, the BlazorWasmDebugginExtension extension does not work, but it is loaded/wasm is detected. Because of this, when running the solution, you will see these two errors, which can be completely ignored:
-![errors at run time that can be ignored](./img/screenshot-errors.png)
+1. Install prerequisites: the latest .NET SDK (currently 10.x), Azure Functions Core Tools v4, PowerShell 7.4+, and the VS Code extensions recommended in `.vscode/extensions.json` (notably the Azurite extension `azurite.azurite`).
+2. Clone the repository and open it in VS Code. Run `./bootstrap.ps1` from the repo root once to install PowerShell modules, restore dependencies, seed the Azurite table storage, and run the backend tests. The Azure Function backend now runs as a .NET 10 isolated worker, so make sure the `FUNCTIONS_WORKER_RUNTIME` remains `dotnet-isolated` in `local.settings.json`.
+3. Start the Azurite Table service via the VS Code Azurite extension (`Az: Start Table Service` from the Command Palette). The tests expect the table endpoint to be available on `http://127.0.0.1:10002`.
+4. Use the provided launch configurations and `Watch run ...` tasks to iterate quickly; they continue to rely on `dotnet watch` under the hood.
 
 ### Access to local emulated db
 
-The local emulated db lives in the Azurite container. This container is automatically started when you open the repository in a Development Container. It should be accessible through `http://localhost:10002/devstoreaccount1/HelpData` with for instance [Azure Storage Explorer](https://azure.microsoft.com/en-us/features/storage-explorer/), with the default development keys. See [Azurite documentation](https://docs.microsoft.com/en-us/azure/storage/common/storage-use-azurite) for more info. 
-Keep in mind that the Azurite container access works with timing based auth. If the docker container clock deviates from the system clock, you cannot authenticate. On Windows, this has been a bug, that is fixed in WSL2 kernel `5.10.16.3`. To see your WSL2 kernel version, use `uname -r`. [Read more information](https://devblogs.microsoft.com/commandline/servicing-the-windows-subsystem-for-linux-wsl-2-linux-kernel/#bug-fix-clock-sync)
+With the Azurite extension running, the local table endpoint is still `http://localhost:10002/devstoreaccount1/HelpData`. Connect with [Azure Storage Explorer](https://azure.microsoft.com/en-us/features/storage-explorer/) using the default development keys if you want to inspect the generated metadata.
 
 ## Deploying to Azure
 
@@ -59,6 +48,16 @@ I wrote a script so you can sit back and relax while all that is being done for 
 
 ```powershell
 ./azuredeploymentbootstrapper.ps1 -SubscriptionId 12345678-91e7-42d9-bb2d-09876543321 -ResourceGroupName MyExplainPowerShell -AzureLocation westeurope
+```
+
+Want to spin up a disposable test infra without touching the production secrets? Add `-TestEnv` (optionally `-TestEnvName smoke`) and the script will provision a suffixed resource group plus Function App/Storage using the local Bicep template. The metadata is stored in `explainpowershell.azureinfra/test-environments.json` so you can tear it down later with `-RemoveTestEnv -TestEnvName smoke`.
+
+```powershell
+# create a throw-away environment
+./azuredeploymentbootstrapper.ps1 -SubscriptionId ... -ResourceGroupName MyExplainPowerShell -AzureLocation westeurope -TestEnv -TestEnvName smoke
+
+# remove it again
+./azuredeploymentbootstrapper.ps1 -SubscriptionId ... -ResourceGroupName MyExplainPowerShell -AzureLocation westeurope -RemoveTestEnv -TestEnvName smoke
 ```
 
 After this, go to your explainpowershell fork on GitHub. Under Actions, run the `Deploy Azure Infra` workflow, then the `Deploy app to Azure` workflow and run `./explainpowershell.helpwriter.ps1 -Force -IsProduction -ResourceGroupName $ResourceGroupName -StorageAccountName $StorageAccountName`.

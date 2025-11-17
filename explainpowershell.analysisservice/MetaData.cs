@@ -1,57 +1,60 @@
-using System;
-using System.IO;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
-using System.Text.Json;
-using explainpowershell.models;
-using System.Linq;
-using System.Collections.Generic;
-using System.Reflection;
-using Azure.Data.Tables;
 using Azure;
+using Azure.Data.Tables;
+using explainpowershell.models;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Http;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Reflection;
+using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace explainpowershell.analysisservice
 {
-    public static class MetaData
+    public sealed class MetaDataFunction
     {
         private const string HelpTableName = "HelpData";
         private const string MetaDataPartitionKey = "HelpMetaData";
         private const string MetaDataRowKey = "HelpMetaData";
         private const string CommandHelpPartitionKey = "CommandHelp";
+        private readonly ILogger<MetaDataFunction> logger;
 
-        [FunctionName("MetaData")]
-        public static IActionResult Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequest req,
-            [Table(HelpTableName)] TableClient client,
-            ILogger log)
+        public MetaDataFunction(ILogger<MetaDataFunction> logger)
         {
-            HelpMetaData helpMetaData;
-            var refresh = req.Query["refresh"].ToString();
+            this.logger = logger;
+        }
 
-            if (refresh == "true")
+        [Function("MetaData")]
+        public async Task<HttpResponseData> Run(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequestData req)
+        {
+            var client = TableClientFactory.Create(HelpTableName);
+            HelpMetaData helpMetaData;
+            if (ShouldRefresh(req))
             {
-                helpMetaData = CalculateMetaData(client, log);
+                helpMetaData = CalculateMetaData(client, logger);
             }
             else
             {
-                log.LogInformation("Trying to get HelpMetaData from cache");
+                logger.LogInformation("Trying to get HelpMetaData from cache");
                 try
                 {
                     helpMetaData = client.GetEntity<HelpMetaData>(MetaDataPartitionKey, MetaDataRowKey);
                 }
                 catch (RequestFailedException)
                 {
-                    helpMetaData = CalculateMetaData(client, log);
+                    helpMetaData = CalculateMetaData(client, logger);
                 }
             }
 
             var json = JsonSerializer.Serialize(helpMetaData);
-
-            return new OkObjectResult(json);
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            response.Headers.Add("Content-Type", "application/json");
+            await response.WriteStringAsync(json).ConfigureAwait(false);
+            return response;
         }
 
         public static HelpMetaData CalculateMetaData(TableClient client, ILogger log)
@@ -59,14 +62,11 @@ namespace explainpowershell.analysisservice
             log.LogInformation("Calculating meta data on HelpTable");
 
             string filter = TableServiceClient.CreateQueryFilter($"PartitionKey eq {CommandHelpPartitionKey}");
-            var select = new string[] { "CommandName", "ModuleName" };
-            var entities = client.Query<HelpEntity>(filter: filter, select: select);
+            var select = new[] { "CommandName", "ModuleName" };
+            var entities = client.Query<HelpEntity>(filter: filter, select: select).ToList();
 
             var numAbout = entities
-                .Where(r => r
-                    .CommandName
-                    .StartsWith("about_", StringComparison.OrdinalIgnoreCase))
-                .Count();
+                .Count(r => r.CommandName.StartsWith("about_", StringComparison.OrdinalIgnoreCase));
 
             var moduleNames = entities
                 .Select(r => r.ModuleName)
@@ -84,10 +84,9 @@ namespace explainpowershell.analysisservice
                 LastPublished = Helpers.GetBuildDate(Assembly.GetExecutingAssembly()).ToLongDateString()
             };
 
-            var metaDataEntity = new HelpMetaData();
             try
             {
-                metaDataEntity = client.GetEntity<HelpMetaData>(MetaDataPartitionKey, MetaDataRowKey);
+                _ = client.GetEntity<HelpMetaData>(MetaDataPartitionKey, MetaDataRowKey);
                 _ = client.UpsertEntity(helpMetaData);
             }
             catch (RequestFailedException)
@@ -96,6 +95,35 @@ namespace explainpowershell.analysisservice
             }
 
             return helpMetaData;
+        }
+
+        private static bool ShouldRefresh(HttpRequestData req)
+        {
+            var query = req.Url.Query;
+            if (string.IsNullOrEmpty(query))
+            {
+                return false;
+            }
+
+            var pairs = query.TrimStart('?').Split('&', StringSplitOptions.RemoveEmptyEntries);
+            foreach (var pair in pairs)
+            {
+                var kvp = pair.Split('=', 2);
+                if (kvp.Length == 0)
+                {
+                    continue;
+                }
+
+                if (!kvp[0].Equals("refresh", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                var value = kvp.Length > 1 ? Uri.UnescapeDataString(kvp[1]) : string.Empty;
+                return value.Equals("true", StringComparison.OrdinalIgnoreCase);
+            }
+
+            return false;
         }
     }
 }
