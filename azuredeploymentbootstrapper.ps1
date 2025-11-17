@@ -169,7 +169,7 @@ if ($LASTEXITCODE) {
 }
 
 $ghStatus = gh auth status
-if ($ghStatus.StartsWith("You are not logged into")) {
+if ($ghStatus -notmatch '✓ Logged in to github.com account') {
     gh auth login --hostname github.com --git-protocol https --web
 }
 
