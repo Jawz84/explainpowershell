@@ -3,41 +3,28 @@ on:
 name: Deploy Azure infra
 jobs:
   deploy:
+    runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - with:
+    - uses: actions/checkout@v4
+    - uses: azure/login@v2
+      with:
         creds: ${{ secrets.AZURE_SERVICE_PRINCIPAL }}
-      uses: azure/login@v1
     - run: |
         $params = Get-Content ./explainpowershell.azureinfra/parameters.json | ConvertFrom-Json
         $params.parameters.functionAppName.value = "${{ secrets.FUNCTION_APP_NAME }}".trim()
         $params.parameters.appServicePlanName.value = "asp-" + "${{ secrets.FUNCTION_APP_NAME }}".trim()
         $params.parameters.storageAccountName.value = "${{ secrets.STORAGE_ACCOUNT_NAME }}".trim()
+        $params.parameters.location.value = az group show --name "${{ secrets.RESOURCE_GROUP_NAME }}".trim() --query location -o tsv
         $params | ConvertTo-Json | Out-File ./explainpowershell.azureinfra/parameters.json -force
       name: Overwrite ARM parameters
       shell: pwsh
     - uses: Azure/arm-deploy@v1
-      name: Deploy ARM template for Storage and FunctionApp
+      name: Deploy Bicep template for Storage and FunctionApp
       with:
         parameters: ./explainpowershell.azureinfra/parameters.json
         scope: resourcegroup
         resourceGroupName: ${{ secrets.RESOURCE_GROUP_NAME }}
-        template: ./explainpowershell.azureinfra/template.json
+        template: ./explainpowershell.azureinfra/template.bicep
         deploymentMode: incremental
-    - run: |
-        az storage blob service-properties update --account-name "${{ secrets.STORAGE_ACCOUNT_NAME }}".trim() --static-website --index-document index.html
-      name: Enable static website
-      shell: pwsh
-    - run: |
-        az functionapp cors add --resource-group "${{ secrets.RESOURCE_GROUP_NAME }}".trim() --name "${{ secrets.FUNCTION_APP_NAME }}".trim() --allowed-origins https://$("${{ secrets.STORAGE_ACCOUNT_NAME }}".trim()).z6.web.core.windows.net
-      name: Add CORS rule to function app to allow access from frontend endpoint
-      shell: pwsh
-    - run: |
-        $connectionstring = (az storage account show-connection-string --name "${{ secrets.STORAGE_ACCOUNT_NAME }}".trim() | convertfrom-json).connectionstring
-        az functionapp config appsettings set --settings "AzureWebJobsStorage=$connectionstring" --name "${{ secrets.FUNCTION_APP_NAME }}".trim() --resource-group "${{ secrets.RESOURCE_GROUP_NAME }}".trim() --output none
-        az functionapp config appsettings set --settings "FUNCTIONS_WORKER_RUNTIME=dotnet" --name "${{ secrets.FUNCTION_APP_NAME }}".trim() --resource-group "${{ secrets.RESOURCE_GROUP_NAME }}".trim() --output none
-        az functionapp config appsettings set --settings "FUNCTIONS_EXTENSION_VERSION=~4" --name "${{ secrets.FUNCTION_APP_NAME }}".trim() --resource-group "${{ secrets.RESOURCE_GROUP_NAME }}".trim() --output none
-      name: set app settings
-      shell: pwsh
-    runs-on: ubuntu-latest
+    
 
