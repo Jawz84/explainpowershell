@@ -17,32 +17,16 @@ jobs:
       with:
         creds: ${{ secrets.AZURE_SERVICE_PRINCIPAL }}
     - run: |
-        $json = az functionapp deployment list-publishing-profiles --name "${{ secrets.FUNCTION_APP_NAME }}".trim() --resource-group "${{ secrets.RESOURCE_GROUP_NAME }}".trim()
-        $funcProfile = $(
-            "<publishData>"
-            foreach ($publishProfile in ($json | ConvertFrom-Json)) {
-                "<publishProfile "
-                foreach ($prop in $publishProfile.psobject.Properties | where name -ne databases) {
-                    "$($prop.Name)=`"$($prop.Value)`" "
-                }
-                "><databases /></publishProfile>"
-            }
-            "</publishData>"
-        ) -join ''
-
-        ##Write-Output "::add-mask::$funcProfile"
-        write-output $funcProfile
-        "profile=$funcProfile" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-      name: Get functionapp publish profile
-      id: publishprofile
-      shell: pwsh
-    - uses: Azure/functions-action@v1
-      name: Run Azure Functions Action
-      id: fa
-      with:
-        package: ./
-        publish-profile: ${{ steps.publishprofile.outputs.profile }}
-        app-name: ${{ secrets.FUNCTION_APP_NAME }}
+        $packageRoot = Join-Path $PWD 'api'
+        Compress-Archive -Path (Join-Path $packageRoot '*') -DestinationPath functionapp.zip -Force
+        name: Create deployment package
+        shell: pwsh
+    - run: |
+        az functionapp deployment source config-zip `
+          --resource-group "${{ secrets.RESOURCE_GROUP_NAME }}".trim() `
+          --name "${{ secrets.FUNCTION_APP_NAME }}".trim() `
+          --src functionapp.zip
+      name: Deploy Function App package
     - run: "az functionapp list |\n  ConvertFrom-Json |\n  where {$_.defaulthostname -match 'powershellexplainer' -and $_.state -eq 'running'} | \n  ForEach-Object { Invoke-RestMethod -Uri \"https://$($_.DefaultHostName)/api/MetaData?refresh=true\" }\n"
       name: Calculate new HelpMetaData
       shell: pwsh
@@ -60,14 +44,14 @@ jobs:
       shell: pwsh
     - run: |
         Set-Location ./explainpowershell.analysisservice
-        dotnet build --configuration Release
-      name: Build with dotnet
+        dotnet publish --configuration Release
+      name: Publish with dotnet
       shell: pwsh
     - uses: actions/upload-artifact@v4
       name: Publish artifacts
       with:
         name: api
-        path: ./explainpowershell.analysisservice/bin/Release/net10.0
+        path: ./explainpowershell.analysisservice/bin/Release/net10.0/publish
     name: Build Backend api
   buildFrontend:
     runs-on: ubuntu-latest
