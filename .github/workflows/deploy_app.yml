@@ -12,22 +12,18 @@ jobs:
       name: Download artifacts
       with:
         name: api
+        path: backend_artifact
     - uses: azure/login@v2
       name: Authenticate with Azure
       with:
         creds: ${{ secrets.AZURE_SERVICE_PRINCIPAL }}
-    - name: Create deployment package
-      shell: pwsh
-      run: |
-        $packageRoot = Join-Path $PWD 'api'
-        Compress-Archive -Path (Join-Path $packageRoot '*') -DestinationPath functionapp.zip -Force
     - name: Deploy Function App package
       shell: pwsh
       run: |
         az functionapp deployment source config-zip `
           --resource-group "${{ secrets.RESOURCE_GROUP_NAME }}".trim() `
           --name "${{ secrets.FUNCTION_APP_NAME }}".trim() `
-          --src functionapp.zip
+          --src (Join-Path $PWD 'backend_artifact/functionapp.zip')
     - run: "az functionapp list |\n  ConvertFrom-Json |\n  where {$_.defaulthostname -match 'powershellexplainer' -and $_.state -eq 'running'} | \n  ForEach-Object { Invoke-RestMethod -Uri \"https://$($_.DefaultHostName)/api/MetaData?refresh=true\" }\n"
       name: Calculate new HelpMetaData
       shell: pwsh
@@ -48,11 +44,16 @@ jobs:
         dotnet publish --configuration Release
       name: Publish with dotnet
       shell: pwsh
+    - run: |
+        Set-Location ./explainpowershell.analysisservice/bin/Release/net10.0
+        Compress-Archive -Path ./publish/* -DestinationPath ./functionapp.zip -Force
+      name: Zip publish output
+      shell: pwsh
     - uses: actions/upload-artifact@v4
       name: Publish artifacts
       with:
         name: api
-        path: ./explainpowershell.analysisservice/bin/Release/net10.0/publish
+        path: ./explainpowershell.analysisservice/bin/Release/net10.0/functionapp.zip
     name: Build Backend api
   buildFrontend:
     runs-on: ubuntu-latest
