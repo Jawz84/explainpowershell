@@ -16,17 +16,18 @@ jobs:
       name: Authenticate with Azure
       with:
         creds: ${{ secrets.AZURE_SERVICE_PRINCIPAL }}
-    - run: |
+    - name: Create deployment package
+      shell: pwsh
+      run: |
         $packageRoot = Join-Path $PWD 'api'
         Compress-Archive -Path (Join-Path $packageRoot '*') -DestinationPath functionapp.zip -Force
-        name: Create deployment package
-        shell: pwsh
-    - run: |
+    - name: Deploy Function App package
+      shell: pwsh
+      run: |
         az functionapp deployment source config-zip `
           --resource-group "${{ secrets.RESOURCE_GROUP_NAME }}".trim() `
           --name "${{ secrets.FUNCTION_APP_NAME }}".trim() `
           --src functionapp.zip
-      name: Deploy Function App package
     - run: "az functionapp list |\n  ConvertFrom-Json |\n  where {$_.defaulthostname -match 'powershellexplainer' -and $_.state -eq 'running'} | \n  ForEach-Object { Invoke-RestMethod -Uri \"https://$($_.DefaultHostName)/api/MetaData?refresh=true\" }\n"
       name: Calculate new HelpMetaData
       shell: pwsh
