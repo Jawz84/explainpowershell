@@ -6,7 +6,7 @@ on:
 name: Deploy app to Azure
 jobs:
   deployBackend:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
     - uses: actions/download-artifact@v4
       name: Download artifacts
@@ -30,7 +30,7 @@ jobs:
     needs: buildBackend
     name: Deploy Backend api
   buildBackend:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
     - uses: actions/setup-dotnet@v4
       with:
@@ -44,11 +44,19 @@ jobs:
         dotnet publish --configuration Release
       name: Publish with dotnet
       shell: pwsh
-    - run: |
-        Set-Location ./explainpowershell.analysisservice/bin/Release/net10.0
-        Compress-Archive -Path ./publish/* -DestinationPath ./functionapp.zip -Force
-      name: Zip publish output
+    - name: Zip publish output
       shell: pwsh
+      run: |
+        $publishDir = Join-Path $PWD 'explainpowershell.analysisservice/bin/Release/net10.0/publish'
+        $zipPath = Join-Path $PWD 'explainpowershell.analysisservice/bin/Release/net10.0/functionapp.zip'
+        if (Test-Path $zipPath) {
+          Remove-Item $zipPath -Force
+        }
+        $entries = Get-ChildItem -LiteralPath $publishDir -Force
+        if (-not $entries) {
+          throw "No publish output found at $publishDir"
+        }
+        Compress-Archive -Path $entries.FullName -DestinationPath $zipPath -Force
     - uses: actions/upload-artifact@v4
       name: Publish artifacts
       with:
@@ -56,7 +64,7 @@ jobs:
         path: ./explainpowershell.analysisservice/bin/Release/net10.0/functionapp.zip
     name: Build Backend api
   buildFrontend:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
     - uses: actions/setup-dotnet@v4
       with:
@@ -82,7 +90,7 @@ jobs:
         path: ./explainpowershell.frontend/bin/Release/net10.0/publish/wwwroot
     name: Build Frontend
   deployFrontend:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
     - uses: actions/download-artifact@v4
       name: Download artifacts
