@@ -34,4 +34,4 @@ $body = Get-Alias
 }
 
 
-$pre, $body, $post | Out-File -FilePath "$PSScriptRoot\..\Helpers\Alias.cs" -Force
+$pre, $body, $post | Out-File -FilePath "$PSScriptRoot\..\Helpers\Alias.generated.cs" -Force

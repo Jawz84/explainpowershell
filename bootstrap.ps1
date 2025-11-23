@@ -13,6 +13,10 @@ if ($IsLinux -and $env:DOTNET_RUNNING_IN_CONTAINER) {
     }
 }
 
+Write-Host -ForegroundColor Green 'Run all code generators..'
+Get-ChildItem -Path $PSScriptRoot/explainpowershell.analysisservice/ -Recurse -Filter *_code_generator.ps1 | ForEach-Object { & $_.FullName }
+
+
 Write-Host -ForegroundColor Green 'Performing dotnet cleanup and setup..'
 $env:DOTNET_NOLOGO = 'true'
 dotnet restore
