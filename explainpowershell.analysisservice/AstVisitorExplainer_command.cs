@@ -45,8 +45,32 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 }
             }
 
-            var description = helpResult?.Synopsis?.ToString();
+            var description = helpResult?.Synopsis;
 
+            // If Synopsis is empty, try Description as fallback
+            if (string.IsNullOrEmpty(description))
+            {
+                description = helpResult?.Description;
+                // If Description is long, take just the first sentence (look for ". " to avoid cutting on abbreviations)
+                if (!string.IsNullOrEmpty(description))
+                {
+                    var sentenceEnd = description.IndexOf(". ", StringComparison.Ordinal);
+                    if (sentenceEnd > 0)
+                    {
+                        description = description[..(sentenceEnd + 1)];
+                    }
+                }
+            }
+
+            // If still no description but command IS in the database, provide a generic description
+            if (string.IsNullOrEmpty(description) && !string.IsNullOrEmpty(helpResult?.CommandName))
+            {
+                description = !string.IsNullOrEmpty(helpResult?.ModuleName)
+                    ? $"PowerShell command from module '{helpResult.ModuleName}'."
+                    : "PowerShell command.";
+            }
+
+            // Only show "Unrecognized" if the command is truly not in the database
             if (string.IsNullOrEmpty(description))
             {
                 // Try to find out if this may be a cmdlet
