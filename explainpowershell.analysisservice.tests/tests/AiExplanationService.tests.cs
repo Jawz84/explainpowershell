@@ -187,7 +187,7 @@ namespace ExplainPowershell.SyntaxAnalyzer.Tests
             var options = Options.Create(testOptions);
             var service = new AiExplanationService(options, mockLogger, null);
             var analysisResult = CreateTestAnalysisResult();
-            var cts = new CancellationTokenSource();
+            using var cts = new CancellationTokenSource();
             cts.Cancel(); // Cancel immediately
 
             // Act

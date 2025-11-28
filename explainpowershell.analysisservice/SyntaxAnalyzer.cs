@@ -28,7 +28,11 @@ namespace ExplainPowershell.SyntaxAnalyzer
             [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
         {
             var tableClient = TableClientFactory.Create(HelpTableName);
-            string requestBody = await new StreamReader(req.Body).ReadToEndAsync().ConfigureAwait(false);
+            string requestBody;
+            using (var reader = new StreamReader(req.Body))
+            {
+                requestBody = await reader.ReadToEndAsync().ConfigureAwait(false);
+            }
 
             if (string.IsNullOrEmpty(requestBody))
             {
@@ -63,7 +67,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
             analysisResult.ParseErrorMessage = string.IsNullOrEmpty(analysisResult.ParseErrorMessage)
                 ? parseErrors?.FirstOrDefault()?.Message ?? string.Empty
-                : analysisResult.ParseErrorMessage + "\n" + parseErrors?.FirstOrDefault()?.Message ?? string.Empty;
+                : (analysisResult.ParseErrorMessage + "\n" + parseErrors?.FirstOrDefault()?.Message) ?? string.Empty;
 
             analysisResult.AiExplanation = string.Empty;
 

@@ -24,7 +24,11 @@ namespace ExplainPowershell.SyntaxAnalyzer
         public async Task<HttpResponseData> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
         {
-            string requestBody = await new StreamReader(req.Body).ReadToEndAsync().ConfigureAwait(false);
+            string requestBody;
+            using (var reader = new StreamReader(req.Body))
+            {
+                requestBody = await reader.ReadToEndAsync().ConfigureAwait(false);
+            }
 
             if (string.IsNullOrEmpty(requestBody))
             {

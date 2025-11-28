@@ -9,6 +9,7 @@ using explainpowershell.models;
 using System.Linq;
 using System.Net.Http.Json;
 using MudBlazor;
+using System;
 
 namespace explainpowershell.frontend.Pages
 {
@@ -169,11 +170,13 @@ namespace explainpowershell.frontend.Pages
                     AiModelName = string.Empty;
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // Silently fail - AI explanation is optional
+                // Silently fail (log only) - AI explanation is optional
                 AiExplanation = string.Empty;
                 AiModelName = string.Empty;
+
+                Console.WriteLine($"Error fetching AI explanation: {ex.Message}");
             }
             finally
             {
