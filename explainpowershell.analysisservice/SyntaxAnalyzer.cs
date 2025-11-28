@@ -1,17 +1,13 @@
-using Azure.Data.Tables;
+using System.Management.Automation.Language;
+using System.Net;
+using System.Text;
 using explainpowershell.analysisservice;
+using explainpowershell.analysisservice.Services;
 using explainpowershell.models;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using System;
-using System.IO;
-using System.Linq;
-using System.Management.Automation.Language;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ExplainPowershell.SyntaxAnalyzer
 {
@@ -19,10 +15,12 @@ namespace ExplainPowershell.SyntaxAnalyzer
     {
         private const string HelpTableName = "HelpData";
         private readonly ILogger<SyntaxAnalyzerFunction> logger;
+        private readonly IAiExplanationService aiExplanationService;
 
-        public SyntaxAnalyzerFunction(ILogger<SyntaxAnalyzerFunction> logger)
+        public SyntaxAnalyzerFunction(ILogger<SyntaxAnalyzerFunction> logger, IAiExplanationService aiExplanationService)
         {
             this.logger = logger;
+            this.aiExplanationService = aiExplanationService;
         }
 
         [Function("SyntaxAnalyzer")]
@@ -30,7 +28,11 @@ namespace ExplainPowershell.SyntaxAnalyzer
             [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
         {
             var tableClient = TableClientFactory.Create(HelpTableName);
-            string requestBody = await new StreamReader(req.Body).ReadToEndAsync().ConfigureAwait(false);
+            string requestBody;
+            using (var reader = new StreamReader(req.Body))
+            {
+                requestBody = await reader.ReadToEndAsync().ConfigureAwait(false);
+            }
 
             if (string.IsNullOrEmpty(requestBody))
             {
@@ -39,7 +41,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
             var code = JsonConvert
                 .DeserializeObject<Code>(requestBody)
-                ?.PowershellCode;
+                ?.PowershellCode ?? string.Empty;
 
             logger.LogInformation("PowerShell code sent: {Code}", code);
 
@@ -64,8 +66,10 @@ namespace ExplainPowershell.SyntaxAnalyzer
             }
 
             analysisResult.ParseErrorMessage = string.IsNullOrEmpty(analysisResult.ParseErrorMessage)
-                ? parseErrors?.FirstOrDefault()?.Message
-                : analysisResult.ParseErrorMessage + "\n" + parseErrors?.FirstOrDefault()?.Message;
+                ? parseErrors?.FirstOrDefault()?.Message ?? string.Empty
+                : (analysisResult.ParseErrorMessage + "\n" + parseErrors?.FirstOrDefault()?.Message) ?? string.Empty;
+
+            analysisResult.AiExplanation = string.Empty;
 
             var json = System.Text.Json.JsonSerializer.Serialize(analysisResult);
             return CreateResponse(req, HttpStatusCode.OK, json, "application/json");

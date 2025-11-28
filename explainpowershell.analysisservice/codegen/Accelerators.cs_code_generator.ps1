@@ -32,4 +32,4 @@ $body = [psobject].Assembly.GetType("System.Management.Automation.TypeAccelerato
 }
 
 
-$pre, $body, $post | Out-File -FilePath "$PSScriptRoot\..\Helpers\Accelerators.cs" -Force
+$pre, $body, $post | Out-File -FilePath "$PSScriptRoot\..\Helpers\Accelerators.generated.cs" -Force

@@ -8,5 +8,6 @@ namespace explainpowershell.models
         public List<Explanation> Explanations { get; set; } = new List<Explanation>();
         public List<Module> DetectedModules { get; set; } = new List<Module>();
         public string ParseErrorMessage { get; set; }
+        public string AiExplanation { get; set; }
     }
 }

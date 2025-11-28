@@ -9,6 +9,7 @@ using explainpowershell.models;
 using System.Linq;
 using System.Net.Http.Json;
 using MudBlazor;
+using System;
 
 namespace explainpowershell.frontend.Pages
 {
@@ -21,8 +22,10 @@ namespace explainpowershell.frontend.Pages
         private bool RequestHasError { get; set; }
         private string ReasonPhrase { get; set; }
         private bool Waiting { get; set; }
+        private bool AiExplanationLoading { get; set; }
         private bool HideExpandedCode { get; set; }
         private string ExpandedCode { get; set; }
+        private string AiExplanation { get; set; }
         private List<TreeItemData<Explanation>> TreeItems { get; set; } = new();
         private bool ShouldShrinkTitle { get; set; } = false;
         private bool HasNoExplanations => TreeItems.Count == 0;
@@ -31,9 +34,7 @@ namespace explainpowershell.frontend.Pages
                 return _inputValue;
             }
             set {
-                // The MudTextField can be overloaded with large amounts of text. Prevent this with a hard string length limit.
-                if (value.Length <= 255)
-                    _inputValue = value;
+                _inputValue = value;
             }
         }
 
@@ -80,6 +81,8 @@ namespace explainpowershell.frontend.Pages
             ReasonPhrase = string.Empty;
             TreeItems = new();
             ExpandedCode = null;
+            AiExplanation = null;
+            AiExplanationLoading = false;
 
             if (string.IsNullOrEmpty(InputValue))
                 return;
@@ -133,8 +136,62 @@ namespace explainpowershell.frontend.Pages
 
             TreeItems = analysisResult.Explanations.GenerateTree(expl => expl.Id, expl => expl.ParentId);
             ExpandedCode = analysisResult.ExpandedCode;
+            AiExplanation = null; // Will be loaded separately
+
+            // Start fetching AI explanation in background
+            _ = LoadAiExplanationAsync(code, analysisResult);
+        }
+
+        private async Task LoadAiExplanationAsync(Code code, AnalysisResult analysisResult)
+        {
+            AiExplanationLoading = true;
+            StateHasChanged();
+
+            try
+            {
+                var aiRequest = new
+                {
+                    PowershellCode = code.PowershellCode,
+                    AnalysisResult = analysisResult
+                };
+
+                var response = await Http.PostAsJsonAsync("AiExplanation", aiRequest);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var aiResult = await JsonSerializer.DeserializeAsync<AiExplanationResponse>(response.Content.ReadAsStream());
+                    AiExplanation = aiResult?.AiExplanation ?? string.Empty;
+                    AiModelName = aiResult?.ModelName ?? string.Empty;
+                }
+                else
+                {
+                    // Silently fail - AI explanation is optional
+                    AiExplanation = string.Empty;
+                    AiModelName = string.Empty;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Silently fail (log only) - AI explanation is optional
+                AiExplanation = string.Empty;
+                AiModelName = string.Empty;
+
+                Console.WriteLine($"Error fetching AI explanation: {ex.Message}");
+            }
+            finally
+            {
+                AiExplanationLoading = false;
+                StateHasChanged();
+            }
         }
 
         private string _inputValue;
+        private string AiModelName { get; set; }
+
+        private class AiExplanationResponse
+        {
+            public string AiExplanation { get; set; } = string.Empty;
+            public string? ModelName { get; set; }
+        }
     }
 }

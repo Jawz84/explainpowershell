@@ -41,6 +41,18 @@ The repo now runs directly on your host machine; no devcontainers are required. 
 
 With the Azurite extension running, the local table endpoint is still `http://localhost:10002/devstoreaccount1/HelpData`. Connect with [Azure Storage Explorer](https://azure.microsoft.com/en-us/features/storage-explorer/) using the default development keys if you want to inspect the generated metadata.
 
+### AI generated explanations
+
+The `/SyntaxAnalyzer` Function can optionally call Azure OpenAI (or any compatible endpoint) to produce a concise AI-written explanation alongside the legacy explanation tree. Configure the new `AiExplanation` section in `explainpowershell.analysisservice/local.settings.json` (and your production configuration source) with:
+
+- `Enabled`: set to `true` to turn the feature on.
+- `Endpoint`: the base endpoint for your Azure OpenAI resource, e.g. `https://contoso-resource.openai.azure.com/`.
+- `DeploymentName`: the name of the chat completion deployment to use.
+- `ApiKey`: store this in Key Vault or configuration, never in source control.
+- `SystemPrompt` (optional): override the default “explain PowerShell oneliners” instruction.
+
+If the service is disabled or the call fails, ExplainPowerShell silently falls back to the legacy explanation only.
+
 ## Deploying to Azure
 
 Deploying to Azure is done using GitHub Actions. To set everything up, you will need to create an Azure resource group, an service principal for that group. Also you will need to save the secret for that service principal in GitHub as a secret. Lastly you need to give your resources a name. 

@@ -3,15 +3,25 @@ param(
     [Switch]$Force
 )
 
-if ($IsLinux -and $env:DOTNET_RUNNING_IN_CONTAINER) {
-    Write-Host -ForegroundColor Green 'We are running in a container, make sure we have permissions on all folders in the repo, to be able to build and run the application.'
-    $testOwnershipAndPermissions = ls -l $PSScriptRoot | Select-String bootstrap -Raw
-
-    if ($Force -or ($testOwnershipAndPermissions | Select-String root)) {
-        Write-Host "Making 'vscode' owner of all files in '$PSScriptRoot/' (recursive)."
-        sudo chown -R vscode:vscode $PSScriptRoot/
-    }
+$minPwsh = [Version]'7.4'
+if ($PSVersionTable.PSVersion -lt $minPwsh) {
+    throw "PowerShell $minPwsh or newer is required. Current: $($PSVersionTable.PSVersion). ``winget install Microsoft.PowerShell``"
 }
+
+$dotnet = Get-Command dotnet -ErrorAction SilentlyContinue
+if (-not $dotnet) { throw "dotnet CLI not found. Install .NET 10 SDK: ``winget install Microsoft.DotNet.SDK.10``" }
+
+$hasNet10 = & $dotnet.Source --list-sdks | Select-String '^10\.' 
+if (-not $hasNet10) { throw ".NET 10 SDK missing. ``winget install Microsoft.DotNet.SDK.10``" }
+
+$funcCli = Get-Command func -ErrorAction SilentlyContinue
+if (-not $funcCli -or -not (& $funcCli.Source --version) -match '^4\.') {
+    Write-Warning "Azure Functions Core Tools v4 not detected. ``winget install Microsoft.Azure.FunctionsCoreTools``"
+}
+
+Write-Host -ForegroundColor Green 'Run all code generators..'
+Get-ChildItem -Path $PSScriptRoot/explainpowershell.analysisservice/ -Recurse -Filter *_code_generator.ps1 | ForEach-Object { & $_.FullName }
+
 
 Write-Host -ForegroundColor Green 'Performing dotnet cleanup and setup..'
 $env:DOTNET_NOLOGO = 'true'

@@ -12,7 +12,7 @@
         <MudCard Elevation="2">
             <MudForm>
                 <MudCardContent>
-                    <MudTextField @bind-Value="InputValue" Immediate="true" T="string" Label="PowerShell oneliner to explain" AutoFocus="true" KeyUpPreventDefault="true" OnKeyUp="OnKeyUp"/>
+                    <MudTextField @bind-Value="InputValue" Immediate="true" T="string" Label="PowerShell oneliner to explain" AutoFocus="true" KeyUpPreventDefault="true" OnKeyUp="OnKeyUp" MaxLength="500" Counter="500" />
                     @if (RequestHasError) {<MudAlert class="mt-2" OnClick="@AcknowledgeAlert" Severity="Severity.Error">@ReasonPhrase</MudAlert>}
                 </MudCardContent>
                 <MudCardActions>
@@ -27,6 +27,26 @@
     </MudContainer>
     <MudDivider DividerType="DividerType.Middle" Class="my-6" hidden="@HideExpandedCode"/>
     <MudText Align="Align.Center" hidden="@HideExpandedCode">@ExpandedCode</MudText>
+    <MudDivider DividerType="DividerType.Middle" Class="my-6" hidden="@(string.IsNullOrWhiteSpace(AiExplanation) && !AiExplanationLoading)" />
+    <MudContainer MaxWidth="MaxWidth.Medium" hidden="@(string.IsNullOrWhiteSpace(AiExplanation) && !AiExplanationLoading)">
+        <MudCard Elevation="1">
+            <MudCardContent>
+                <MudText Typo="Typo.subtitle1" GutterBottom="true">AI explanation</MudText>
+                @if (AiExplanationLoading)
+                {
+                    <MudProgressCircular Color="Color.Info" Size="Size.Small" Indeterminate="true" />
+                }
+                else
+                {
+                    <MudText>@AiExplanation</MudText>
+                    @if (!string.IsNullOrWhiteSpace(AiModelName))
+                    {
+                        <MudText Typo="Typo.caption" Align="Align.Right" Style="font-style: italic; margin-top: 8px;">@AiModelName</MudText>
+                    }
+                }
+            </MudCardContent>
+        </MudCard>
+    </MudContainer>
     <MudDivider DividerType="DividerType.Middle" Class="my-6" hidden="@HasNoExplanations"/>
     <MudContainer MaxWidth="MaxWidth.Medium">
         <MudTreeView T="Explanation" Items="TreeItems">
