@@ -30,7 +30,42 @@ I envision something like this:
 
 ## Development
 
-The repo now runs directly on your host machine; no devcontainers are required. A typical setup looks like this:
+There are two ways to run the development environment: using .NET Aspire (recommended) or the traditional manual setup. Both use the same prerequisites - no Docker required.
+
+### Option 1: Using .NET Aspire (Recommended)
+
+.NET Aspire provides a streamlined development experience with automatic orchestration of all services and a unified monitoring dashboard.
+
+**Prerequisites:**
+- .NET 10 SDK
+- PowerShell 7.4+
+- Azure Functions Core Tools v4
+- VS Code with the Azurite extension (`azurite.azurite`)
+
+**Getting Started:**
+
+1. Clone the repository and run the code generators and bootstrap script:
+   ```powershell
+   ./bootstrap.ps1
+   ```
+
+2. Start the Azurite Table service via the VS Code Azurite extension (`Az: Start Table Service` from the Command Palette).
+
+3. Start all services with a single command:
+   ```powershell
+   dotnet run --project explainpowershell.apphost
+   ```
+
+4. Open the Aspire dashboard (URL shown in console output) to monitor all services, view logs, and access the frontend.
+
+The Aspire AppHost automatically:
+- Launches the Azure Functions backend (analysis service)
+- Starts the Blazor WebAssembly frontend
+- Provides a unified dashboard for monitoring and debugging
+
+### Option 2: Traditional Manual Setup
+
+If you prefer not to use Aspire, you can still run the repo directly on your host machine:
 
 1. Install prerequisites: the latest .NET SDK (currently 10.x), Azure Functions Core Tools v4, PowerShell 7.4+, and the VS Code extensions recommended in `.vscode/extensions.json` (notably the Azurite extension `azurite.azurite`).
 2. Clone the repository and open it in VS Code. Run `./bootstrap.ps1` from the repo root once to install PowerShell modules, restore dependencies, seed the Azurite table storage, and run the backend tests. The Azure Function backend now runs as a .NET 10 isolated worker, so make sure the `FUNCTIONS_WORKER_RUNTIME` remains `dotnet-isolated` in `local.settings.json`.
