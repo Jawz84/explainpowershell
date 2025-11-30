@@ -1,16 +1,13 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
-// Configure Azure Storage emulator (Azurite) for local development
-var storage = builder.AddAzureStorage("storage")
-    .RunAsEmulator();
-
-// Add the Azure Table storage resource used by the analysis service
-var tables = storage.AddTables("tables");
+// Use the VS Code Azurite extension (no Docker required)
+// Start Azurite via VS Code Command Palette: "Azurite: Start Table Service"
+// Connection string matches the default Azurite development storage settings
+var storage = builder.AddConnectionString("AzureWebJobsStorage");
 
 // Add the Azure Functions analysis service backend
 var analysisService = builder.AddAzureFunctionsProject<Projects.explainpowershell>("analysisservice")
-    .WithReference(tables)
-    .WaitFor(tables);
+    .WithReference(storage);
 
 // Add the Blazor WebAssembly frontend as a static web app
 // Note: Blazor WASM runs in the browser - the appsettings.json configures the BaseAddress

@@ -30,17 +30,17 @@ I envision something like this:
 
 ## Development
 
-There are two ways to run the development environment: using .NET Aspire (recommended) or the traditional manual setup.
+There are two ways to run the development environment: using .NET Aspire (recommended) or the traditional manual setup. Both use the same prerequisites - no Docker required.
 
 ### Option 1: Using .NET Aspire (Recommended)
 
-.NET Aspire provides a streamlined development experience with automatic orchestration of all services, including the Azurite storage emulator.
+.NET Aspire provides a streamlined development experience with automatic orchestration of all services and a unified monitoring dashboard.
 
 **Prerequisites:**
 - .NET 10 SDK
 - PowerShell 7.4+
-- Docker (for Azurite emulation)
 - Azure Functions Core Tools v4
+- VS Code with the Azurite extension (`azurite.azurite`)
 
 **Getting Started:**
 
@@ -49,15 +49,16 @@ There are two ways to run the development environment: using .NET Aspire (recomm
    ./bootstrap.ps1
    ```
 
-2. Start all services with a single command:
+2. Start the Azurite Table service via the VS Code Azurite extension (`Az: Start Table Service` from the Command Palette).
+
+3. Start all services with a single command:
    ```powershell
    dotnet run --project explainpowershell.apphost
    ```
 
-3. Open the Aspire dashboard (URL shown in console output) to monitor all services, view logs, and access the frontend.
+4. Open the Aspire dashboard (URL shown in console output) to monitor all services, view logs, and access the frontend.
 
 The Aspire AppHost automatically:
-- Starts the Azurite storage emulator in Docker
 - Launches the Azure Functions backend (analysis service)
 - Starts the Blazor WebAssembly frontend
 - Provides a unified dashboard for monitoring and debugging
