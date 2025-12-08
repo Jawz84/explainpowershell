@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 
 using explainpowershell.models;
 using explainpowershell.SyntaxAnalyzer.ExtensionMethods;
-using Azure.Data.Tables;
+using ExplainPowershell.SyntaxAnalyzer.Repositories;
 using Microsoft.Extensions.Logging;
 
 namespace ExplainPowershell.SyntaxAnalyzer
@@ -21,7 +21,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
         private string errorMessage = string.Empty;
         private string extent;
         private int offSet = 0;
-        private readonly TableClient tableClient;
+        private readonly IHelpRepository helpRepository;
         private readonly ILogger log;
         private readonly Token[]? tokens;
 
@@ -84,9 +84,9 @@ namespace ExplainPowershell.SyntaxAnalyzer
             }
         }
 
-        public AstVisitorExplainer(string extentText, TableClient client, ILogger log, Token[]? tokens)
+        public AstVisitorExplainer(string extentText, IHelpRepository helpRepository, ILogger log, Token[]? tokens)
         {
-            tableClient = client;
+            this.helpRepository = helpRepository ?? throw new ArgumentNullException(nameof(helpRepository));
             this.log = log;
             extent = extentText;
             this.tokens = tokens;
@@ -102,34 +102,17 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         private HelpEntity? HelpTableQuery(string resolvedCmd)
         {
-            string filter = TableServiceClient.CreateQueryFilter($"PartitionKey eq {PartitionKey} and RowKey eq {resolvedCmd.ToLower()}");
-            var entities = tableClient.Query<HelpEntity>(filter: filter);
-            var helpResult = entities.FirstOrDefault();
-            return helpResult;
+            return helpRepository.GetHelpForCommand(resolvedCmd);
         }
 
         private HelpEntity? HelpTableQuery(string resolvedCmd, string moduleName)
         {
-            var rowKey = $"{resolvedCmd.ToLower()}{separatorChar}{moduleName.ToLower()}";
-            return HelpTableQuery(rowKey);
+            return helpRepository.GetHelpForCommand(resolvedCmd, moduleName);
         }
 
         private List<HelpEntity> HelpTableQueryRange(string resolvedCmd)
         {
-            if (string.IsNullOrEmpty(resolvedCmd))
-            {
-                return new List<HelpEntity> { new HelpEntity() };
-            }
-
-            // Getting a range from Azure Table storage works based on ascii char filtering. You can match prefixes. I use a space ' ' (char)32 as a divider 
-            // between the name of a command and the name of its module for commands that appear in more than one module. Filtering this way makes sure I 
-            // only match entries with '<myCommandName> <myModuleName>'.
-            // filterChar = (char)33 = '!'.
-            string rowKeyFilter = $"{resolvedCmd.ToLower()}{filterChar}";
-            string filter = TableServiceClient.CreateQueryFilter(
-                $"PartitionKey eq {PartitionKey} and RowKey ge {resolvedCmd.ToLower()} and RowKey lt {rowKeyFilter}");
-            var entities = tableClient.Query<HelpEntity>(filter: filter);
-            return entities.ToList();
+            return helpRepository.GetHelpForCommandRange(resolvedCmd);
         }
 
         private void ExpandAliasesInExtent(CommandAst cmd, string resolvedCmd)

@@ -4,6 +4,7 @@ using System.Text;
 using explainpowershell.analysisservice;
 using explainpowershell.analysisservice.Services;
 using explainpowershell.models;
+using ExplainPowershell.SyntaxAnalyzer.Repositories;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
@@ -27,6 +28,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
             [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
         {
             var tableClient = TableClientFactory.Create(Constants.TableStorage.HelpDataTableName);
+            var helpRepository = new TableStorageHelpRepository(tableClient);
             string requestBody;
             using (var reader = new StreamReader(req.Body))
             {
@@ -54,7 +56,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
             AnalysisResult analysisResult;
             try
             {
-                var visitor = new AstVisitorExplainer(ast.Extent.Text, tableClient, logger, tokens);
+                var visitor = new AstVisitorExplainer(ast.Extent.Text, helpRepository, logger, tokens);
                 ast.Visit(visitor);
                 analysisResult = visitor.GetAnalysisResult();
             }
