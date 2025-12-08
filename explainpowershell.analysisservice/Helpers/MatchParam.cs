@@ -10,9 +10,9 @@ namespace ExplainPowershell.SyntaxAnalyzer
 {
     public static partial class Helpers
     {
-        public static ParameterData MatchParam(string foundParameter, string json)
+        public static ParameterData? MatchParam(string foundParameter, string json)
         {
-            List<ParameterData> doc;
+            List<ParameterData>? doc;
             List<ParameterData> matchedParam = new();
 
             try {

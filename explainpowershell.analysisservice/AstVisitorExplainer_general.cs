@@ -175,7 +175,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
             var typeName = typeConstraintAst.TypeName.Name;
             var accelerator = ".";
             var cmdName = "Type constraint";
-            HelpEntity help = null;
+            HelpEntity? help = null;
 
             var (acceleratorName, acceleratorFullTypeName) = Helpers.ResolveAccelerator(typeName);
             if (acceleratorName != null)

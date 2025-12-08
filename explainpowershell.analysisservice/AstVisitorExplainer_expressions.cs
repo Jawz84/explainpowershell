@@ -209,7 +209,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 typeExpressionAst.Parent is CommandExpressionAst ||
                 typeExpressionAst.Parent is AssignmentStatementAst)
             {
-                HelpEntity help = null;
+                HelpEntity? help = null;
                 var description = string.Empty;
 
                 if (typeExpressionAst.TypeName.IsArray)

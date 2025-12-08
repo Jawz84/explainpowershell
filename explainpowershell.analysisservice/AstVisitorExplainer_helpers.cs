@@ -18,12 +18,12 @@ namespace ExplainPowershell.SyntaxAnalyzer
         private const char separatorChar = ' ';
         private const string PartitionKey = "CommandHelp";
         private readonly List<Explanation> explanations = new();
-        private string errorMessage;
+        private string errorMessage = string.Empty;
         private string extent;
         private int offSet = 0;
         private readonly TableClient tableClient;
         private readonly ILogger log;
-        private readonly Token[] tokens;
+        private readonly Token[]? tokens;
 
         public AnalysisResult GetAnalysisResult()
         {
@@ -84,7 +84,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
             }
         }
 
-        public AstVisitorExplainer(string extentText, TableClient client, ILogger log, Token[] tokens)
+        public AstVisitorExplainer(string extentText, TableClient client, ILogger log, Token[]? tokens)
         {
             tableClient = client;
             this.log = log;
@@ -100,7 +100,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
             return false;
         }
 
-        private HelpEntity HelpTableQuery(string resolvedCmd)
+        private HelpEntity? HelpTableQuery(string resolvedCmd)
         {
             string filter = TableServiceClient.CreateQueryFilter($"PartitionKey eq {PartitionKey} and RowKey eq {resolvedCmd.ToLower()}");
             var entities = tableClient.Query<HelpEntity>(filter: filter);
@@ -108,7 +108,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
             return helpResult;
         }
 
-        private HelpEntity HelpTableQuery(string resolvedCmd, string moduleName)
+        private HelpEntity? HelpTableQuery(string resolvedCmd, string moduleName)
         {
             var rowKey = $"{resolvedCmd.ToLower()}{separatorChar}{moduleName.ToLower()}";
             return HelpTableQuery(rowKey);

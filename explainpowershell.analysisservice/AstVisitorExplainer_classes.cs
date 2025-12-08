@@ -119,20 +119,24 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitPropertyMember(PropertyMemberAst propertyMemberAst)
         {
-            HelpEntity helpResult = null;
+            HelpEntity? helpResult = null;
             var description = "";
 
-            if ((propertyMemberAst.Parent as TypeDefinitionAst).IsClass)
+            var parentType = propertyMemberAst.Parent as TypeDefinitionAst;
+            if (parentType?.IsClass == true)
             {
                 var attributes = propertyMemberAst.Attributes.Count >= 0 ?
                     $", with attributes '{string.Join(", ", propertyMemberAst.Attributes.Select(p => p.TypeName.Name))}'." :
                     ".";
                 description = $"Property '{propertyMemberAst.Name}' of type '{propertyMemberAst.PropertyType.TypeName.FullName}'{attributes}";
                 helpResult = HelpTableQuery("about_classes");
-                helpResult.DocumentationLink += "#class-properties";
+                if (helpResult != null)
+                {
+                    helpResult.DocumentationLink += "#class-properties";
+                }
             }
 
-            if ((propertyMemberAst.Parent as TypeDefinitionAst).IsEnum)
+            if (parentType?.IsEnum == true)
             {
                 description = $"Enum label '{propertyMemberAst.Name}', with value '{propertyMemberAst.InitialValue}'.";
                 helpResult = HelpTableQuery("about_enum");

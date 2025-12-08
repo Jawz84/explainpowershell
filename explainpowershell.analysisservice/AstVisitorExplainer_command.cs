@@ -23,12 +23,12 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
             string resolvedCmd = Helpers.ResolveAlias(cmdName) ?? cmdName;
 
-            HelpEntity helpResult;
+            HelpEntity? helpResult;
             if (string.IsNullOrEmpty(moduleName))
             {
                 var helpResults = HelpTableQueryRange(resolvedCmd);
                 helpResult = helpResults?.FirstOrDefault();
-                if (helpResults.Count > 1)
+                if (helpResults != null && helpResults.Count > 1)
                 {
                     this.errorMessage = $"The command '{helpResult?.CommandName}' is present in more than one module: '{string.Join("', '", helpResults.Select(r => r.ModuleName))}'. Explicitly prepend the module name to the command to select one: '{helpResults.First().ModuleName}\\{helpResult?.CommandName}'";
                 }
@@ -131,12 +131,12 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
             var parentCommandExplanation = explanations.FirstOrDefault(e => e.Id == exp.ParentId);
 
-            ParameterData matchedParameter;
-            if (parentCommandExplanation.HelpResult?.Parameters != null)
+            ParameterData? matchedParameter = null;
+            if (parentCommandExplanation?.HelpResult?.Parameters != null)
             {
                 try
                 {
-                    matchedParameter = Helpers.MatchParam(commandParameterAst.ParameterName, parentCommandExplanation.HelpResult?.Parameters);
+                    matchedParameter = Helpers.MatchParam(commandParameterAst.ParameterName, parentCommandExplanation.HelpResult.Parameters);
 
                     if (matchedParameter != null)
                     {
