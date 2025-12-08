@@ -13,7 +13,6 @@ namespace ExplainPowershell.SyntaxAnalyzer
 {
     public sealed class SyntaxAnalyzerFunction
     {
-        private const string HelpTableName = "HelpData";
         private readonly ILogger<SyntaxAnalyzerFunction> logger;
         private readonly IAiExplanationService aiExplanationService;
 
@@ -27,7 +26,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
         public async Task<HttpResponseData> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
         {
-            var tableClient = TableClientFactory.Create(HelpTableName);
+            var tableClient = TableClientFactory.Create(Constants.TableStorage.HelpDataTableName);
             string requestBody;
             using (var reader = new StreamReader(req.Body))
             {

@@ -129,7 +129,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
                     $", with attributes '{string.Join(", ", propertyMemberAst.Attributes.Select(p => p.TypeName.Name))}'." :
                     ".";
                 description = $"Property '{propertyMemberAst.Name}' of type '{propertyMemberAst.PropertyType.TypeName.FullName}'{attributes}";
-                helpResult = HelpTableQuery("about_classes");
+                helpResult = HelpTableQuery(Constants.AboutTopics.AboutClasses);
                 if (helpResult != null)
                 {
                     helpResult.DocumentationLink += "#class-properties";
@@ -139,7 +139,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
             if (parentType?.IsEnum == true)
             {
                 description = $"Enum label '{propertyMemberAst.Name}', with value '{propertyMemberAst.InitialValue}'.";
-                helpResult = HelpTableQuery("about_enum");
+                helpResult = HelpTableQuery(Constants.AboutTopics.AboutEnum);
             }
 
             explanations.Add(new Explanation()

@@ -22,7 +22,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
                     new Explanation()
                     {
                         CommandName = "CmdletBinding Attribute",
-                        HelpResult = HelpTableQuery("about_Functions_CmdletBindingAttribute"),
+                        HelpResult = HelpTableQuery(Constants.AboutTopics.AboutFunctionsCmdletBindingAttribute),
                         Description = "The CmdletBinding attribute adds common parameters to your script or function, among other things.",
                     }.AddDefaults(attributeAst, explanations));
 
@@ -46,7 +46,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 {
                     Description = $"{redirectsOrAppends} output {fromStream}to location '{redirectionAst.Location}'.",
                     CommandName = "File redirection operator",
-                    HelpResult = HelpTableQuery("about_redirection"),
+                    HelpResult = HelpTableQuery(Constants.AboutTopics.AboutRedirection),
                     TextToHighlight = ">"
                 }.AddDefaults(redirectionAst, explanations));
 
@@ -70,7 +70,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 {
                     Description = $"An object that holds key-value pairs, optimized for hash-searching for keys.{keysString}",
                     CommandName = "Hash table",
-                    HelpResult = HelpTableQuery("about_hash_tables"),
+                    HelpResult = HelpTableQuery(Constants.AboutTopics.AboutHashTables),
                     TextToHighlight = "@{"
                 }.AddDefaults(hashtableAst, explanations));
 
@@ -182,7 +182,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
             {
                 typeName = acceleratorName;
                 accelerator = $", which is a type accelerator for '{acceleratorFullTypeName}'";
-                help = HelpTableQuery("about_type_accelerators");
+                help = HelpTableQuery(Constants.AboutTopics.AboutTypeAccelerators);
                 cmdName = "Type accelerator";
             }
             else if (typeConstraintAst.Parent is ConvertExpressionAst)

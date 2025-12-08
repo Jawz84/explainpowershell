@@ -216,14 +216,14 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 {
                     description = $"Array of '{typeExpressionAst.TypeName.Name}'";
                     help = new HelpEntity() {
-                        DocumentationLink = "https://docs.microsoft.com/en-us/powershell/scripting/lang-spec/chapter-04"
+                        DocumentationLink = Constants.Documentation.Chapter04TypeSystem
                     };
                 }
                 else if (typeExpressionAst.TypeName.IsGeneric)
                 {
                     description = $"Generic type";
                     help = new HelpEntity() {
-                        DocumentationLink = "https://docs.microsoft.com/en-us/powershell/scripting/lang-spec/chapter-04#44-generic-types"
+                        DocumentationLink = Constants.Documentation.Chapter04GenericTypes
                     };
                 }
 

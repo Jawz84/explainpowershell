@@ -14,9 +14,9 @@ namespace ExplainPowershell.SyntaxAnalyzer
 {
     public partial class AstVisitorExplainer : AstVisitor2
     {
-        private const char filterChar = '!';
-        private const char separatorChar = ' ';
-        private const string PartitionKey = "CommandHelp";
+        private const char filterChar = Constants.TableStorage.RangeFilterChar;
+        private const char separatorChar = Constants.TableStorage.CommandModuleSeparator;
+        private const string PartitionKey = Constants.TableStorage.CommandHelpPartitionKey;
         private readonly List<Explanation> explanations = new();
         private string errorMessage = string.Empty;
         private string extent;
@@ -70,7 +70,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 var (description, _) = Helpers.TokenExplainer(TokenKind.Semi);
                 var help = new HelpEntity
                 {
-                    DocumentationLink = "https://docs.microsoft.com/en-us/powershell/scripting/lang-spec/chapter-08#82-pipeline-statements"
+                    DocumentationLink = Constants.Documentation.Chapter08PipelineStatements
                 };
 
                 explanations.Add(
