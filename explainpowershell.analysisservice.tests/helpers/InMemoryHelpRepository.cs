@@ -76,7 +76,7 @@ namespace ExplainPowershell.SyntaxAnalyzer.Tests
         {
             if (string.IsNullOrEmpty(commandName))
             {
-                return new List<HelpEntity> { new HelpEntity() };
+                return new List<HelpEntity>();
             }
 
             return helpData

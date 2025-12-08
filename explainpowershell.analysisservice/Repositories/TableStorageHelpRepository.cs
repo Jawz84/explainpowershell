@@ -46,7 +46,7 @@ namespace ExplainPowershell.SyntaxAnalyzer.Repositories
         {
             if (string.IsNullOrEmpty(commandName))
             {
-                return new List<HelpEntity> { new HelpEntity() };
+                return new List<HelpEntity>();
             }
 
             // Getting a range from Azure Table storage works based on ascii char filtering. You can match prefixes. 

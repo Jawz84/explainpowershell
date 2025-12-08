@@ -28,7 +28,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
             {
                 var helpResults = HelpTableQueryRange(resolvedCmd);
                 helpResult = helpResults?.FirstOrDefault();
-                if (helpResults != null && helpResults.Count > 1)
+                if (helpResults.Count > 1)
                 {
                     this.errorMessage = $"The command '{helpResult?.CommandName}' is present in more than one module: '{string.Join("', '", helpResults.Select(r => r.ModuleName))}'. Explicitly prepend the module name to the command to select one: '{helpResults.First().ModuleName}\\{helpResult?.CommandName}'";
                 }
