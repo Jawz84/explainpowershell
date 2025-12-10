@@ -64,35 +64,12 @@ if (Test-Path $vsCodeSettingsFile) {
 Write-Host "Updating GitHub Actions workflows"
 $deployAppWorkflow = "$PSScriptRoot/../.github/workflows/deploy_app.yml"
 if (Test-Path $deployAppWorkflow) {
-    $ghDeployAction = Get-Content -Path $deployAppWorkflow | ConvertFrom-Yaml
-    foreach ($jobName in 'buildFrontend','buildBackend') {
-        $job = $ghDeployAction.jobs.$jobName
-        if ($null -eq $job) { continue }
-        foreach ($step in $job.steps) {
-            if ($step.with.'dotnet-version') {
-                $step.with.'dotnet-version' = $dotNetShortVersion
-            }
-            if ($step.with.path) {
-                $step.with.path = $step.with.path -replace 'net\d+\.\d+', "net$dotNetShortVersion"
-            }
-        }
-    }
-    $ghDeployAction
-    | ConvertTo-Yaml
+    $ghFlow = Get-Content -Path $deployAppWorkflow 
+    $ghFlow | ForEach-Object { $_ -replace 'dotnet-version: "\d+.0"', "dotnet-version: `"$($dotNetVersion.Major).0`"" }
     | Set-Content -Path $deployAppWorkflow -Force
 }
-
-$deployInfraWorkflow = "$PSScriptRoot/../.github/workflows/deploy_azure_infra.yml"
-if (Test-Path $deployInfraWorkflow) {
-    $ghDeployInfra = Get-Content -Path $deployInfraWorkflow | ConvertFrom-Yaml
-    foreach ($step in $ghDeployInfra.jobs.deploy.steps) {
-        if ($step.run) {
-            $step.run = $step.run -replace 'FUNCTIONS_EXTENSION_VERSION=~\d+', "FUNCTIONS_EXTENSION_VERSION=~$($functionsToolsVersion.Major)"
-        }
-    }
-    $ghDeployInfra
-    | ConvertTo-Yaml
-    | Set-Content -Path $deployInfraWorkflow -Force
+else {
+    Write-Host "No deploy_app.yml workflow found, skipping update."
 }
 
 Write-Host "Updating NuGet package versions to latest stable"
