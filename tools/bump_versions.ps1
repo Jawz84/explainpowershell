@@ -1,10 +1,10 @@
-$ErrorActionPreference = 'stop'
-
 [CmdletBinding()]
 param(
     [string]$TargetDotnetVersion
 )
 
+$ErrorActionPreference = 'stop'
+    
 $currentGitBranch = git branch --show-current
 if ($currentGitBranch -eq 'main') {
     throw "You are on 'main' branch, create a new branch first"
@@ -52,6 +52,7 @@ Get-ChildItem -Path "$PSScriptRoot/.." -Filter *.csproj -Recurse -Depth 2 | ForE
     $xml.Save($_.FullName)
 }
 
+Write-Host "Updating Azure Functions settings to runtime ~$($functionsToolsVersion.Major)"
 $vsCodeSettingsFile = "$PSScriptRoot/../.vscode/settings.json"
 if (Test-Path $vsCodeSettingsFile) {
     $settings = Get-Content -Path $vsCodeSettingsFile | ConvertFrom-Json
@@ -60,6 +61,7 @@ if (Test-Path $vsCodeSettingsFile) {
     $settings | ConvertTo-Json -Depth 5 | Out-File -Path $vsCodeSettingsFile -Force
 }
 
+Write-Host "Updating GitHub Actions workflows"
 $deployAppWorkflow = "$PSScriptRoot/../.github/workflows/deploy_app.yml"
 if (Test-Path $deployAppWorkflow) {
     $ghDeployAction = Get-Content -Path $deployAppWorkflow | ConvertFrom-Yaml
@@ -93,6 +95,7 @@ if (Test-Path $deployInfraWorkflow) {
     | Set-Content -Path $deployInfraWorkflow -Force
 }
 
+Write-Host "Updating NuGet package versions to latest stable"
 ## Update packages (mirrors Pester checks: dotnet list package --outdated)
 $outdated = dotnet list "$PSScriptRoot/../explainpowershell.sln" package --outdated
 $outdated += dotnet list "$PSScriptRoot/../explainpowershell.analysisservice.tests/explainpowershell.analysisservice.tests.csproj" package --outdated
@@ -103,7 +106,9 @@ $targetVersions = $outdated | Select-String '^   >' | ForEach-Object {
         PackageName   = $parts[0].Trim('>',' ')
         LatestVersion = [version]$parts[-1]
     }
-}
+} | Sort-Object PackageName -Unique
+
+Write-Host "Found $($targetVersions.Count) packages to update: $($targetVersions.PackageName -join ', ')"
 
 Get-ChildItem -Path "$PSScriptRoot/.." -Filter *.csproj -Recurse -Depth 2 | ForEach-Object {
     $xml = [xml](Get-Content $_.FullName)
@@ -111,6 +116,7 @@ Get-ChildItem -Path "$PSScriptRoot/.." -Filter *.csproj -Recurse -Depth 2 | ForE
         foreach ($package in @($itemGroup.PackageReference)) {
             if ($package.Include -in $targetVersions.PackageName) {
                 $latest = ($targetVersions | Where-Object PackageName -EQ $package.Include).LatestVersion
+                Write-Debug "Updating '$($package.Include)' to version '$latest' in '$($_.FullName)'"
                 if ($latest) {
                     $package.Version = $latest.ToString()
                 }
@@ -120,6 +126,7 @@ Get-ChildItem -Path "$PSScriptRoot/.." -Filter *.csproj -Recurse -Depth 2 | ForE
     $xml.Save($_.FullName)
 }
 
+Write-Host "Restoring and cleaning solution"
 Push-Location $PSScriptRoot/..
 dotnet restore
 dotnet clean --verbosity minimal
