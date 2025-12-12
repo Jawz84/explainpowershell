@@ -38,7 +38,7 @@ namespace ExplainPowershell.SyntaxAnalyzer.Tests
         }
 
         /// <inheritdoc/>
-        public HelpEntity? GetHelpForCommand(string commandName)
+        public HelpEntity GetHelpForCommand(string commandName)
         {
             if (string.IsNullOrEmpty(commandName))
             {
@@ -60,7 +60,7 @@ namespace ExplainPowershell.SyntaxAnalyzer.Tests
         }
 
         /// <inheritdoc/>
-        public HelpEntity? GetHelpForCommand(string commandName, string moduleName)
+        public HelpEntity GetHelpForCommand(string commandName, string moduleName)
         {
             if (string.IsNullOrEmpty(commandName) || string.IsNullOrEmpty(moduleName))
             {

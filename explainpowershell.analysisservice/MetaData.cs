@@ -66,7 +66,7 @@ namespace explainpowershell.analysisservice
             var entities = client.Query<HelpEntity>(filter: filter, select: select).ToList();
 
             var numAbout = entities
-                .Count(r => r.CommandName.StartsWith("about_", StringComparison.OrdinalIgnoreCase));
+                .Count(r => r.CommandName?.StartsWith("about_", StringComparison.OrdinalIgnoreCase) ?? false);
 
             var moduleNames = entities
                 .Select(r => r.ModuleName)

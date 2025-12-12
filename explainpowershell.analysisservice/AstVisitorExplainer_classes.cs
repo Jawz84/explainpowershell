@@ -94,12 +94,12 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
                 var howManyParameters = functionMemberAst.Parameters.Count == 0 ? string.Empty : $"has {functionMemberAst.Parameters.Count} parameters and ";
 
-                description = $"A constructor, a special method, used to set things up within the object. Constructors have the same name as the class. This constructor {howManyParameters}is called when [{(functionMemberAst.Parent as TypeDefinitionAst).Name}]::new({parameterSignature}) is used.";
-                helpResult.DocumentationLink += "#constructor";
+                description = $"A constructor, a special method, used to set things up within the object. Constructors have the same name as the class. This constructor {howManyParameters}is called when [{(functionMemberAst.Parent as TypeDefinitionAst)?.Name ?? "Unknown"}]::new({parameterSignature}) is used.";
+                helpResult?.DocumentationLink += "#constructor";
             }
             else
             {
-                helpResult.DocumentationLink += "#class-methods";
+                helpResult?.DocumentationLink += "#class-methods";
                 var modifier = "M";
                 modifier = functionMemberAst.IsHidden ? "A hidden m" : modifier;
                 modifier = functionMemberAst.IsStatic ? "A static m" : modifier;

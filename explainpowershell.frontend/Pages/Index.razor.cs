@@ -191,7 +191,7 @@ namespace explainpowershell.frontend.Pages
         private class AiExplanationResponse
         {
             public string AiExplanation { get; set; } = string.Empty;
-            public string? ModelName { get; set; }
+            public string ModelName { get; set; }
         }
     }
 }

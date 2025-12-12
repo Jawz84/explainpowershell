@@ -28,7 +28,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
             {
                 var helpResults = HelpTableQueryRange(resolvedCmd);
                 helpResult = helpResults?.FirstOrDefault();
-                if (helpResults.Count > 1)
+                if (helpResults?.Count > 1)
                 {
                     this.errorMessage = $"The command '{helpResult?.CommandName}' is present in more than one module: '{string.Join("', '", helpResults.Select(r => r.ModuleName))}'. Explicitly prepend the module name to the command to select one: '{helpResults.First().ModuleName}\\{helpResult?.CommandName}'";
                 }
@@ -180,7 +180,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
                                 .Append("__AllParameterSets")
                                 .ToArray();
 
-                            var paramSetData = Helpers.GetParameterSetData(matchedParameter, availableParamSets);
+                            var paramSetData = Helpers.GetParameterSetData(matchedParameter, availableParamSets ?? Array.Empty<string>());
 
                             if (paramSetData.Count > 1)
                             {
@@ -191,7 +191,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
                                 var paramSetName = paramSetData.Select(p => p.ParameterSetName).FirstOrDefault();
                                 if (paramSetName == "__AllParameterSets")
                                 {
-                                    if (availableParamSets.Length > 1)
+                                    if (availableParamSets?.Length > 1)
                                     {
                                         exp.Description += $"\nThis parameter is present in all parameter sets.";
                                     }

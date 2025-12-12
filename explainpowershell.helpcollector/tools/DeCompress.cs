@@ -40,7 +40,7 @@ namespace explainpowershell.helpcollector.tools
             memoryStream.Position = 0;
             using (var gZipStream = new GZipStream(memoryStream, CompressionMode.Decompress))
             {
-                gZipStream.Read(buffer, 0, buffer.Length);
+                gZipStream.ReadExactly(buffer);
             }
 
             return Encoding.UTF8.GetString(buffer);

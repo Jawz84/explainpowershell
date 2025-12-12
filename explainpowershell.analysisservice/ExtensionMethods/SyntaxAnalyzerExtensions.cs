@@ -35,7 +35,10 @@ namespace explainpowershell.SyntaxAnalyzer.ExtensionMethods
         public static string TryFindParentExplanation(Ast ast, List<Explanation> explanations, int level = 0)
         {
             if (explanations.Count == 0 | ast.Parent == null)
-                return null;
+                return string.Empty;
+
+            if (ast.Parent == null)
+                return string.Empty;
 
             var parentId = ast.Parent.GenerateId();
 
@@ -61,11 +64,13 @@ namespace explainpowershell.SyntaxAnalyzer.ExtensionMethods
             }
 
             var closestNeigbour = explanationsBeforeToken.Max(e => GetEndOffSet(e));
-            return explanationsBeforeToken.FirstOrDefault(t => GetEndOffSet(t) == closestNeigbour).Id;
+            return explanationsBeforeToken.FirstOrDefault(t => GetEndOffSet(t) == closestNeigbour)?.Id ?? string.Empty;
         }
 
         private static int GetEndOffSet(Explanation e)
         {
+            if (e.Id == null)
+                return -1;
             return int.Parse(e.Id.Split('.')[2]);
         }
     }

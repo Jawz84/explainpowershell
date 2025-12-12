@@ -12,7 +12,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
          public override AstVisitAction VisitArrayExpression(ArrayExpressionAst arrayExpressionAst)
         {
             var helpResult = HelpTableQuery("about_arrays");
-            helpResult.DocumentationLink += "#the-array-sub-expression-operator";
+            helpResult?.DocumentationLink += "#the-array-sub-expression-operator";
 
             explanations.Add(
                 new Explanation()
@@ -361,7 +361,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 suffix = ", with the 'using' scope modifier: a local variable used in a remote scope.";
                 explanation.HelpResult = HelpTableQuery("about_Remote_Variables");
                 explanation.CommandName = "Scoped variable";
-                explanation.HelpResult.RelatedLinks += HelpTableQuery("about_Scopes")?.DocumentationLink;
+                explanation.HelpResult?.RelatedLinks += HelpTableQuery("about_Scopes")?.DocumentationLink;
             }
 
             explanation.Description = $"A{prefix}variable {standard}{suffix}";
@@ -374,7 +374,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
         public override AstVisitAction VisitTernaryExpression(TernaryExpressionAst ternaryExpressionAst)
         {
             var helpResult = HelpTableQuery("about_if");
-            helpResult.DocumentationLink += "#using-the-ternary-operator-syntax";
+            helpResult?.DocumentationLink += "#using-the-ternary-operator-syntax";
 
             explanations.Add(new Explanation()
             {

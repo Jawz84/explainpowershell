@@ -165,7 +165,7 @@ namespace explainpowershell.analysisservice.Services
                 ExpandedCode = result.ExpandedCode,
                 ParseErrorMessage = result.ParseErrorMessage,
                 DetectedModules = result.DetectedModules,
-                Explanations = result.Explanations?
+                Explanations = result.Explanations
                     .Select(e => new Explanation
                     {
                         Id = e.Id,
@@ -197,7 +197,7 @@ namespace explainpowershell.analysisservice.Services
             }
 
             // Last resort: remove help results entirely, keep only basic explanations
-            reduced.Explanations = result.Explanations?
+            reduced.Explanations = result.Explanations
                 .Select(e => new Explanation
                 {
                     Id = e.Id,

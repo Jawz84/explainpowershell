@@ -2,6 +2,6 @@ namespace explainpowershell.models
 {
     public class Code
     {
-        public string PowershellCode { get; set; }
+        public string? PowershellCode { get; set; }
     }
 }
