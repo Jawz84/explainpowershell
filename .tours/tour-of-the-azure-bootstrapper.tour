@@ -5,7 +5,7 @@
     {
       "file": "azuredeploymentbootstrapper.ps1",
       "description": "Welcome to the Azure bootstrapper tour.\n\nHere we will have a look at how you can get your own copy of explain powershell running in Azure, and this is basically how the actual www.explainpowershell.com site is set up in Azure too, excluding DNS, CDN and application insights.\n\nTo be able to use this, you need a GitHub account and an Azure subscription. A 30-day free subscription will do just fine.\nThe script assumes you have forked the explain powershell repo to your own github.\n\nYou will be asked to authenticate, so the script can set up everything.\n\nA few things are stored as GitHub Secrets, so they can be used from the GitHub Actions.\n\nAfter the resource group in Azure is created and the secrets are in place, you can run the `Deploy Azure Infra` GitHub Action. This action will deploy you copy of explain powershell to Azure.",
-      "line": 13
+      "line": 1
     },
     {
       "file": ".github/workflows/deploy_azure_infra.yml",
