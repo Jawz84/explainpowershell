@@ -1,22 +1,20 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using System.Collections.Generic;
-using System.Net.Http;
-using System.Text.Json;
 using System.Threading.Tasks;
 using System.Threading;
 
 using explainpowershell.models;
 using System.Linq;
-using System.Net.Http.Json;
 using MudBlazor;
 using System;
+using explainpowershell.frontend.Clients;
 
 namespace explainpowershell.frontend.Pages
 {
     public partial class Index : ComponentBase {
         [Inject]
-        private HttpClient Http { get; set; }
+        private ISyntaxAnalyzerClient SyntaxAnalyzerClient { get; set; }
         private string TitleMargin { get; set; }= "mt-16";
         private Dictionary<string, bool> SyntaxPopoverIsOpen { get; set; }= new();
         private Dictionary<string, bool> CommandDetailsPopoverIsOpen { get; set; } = new();
@@ -119,26 +117,16 @@ namespace explainpowershell.frontend.Pages
             Waiting = true;
             var code = new Code() { PowershellCode = InputValue };
 
-            HttpResponseMessage temp;
-            try {
-                temp = await Http.PostAsJsonAsync<Code>("SyntaxAnalyzer", code);
-            }
-            catch {
-                RequestHasError = true;
-                Waiting = false;
-                ReasonPhrase = "oops!";
-                return;
-            }
-
-            if (!temp.IsSuccessStatusCode)
+            var analyzeResult = await SyntaxAnalyzerClient.AnalyzeAsync(code);
+            if (!analyzeResult.IsSuccess || analyzeResult.Value is null)
             {
                 RequestHasError = true;
                 Waiting = false;
-                ReasonPhrase = await temp.Content.ReadAsStringAsync();
+                ReasonPhrase = string.IsNullOrWhiteSpace(analyzeResult.ErrorMessage) ? "oops!" : analyzeResult.ErrorMessage;
                 return;
             }
 
-            var analysisResult = await JsonSerializer.DeserializeAsync<AnalysisResult>(temp.Content.ReadAsStream());
+            var analysisResult = analyzeResult.Value;
 
             if (!string.IsNullOrEmpty(analysisResult.ParseErrorMessage))
             {
@@ -182,28 +170,20 @@ namespace explainpowershell.frontend.Pages
 
             try
             {
-                var aiRequest = new
-                {
-                    PowershellCode = code.PowershellCode,
-                    AnalysisResult = analysisResult
-                };
-
-                var response = await Http.PostAsJsonAsync("AiExplanation", aiRequest, cancellationToken);
+                var aiResult = await SyntaxAnalyzerClient.GetAiExplanationAsync(code, analysisResult, cancellationToken);
 
                 if (searchId != _activeSearchId || _disposed)
                 {
                     return;
                 }
 
-                if (response.IsSuccessStatusCode)
+                if (aiResult.IsSuccess && aiResult.Value is not null)
                 {
-                    var aiResult = await JsonSerializer.DeserializeAsync<AiExplanationResponse>(response.Content.ReadAsStream(), cancellationToken: cancellationToken);
-                    AiExplanation = aiResult?.AiExplanation ?? string.Empty;
-                    AiModelName = aiResult?.ModelName ?? string.Empty;
+                    AiExplanation = aiResult.Value.AiExplanation ?? string.Empty;
+                    AiModelName = aiResult.Value.ModelName ?? string.Empty;
                 }
                 else
                 {
-                    // Silently fail - AI explanation is optional
                     AiExplanation = string.Empty;
                     AiModelName = string.Empty;
                 }
@@ -232,11 +212,5 @@ namespace explainpowershell.frontend.Pages
 
         private string _inputValue;
         private string AiModelName { get; set; }
-
-        private class AiExplanationResponse
-        {
-            public string AiExplanation { get; set; } = string.Empty;
-            public string ModelName { get; set; }
-        }
     }
 }
