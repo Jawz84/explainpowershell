@@ -8,7 +8,7 @@ using ExplainPowershell.SyntaxAnalyzer.Repositories;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
+using System.Text.Json;
 
 namespace ExplainPowershell.SyntaxAnalyzer
 {
@@ -40,9 +40,21 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 return CreateResponse(req, HttpStatusCode.BadRequest, "Empty request. Pass powershell code in the request body for an AST analysis.");
             }
 
-            var code = JsonConvert
-                .DeserializeObject<Code>(requestBody)
-                ?.PowershellCode ?? string.Empty;
+            Code? request;
+            try
+            {
+                request = JsonSerializer.Deserialize<Code>(requestBody, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, "Failed to deserialize SyntaxAnalyzer request");
+                return CreateResponse(req, HttpStatusCode.BadRequest, "Invalid request format. Pass powershell code in the request body for an AST analysis.");
+            }
+
+            var code = request?.PowershellCode ?? string.Empty;
 
             logger.LogInformation("PowerShell code sent: {Code}", code);
 
