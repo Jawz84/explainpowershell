@@ -18,6 +18,9 @@ These instructions are for GitHub Copilot Chat/Edits when working in this reposi
   - Frontend triggers AI in the background so the UI remains responsive.
 
 ## Editing guidelines (preferred behavior)
+- Keep in mind this project is open source and intended to be cross platform.
+- Follow existing code style and patterns.
+- Favor readability and maintainability.
 - Prefer small, surgical changes; avoid unrelated refactors.
 - Preserve existing public APIs and JSON shapes unless explicitly requested.
 - Keep AI functionality optional and non-blocking.
