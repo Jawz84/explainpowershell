@@ -15,6 +15,34 @@ Describe "Invoke-SyntaxAnalyzer" {
         $content.Explanations[0].HelpResult.DocumentationLink | Should -Match "about_Classes"
     }
 
+    It "Explains return statement" {
+        $explanations = Invoke-SyntaxAnalyzer -PowershellCode "return 42" -Explanations
+        $returnExplanation = $explanations | Where-Object { $_.TextToHighlight -eq 'return' } | Select-Object -First 1
+
+        $returnExplanation | Should -Not -BeNullOrEmpty
+        $returnExplanation.CommandName | Should -Be 'return statement'
+        $returnLink = $returnExplanation.HelpResult.DocumentationLink
+        $returnLink | Should -Not -BeNullOrEmpty
+        $returnLink | Should -Match 'about_Return|#return'
+        if ($returnLink -match 'about_Return') {
+            $returnExplanation.HelpResult.RelatedLinks | Should -Match '#return'
+        }
+    }
+
+    It "Explains throw statement" {
+        $explanations = Invoke-SyntaxAnalyzer -PowershellCode "throw 'boom'" -Explanations
+        $throwExplanation = $explanations | Where-Object { $_.TextToHighlight -eq 'throw' } | Select-Object -First 1
+
+        $throwExplanation | Should -Not -BeNullOrEmpty
+        $throwExplanation.CommandName | Should -Be 'throw statement'
+        $throwLink = $throwExplanation.HelpResult.DocumentationLink
+        $throwLink | Should -Not -BeNullOrEmpty
+        $throwLink | Should -Match 'about_Throw|#throw'
+        if ($throwLink -match 'about_Throw') {
+            $throwExplanation.HelpResult.RelatedLinks | Should -Match '#throw'
+        }
+    }
+
     It "Should display correct help for assigment operators" {
         $code = '$D=[Datetime]::Now'
         [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code

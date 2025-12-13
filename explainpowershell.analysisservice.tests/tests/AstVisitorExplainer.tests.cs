@@ -23,7 +23,7 @@ namespace ExplainPowershell.SyntaxAnalyzer.Tests
             // Unit tests should not depend on Azurite/Table Storage. Seed only the help topics
             // required by these assertions.
             var helpRepository = new InMemoryHelpRepository();
-                TestHelpData.SeedAboutTopics(helpRepository);
+            TestHelpData.SeedAboutTopics(helpRepository);
 
             explainer = new(
                 extentText: string.Empty,
@@ -100,6 +100,34 @@ namespace ExplainPowershell.SyntaxAnalyzer.Tests
             Assert.AreEqual(
                 "https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_For",
                 res.Explanations[0].HelpResult?.DocumentationLink);
+        }
+
+        [Test]
+        public void ShouldGenerateHelpForReturnStatement()
+        {
+            ScriptBlock.Create("return 42").Ast.Visit(explainer);
+            AnalysisResult res = explainer.GetAnalysisResult();
+
+            var explanation = res.Explanations.SingleOrDefault(e => e.TextToHighlight == "return");
+
+            Assert.That(explanation, Is.Not.Null);
+            Assert.That(explanation.CommandName, Is.EqualTo("return statement"));
+            Assert.That(explanation.HelpResult?.DocumentationLink, Does.Contain("about_Return"));
+            Assert.That(explanation.HelpResult?.RelatedLinks, Does.Contain("about_language_keywords").And.Contain("#return"));
+        }
+
+        [Test]
+        public void ShouldGenerateHelpForThrowStatement()
+        {
+            ScriptBlock.Create("throw 'boom'").Ast.Visit(explainer);
+            AnalysisResult res = explainer.GetAnalysisResult();
+
+            var explanation = res.Explanations.SingleOrDefault(e => e.TextToHighlight == "throw");
+
+            Assert.That(explanation, Is.Not.Null);
+            Assert.That(explanation.CommandName, Is.EqualTo("throw statement"));
+            Assert.That(explanation.HelpResult?.DocumentationLink, Does.Contain("about_Throw"));
+            Assert.That(explanation.HelpResult?.RelatedLinks, Does.Contain("about_language_keywords").And.Contain("#throw"));
         }
     }
 }

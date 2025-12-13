@@ -32,6 +32,7 @@ These instructions are for GitHub Copilot Chat/Edits when working in this reposi
 
 ## Unit tests
 - Aim for high coverage on new features.
+- Focus on behavior verification over implementation details.
 - When adding tests, follow existing patterns in `explainpowershell.analysisservice.tests/`.
 
 ## Building
@@ -40,6 +41,7 @@ These instructions are for GitHub Copilot Chat/Edits when working in this reposi
 ## PowerShell / Pester conventions
 - Keep tests deterministic and fast; avoid relying on external services unless explicitly an integration test.
 - When adding tests, follow the existing Pester structure and naming.
+- Before adding Pester tests, consider if the behavior can be verified in C# unit tests first.
 
 ## Running locally
 - For running Pester integration tests locally successfully it is necessary to run `.\bootstrap.ps1` from the repo root, it sets up the required data in Azurite, and calls code generators.

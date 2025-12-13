@@ -36,6 +36,24 @@ namespace ExplainPowershell.SyntaxAnalyzer.Tests
                 CommandName = "about_Scopes",
                 DocumentationLink = "https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Scopes"
             });
+
+            repository.AddHelpEntity(new HelpEntity
+            {
+                CommandName = "about_Return",
+                DocumentationLink = "https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Return"
+            });
+
+            repository.AddHelpEntity(new HelpEntity
+            {
+                CommandName = "about_Throw",
+                DocumentationLink = "https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Throw"
+            });
+
+            repository.AddHelpEntity(new HelpEntity
+            {
+                CommandName = "about_language_keywords",
+                DocumentationLink = "https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_language_keywords"
+            });
         }
     }
 }
