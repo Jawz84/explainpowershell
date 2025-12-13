@@ -1,17 +1,17 @@
 # Explain PowerShell
 
-PowerShell version of [explainshell.com](explainshell.com)
+PowerShell version of [explainshell.com](https://explainshell.com)
 
 On ExplainShell.com, you can enter a Linux terminal oneliner, and the site will analyze it, and return snippets from the proper man-pages, in an effort to explain the oneliner. 
 I have created a similar thing but for PowerShell here:
 
 https://www.explainpowershell.com
 
-If you'd like a tour of this repo, open the repo in VSCode (from here with the '.' key), and install the [CodeTour](vsls-contrib.codetour) extension. In the Explorer View, you will now see CodeTour all the way at the bottom left. There currently are four code tours available:
-- High level tour of the application
-- Tour of development container
-- Tour of the Azure bootstrapper
-- Tour of the help collector
+If you'd like a tour of this repo, open the repo in VS Code (from here with the '.' key), and install the [CodeTour](https://marketplace.visualstudio.com/items?itemName=vsls-contrib.codetour) extension. In the Explorer View, you will now see CodeTour all the way at the bottom left. There currently are four code tours available:
+- [High level tour of the application](.tours/high-level-tour-of-the-application.tour)
+- [Tour of the AI explanation feature](.tours/tour-of-the-ai-explanation-feature.tour)
+- [Tour of the Azure bootstrapper](.tours/tour-of-the-azure-bootstrapper.tour)
+- [Tour of the help collector](.tours/tour-of-the-help-collector.tour)
 
 ## Goal
 
