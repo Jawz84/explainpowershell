@@ -16,15 +16,18 @@
             "type": "PowerShell",
             "request": "launch",
             "script": "${workspaceFolder}/explainpowershell.analysisservice.tests/Start-AllBackendTests.ps1",
+            "args": ["-Output Detailed"],
             "cwd": "${workspaceFolder}",
-            "internalConsoleOptions": "openOnSessionStart"
+            "internalConsoleOptions": "openOnSessionStart",
+            "preLaunchTask": "startstorageemulator"
         },
         {
             "name": "debug functionApp",
             "type": "coreclr",
             "request": "attach",
             "processId": "${command:azureFunctions.pickProcess}",
-            "internalConsoleOptions": "neverOpen"
+            "internalConsoleOptions": "neverOpen",
+            "preLaunchTask": "startstorageemulator"
         },
         {
             "name": "debug wasm",
