@@ -18,7 +18,28 @@ namespace explainpowershell.frontend
         {
             var nodes = new List<TreeItemData<T>>();
 
-            foreach (var item in collection.Where(c => EqualityComparer<K>.Default.Equals(parentIdSelector(c), rootId)))
+            bool IsRoot(T item)
+            {
+                var parentId = parentIdSelector(item);
+
+                // Special-case string keys: treat both null and empty as root.
+                if (typeof(K) == typeof(string))
+                {
+                    var parentString = parentId as string;
+                    var rootString = rootId as string;
+
+                    if (string.IsNullOrEmpty(rootString))
+                    {
+                        return string.IsNullOrEmpty(parentString);
+                    }
+
+                    return string.Equals(parentString, rootString, StringComparison.Ordinal);
+                }
+
+                return EqualityComparer<K>.Default.Equals(parentId, rootId);
+            }
+
+            foreach (var item in collection.Where(IsRoot))
             {
                 var children = collection.GenerateTree(idSelector, parentIdSelector, idSelector(item));
 
