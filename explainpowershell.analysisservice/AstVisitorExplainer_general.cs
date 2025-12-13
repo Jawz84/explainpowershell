@@ -147,7 +147,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitStatementBlock(StatementBlockAst statementBlockAst)
         {
-            if (statementBlockAst.Parent is TryStatementAst &
+            if (statementBlockAst.Parent is TryStatementAst &&
                 // Ugly hack. Finally block is undistinguisable from the Try block, except for textual position.
                 statementBlockAst.Extent.StartColumnNumber > statementBlockAst.Parent.Extent.StartColumnNumber + 5)
             {

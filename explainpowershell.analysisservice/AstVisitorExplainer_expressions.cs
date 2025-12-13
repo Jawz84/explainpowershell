@@ -302,7 +302,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 }
             }
 
-            if (varName == "_" | string.Equals(varName, "PSItem", StringComparison.OrdinalIgnoreCase))
+            if (varName == "_" || string.Equals(varName, "PSItem", StringComparison.OrdinalIgnoreCase))
             {
                 suffix = ", a built-in variable that holds the current element from the objects being passed in from the pipeline.";
                 explanation.CommandName = "Pipeline iterator variable";
@@ -330,7 +330,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 varName = split.LastOrDefault();
                 standard = $"named '{varName}'";
 
-                if (variableExpressionAst.VariablePath.IsGlobal | variableExpressionAst.VariablePath.IsScript)
+                if (variableExpressionAst.VariablePath.IsGlobal || variableExpressionAst.VariablePath.IsScript)
                 {
                     suffix = $" in '{identifier}' scope ";
                     explanation.CommandName = "Scoped variable";
