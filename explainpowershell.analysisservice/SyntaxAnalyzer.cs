@@ -2,7 +2,6 @@ using System.Management.Automation.Language;
 using System.Net;
 using System.Text;
 using explainpowershell.analysisservice;
-using explainpowershell.analysisservice.Services;
 using explainpowershell.models;
 using ExplainPowershell.SyntaxAnalyzer.Repositories;
 using Microsoft.Azure.Functions.Worker;
@@ -15,20 +14,18 @@ namespace ExplainPowershell.SyntaxAnalyzer
     public sealed class SyntaxAnalyzerFunction
     {
         private readonly ILogger<SyntaxAnalyzerFunction> logger;
-        private readonly IAiExplanationService aiExplanationService;
+        private readonly IHelpRepository helpRepository;
 
-        public SyntaxAnalyzerFunction(ILogger<SyntaxAnalyzerFunction> logger, IAiExplanationService aiExplanationService)
+        public SyntaxAnalyzerFunction(ILogger<SyntaxAnalyzerFunction> logger, IHelpRepository helpRepository)
         {
             this.logger = logger;
-            this.aiExplanationService = aiExplanationService;
+            this.helpRepository = helpRepository;
         }
 
         [Function("SyntaxAnalyzer")]
         public async Task<HttpResponseData> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
         {
-            var tableClient = TableClientFactory.Create(Constants.TableStorage.HelpDataTableName);
-            var helpRepository = new TableStorageHelpRepository(tableClient);
             string requestBody;
             using (var reader = new StreamReader(req.Body))
             {
@@ -68,7 +65,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
             AnalysisResult analysisResult;
             try
             {
-                var visitor = new AstVisitorExplainer(ast.Extent.Text, helpRepository, logger, tokens);
+                var visitor = new AstVisitorExplainer(ast.Extent.Text, helpRepository: helpRepository, logger, tokens);
                 ast.Visit(visitor);
                 analysisResult = visitor.GetAnalysisResult();
             }
