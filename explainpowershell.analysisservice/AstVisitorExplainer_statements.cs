@@ -232,8 +232,48 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitSwitchStatement(SwitchStatementAst switchStatementAst)
         {
-            // TODO: add switch statement explanation
-            AstExplainer(switchStatementAst);
+            var flags = switchStatementAst.Flags;
+
+            var flagText = flags == SwitchFlags.None
+                ? string.Empty
+                : $" using flags: {flags}.";
+
+            var inputText = string.IsNullOrEmpty(switchStatementAst.Condition?.Extent?.Text)
+                ? ""
+                : $" over '{switchStatementAst.Condition.Extent.Text}'";
+
+            var helpResult = HelpTableQuery("about_Switch")
+                ?? new HelpEntity
+                {
+                    DocumentationLink = "https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Switch"
+                };
+
+            if (string.IsNullOrEmpty(helpResult.DocumentationLink))
+            {
+                helpResult.DocumentationLink = "https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Switch";
+            }
+
+            var languageKeywordsLink = (HelpTableQuery("about_language_keywords")?.DocumentationLink
+                ?? "https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_language_keywords") + "#switch";
+
+            if (string.IsNullOrEmpty(helpResult.RelatedLinks))
+            {
+                helpResult.RelatedLinks = languageKeywordsLink;
+            }
+            else if (!helpResult.RelatedLinks.Contains(languageKeywordsLink, StringComparison.OrdinalIgnoreCase))
+            {
+                helpResult.RelatedLinks += ", " + languageKeywordsLink;
+            }
+
+            explanations.Add(
+                new Explanation()
+                {
+                    CommandName = "switch statement",
+                    HelpResult = helpResult,
+                    Description = $"Evaluates input{inputText} and runs the first matching clause.{flagText}",
+                    TextToHighlight = "switch"
+                }.AddDefaults(switchStatementAst, explanations));
+
             return base.VisitSwitchStatement(switchStatementAst);
         }
 

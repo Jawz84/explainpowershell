@@ -61,6 +61,10 @@ namespace ExplainPowershell.SyntaxAnalyzer.Tests
                 DocumentationLink = "https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Trap"
             });
 
+            repository.AddHelpEntity(new HelpEntity
+            {
+                CommandName = "about_Switch",
+                DocumentationLink = "https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Switch"
             });
         }
     }

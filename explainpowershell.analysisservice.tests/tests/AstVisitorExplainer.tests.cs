@@ -143,5 +143,29 @@ namespace ExplainPowershell.SyntaxAnalyzer.Tests
             Assert.That(explanation.HelpResult?.DocumentationLink, Does.Contain("about_Trap"));
             Assert.That(explanation.Description, Does.Contain("trap handler"));
         }
+
+        [Test]
+        public void ShouldGenerateHelpForSwitchStatement()
+        {
+            ScriptBlock.Create("switch ($x) { 1 { 'one' } default { 'other' } }").Ast.Visit(explainer);
+            AnalysisResult res = explainer.GetAnalysisResult();
+
+            var explanation = res.Explanations.SingleOrDefault(e => e.TextToHighlight == "switch");
+
+            Assert.That(explanation, Is.Not.Null);
+            Assert.That(explanation.CommandName, Is.EqualTo("switch statement"));
+            Assert.That(explanation.HelpResult?.DocumentationLink, Does.Contain("about_Switch"));
+            Assert.That(explanation.HelpResult?.RelatedLinks, Does.Contain("about_language_keywords").And.Contain("#switch"));
+        }
+
+        [Test]
+        public void AnalysisResult_HasRootExplanation_WithNullParentId()
+        {
+            ScriptBlock.Create("Get-Process").Ast.Visit(explainer);
+            AnalysisResult res = explainer.GetAnalysisResult();
+
+            Assert.That(res.Explanations, Is.Not.Empty);
+            Assert.That(res.Explanations.Any(e => e.ParentId == null), Is.True);
+        }
     }
 }
