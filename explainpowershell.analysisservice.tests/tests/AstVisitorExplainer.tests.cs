@@ -129,5 +129,19 @@ namespace ExplainPowershell.SyntaxAnalyzer.Tests
             Assert.That(explanation.HelpResult?.DocumentationLink, Does.Contain("about_Throw"));
             Assert.That(explanation.HelpResult?.RelatedLinks, Does.Contain("about_language_keywords").And.Contain("#throw"));
         }
+
+        [Test]
+        public void ShouldGenerateHelpForTrapStatement()
+        {
+            ScriptBlock.Create("trap { continue }").Ast.Visit(explainer);
+            AnalysisResult res = explainer.GetAnalysisResult();
+
+            var explanation = res.Explanations.SingleOrDefault(e => e.TextToHighlight == "trap");
+
+            Assert.That(explanation, Is.Not.Null);
+            Assert.That(explanation.CommandName, Is.EqualTo("trap statement"));
+            Assert.That(explanation.HelpResult?.DocumentationLink, Does.Contain("about_Trap"));
+            Assert.That(explanation.Description, Does.Contain("trap handler"));
+        }
     }
 }

@@ -43,6 +43,15 @@ Describe "Invoke-SyntaxAnalyzer" {
         }
     }
 
+    It "Explains trap statement" {
+        $explanations = Invoke-SyntaxAnalyzer -PowershellCode "trap { continue }" -Explanations
+        $trapExplanation = $explanations | Where-Object { $_.TextToHighlight -eq 'trap' } | Select-Object -First 1
+
+        $trapExplanation | Should -Not -BeNullOrEmpty
+        $trapExplanation.CommandName | Should -Be 'trap statement'
+        $trapExplanation.HelpResult.DocumentationLink | Should -Match 'about_Trap'
+    }
+
     It "Should display correct help for assigment operators" {
         $code = '$D=[Datetime]::Now'
         [BasicHtmlWebResponseObject]$result = Invoke-SyntaxAnalyzer -PowerShellCode $code

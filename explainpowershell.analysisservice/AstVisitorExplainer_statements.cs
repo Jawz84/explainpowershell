@@ -280,8 +280,29 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitTrap(TrapStatementAst trapStatementAst)
         {
-            // TODO: add trap explanation
-            AstExplainer(trapStatementAst);
+            var trapTypeText = trapStatementAst.TrapType == null
+                ? "any error"
+                : $"errors of type '{trapStatementAst.TrapType.TypeName.Name}'";
+
+            var helpResult = HelpTableQuery("about_trap")
+                ?? new HelpEntity
+                {
+                    DocumentationLink = "https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Trap"
+                };
+
+            if (string.IsNullOrEmpty(helpResult.DocumentationLink))
+            {
+                helpResult.DocumentationLink = "https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Trap";
+            }
+
+            explanations.Add(new Explanation()
+            {
+                CommandName = "trap statement",
+                HelpResult = helpResult,
+                Description = $"Defines a trap handler that runs when {trapTypeText} occurs in the current scope.",
+                TextToHighlight = "trap"
+            }.AddDefaults(trapStatementAst, explanations));
+
             return base.VisitTrap(trapStatementAst);
         }
 

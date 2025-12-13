@@ -54,6 +54,12 @@ namespace ExplainPowershell.SyntaxAnalyzer.Tests
                 CommandName = "about_language_keywords",
                 DocumentationLink = "https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_language_keywords"
             });
+
+            repository.AddHelpEntity(new HelpEntity
+            {
+                CommandName = "about_trap",
+                DocumentationLink = "https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Trap"
+            });
         }
     }
 }
