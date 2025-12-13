@@ -191,8 +191,42 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitReturnStatement(ReturnStatementAst returnStatementAst)
         {
-            // TODO: add return statement explanation
-            AstExplainer(returnStatementAst);
+            var returnedValue = string.IsNullOrEmpty(returnStatementAst.Pipeline?.Extent?.Text)
+                ? string.Empty
+                : $" returning '{returnStatementAst.Pipeline.Extent.Text}'.";
+
+            var helpResult = HelpTableQuery("about_Return")
+                ?? new HelpEntity
+                {
+                    DocumentationLink = "https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Return"
+                };
+
+            if (string.IsNullOrEmpty(helpResult.DocumentationLink))
+            {
+                helpResult.DocumentationLink = "https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Return";
+            }
+
+            var languageKeywordsLink = (HelpTableQuery("about_language_keywords")?.DocumentationLink
+                ?? "https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_language_keywords") + "#return";
+
+            if (string.IsNullOrEmpty(helpResult.RelatedLinks))
+            {
+                helpResult.RelatedLinks = languageKeywordsLink;
+            }
+            else if (!helpResult.RelatedLinks.Contains(languageKeywordsLink, StringComparison.OrdinalIgnoreCase))
+            {
+                helpResult.RelatedLinks += ", " + languageKeywordsLink;
+            }
+
+            explanations.Add(
+                new Explanation()
+                {
+                    CommandName = "return statement",
+                    HelpResult = helpResult,
+                    Description = $"Returns from the current scope{returnedValue}",
+                    TextToHighlight = "return"
+                }.AddDefaults(returnStatementAst, explanations));
+
             return base.VisitReturnStatement(returnStatementAst);
         }
 
@@ -205,8 +239,42 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitThrowStatement(ThrowStatementAst throwStatementAst)
         {
-            // TODO: add throw statement explanation
-            AstExplainer(throwStatementAst);
+            var thrownValue = string.IsNullOrEmpty(throwStatementAst.Pipeline?.Extent?.Text)
+                ? string.Empty
+                : $" with value '{throwStatementAst.Pipeline.Extent.Text}'.";
+
+            var helpResult = HelpTableQuery("about_Throw")
+                ?? new HelpEntity
+                {
+                    DocumentationLink = "https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Throw"
+                };
+
+            if (string.IsNullOrEmpty(helpResult.DocumentationLink))
+            {
+                helpResult.DocumentationLink = "https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Throw";
+            }
+
+            var languageKeywordsLink = (HelpTableQuery("about_language_keywords")?.DocumentationLink
+                ?? "https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_language_keywords") + "#throw";
+
+            if (string.IsNullOrEmpty(helpResult.RelatedLinks))
+            {
+                helpResult.RelatedLinks = languageKeywordsLink;
+            }
+            else if (!helpResult.RelatedLinks.Contains(languageKeywordsLink, StringComparison.OrdinalIgnoreCase))
+            {
+                helpResult.RelatedLinks += ", " + languageKeywordsLink;
+            }
+
+            explanations.Add(
+                new Explanation()
+                {
+                    CommandName = "throw statement",
+                    HelpResult = helpResult,
+                    Description = $"Throws a terminating error (exception){thrownValue}",
+                    TextToHighlight = "throw"
+                }.AddDefaults(throwStatementAst, explanations));
+
             return base.VisitThrowStatement(throwStatementAst);
         }
 
