@@ -1,3 +1,5 @@
+[![Deploy app to Azure](https://github.com/Jawz84/explainpowershell/actions/workflows/deploy_app.yml/badge.svg)](https://github.com/Jawz84/explainpowershell/actions/workflows/deploy_app.yml)
+
 # Explain PowerShell
 
 PowerShell version of [explainshell.com](https://explainshell.com)
