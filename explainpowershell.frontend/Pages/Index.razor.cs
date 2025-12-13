@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Threading;
 
 using explainpowershell.models;
 using System.Linq;
@@ -29,6 +30,10 @@ namespace explainpowershell.frontend.Pages
         private List<TreeItemData<Explanation>> TreeItems { get; set; } = new();
         private bool ShouldShrinkTitle { get; set; } = false;
         private bool HasNoExplanations => TreeItems.Count == 0;
+
+        private long _activeSearchId;
+        private CancellationTokenSource _aiExplanationCts;
+        private bool _disposed;
         private string InputValue {
             get {
                 return _inputValue;
@@ -56,6 +61,20 @@ namespace explainpowershell.frontend.Pages
             return DoSearch();
         }
 
+        public void Dispose()
+        {
+            _disposed = true;
+            try
+            {
+                _aiExplanationCts?.Cancel();
+                _aiExplanationCts?.Dispose();
+            }
+            catch
+            {
+                // Best effort cleanup.
+            }
+        }
+
         private void ToggleSyntaxPopoverIsOpen(string id)
         {
             SyntaxPopoverIsOpen[id] = !SyntaxPopoverIsOpen[id];
@@ -75,6 +94,14 @@ namespace explainpowershell.frontend.Pages
 
         private async Task DoSearch()
         {
+            // New search: cancel any in-flight AI request and advance request id.
+            Interlocked.Increment(ref _activeSearchId);
+            _aiExplanationCts?.Cancel();
+            _aiExplanationCts?.Dispose();
+            _aiExplanationCts = new CancellationTokenSource();
+            var searchId = _activeSearchId;
+            var aiCancellationToken = _aiExplanationCts.Token;
+
             HideExpandedCode = true;
             Waiting = false;
             RequestHasError = false;
@@ -139,13 +166,19 @@ namespace explainpowershell.frontend.Pages
             AiExplanation = null; // Will be loaded separately
 
             // Start fetching AI explanation in background
-            _ = LoadAiExplanationAsync(code, analysisResult);
+            _ = LoadAiExplanationAsync(code, analysisResult, searchId, aiCancellationToken);
         }
 
-        private async Task LoadAiExplanationAsync(Code code, AnalysisResult analysisResult)
+        private async Task LoadAiExplanationAsync(Code code, AnalysisResult analysisResult, long searchId, CancellationToken cancellationToken)
         {
+            // Ignore stale requests.
+            if (searchId != _activeSearchId || _disposed)
+            {
+                return;
+            }
+
             AiExplanationLoading = true;
-            StateHasChanged();
+            await InvokeAsync(StateHasChanged);
 
             try
             {
@@ -155,11 +188,16 @@ namespace explainpowershell.frontend.Pages
                     AnalysisResult = analysisResult
                 };
 
-                var response = await Http.PostAsJsonAsync("AiExplanation", aiRequest);
+                var response = await Http.PostAsJsonAsync("AiExplanation", aiRequest, cancellationToken);
+
+                if (searchId != _activeSearchId || _disposed)
+                {
+                    return;
+                }
 
                 if (response.IsSuccessStatusCode)
                 {
-                    var aiResult = await JsonSerializer.DeserializeAsync<AiExplanationResponse>(response.Content.ReadAsStream());
+                    var aiResult = await JsonSerializer.DeserializeAsync<AiExplanationResponse>(response.Content.ReadAsStream(), cancellationToken: cancellationToken);
                     AiExplanation = aiResult?.AiExplanation ?? string.Empty;
                     AiModelName = aiResult?.ModelName ?? string.Empty;
                 }
@@ -169,6 +207,10 @@ namespace explainpowershell.frontend.Pages
                     AiExplanation = string.Empty;
                     AiModelName = string.Empty;
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                // Expected when a newer search cancels the in-flight AI request.
             }
             catch (Exception ex)
             {
@@ -180,8 +222,11 @@ namespace explainpowershell.frontend.Pages
             }
             finally
             {
-                AiExplanationLoading = false;
-                StateHasChanged();
+                if (searchId == _activeSearchId && !_disposed)
+                {
+                    AiExplanationLoading = false;
+                    await InvokeAsync(StateHasChanged);
+                }
             }
         }
 
