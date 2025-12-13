@@ -2,8 +2,8 @@
     "version": "0.2.0",
     "compounds": [
         {
-            "name": "debug solution",
-            "configurations": ["debug functionApp", "debug wasm"],
+            "name": "Debug solution",
+            "configurations": ["Debug functionApp", "Debug wasm"],
             "outFiles": [
                 "./explainpowershell.analysisservice/SyntaxAnalyzer.cs",
                 "./explainpowershell.frontend/Pages/Index.razor"
@@ -12,25 +12,15 @@
     ],
     "configurations": [
         {
-            "name": "Test functionApp",
-            "type": "PowerShell",
-            "request": "launch",
-            "script": "${workspaceFolder}/explainpowershell.analysisservice.tests/Start-AllTests.ps1",
-            "args": ["-Output Detailed"],
-            "cwd": "${workspaceFolder}",
-            "internalConsoleOptions": "openOnSessionStart",
-            "preLaunchTask": "startstorageemulator"
-        },
-        {
-            "name": "debug functionApp",
+            "name": "Debug functionApp",
             "type": "coreclr",
             "request": "attach",
             "processId": "${command:azureFunctions.pickProcess}",
             "internalConsoleOptions": "neverOpen",
-            "preLaunchTask": "startstorageemulator"
+            "preLaunchTask": "func: host start"
         },
         {
-            "name": "debug wasm",
+            "name": "Debug wasm",
             "type": "blazorwasm",
             "request": "launch",
             "cwd": "${workspaceFolder}/explainpowershell.frontend/",
@@ -43,5 +33,15 @@
             "script": "${file}",
             "cwd": "${file}"
         },
+        {
+            "name": "Test solution",
+            "type": "PowerShell",
+            "request": "launch",
+            "script": "${workspaceFolder}/explainpowershell.analysisservice.tests/Start-AllTests.ps1",
+            "args": ["-Output Detailed"],
+            "cwd": "${workspaceFolder}",
+            "internalConsoleOptions": "openOnSessionStart",
+            "preLaunchTask": "startstorageemulator"
+        }
     ]
 }

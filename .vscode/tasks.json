@@ -58,6 +58,7 @@
 			"problemMatcher": "$msCompile"
 		},
 		{
+			"label": "func: host start",
 			"type": "func",
 			"options": {
 				"cwd": "${workspaceFolder}/explainpowershell.analysisservice/"
