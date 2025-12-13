@@ -4,6 +4,7 @@ Describe "AI Explanation Integration Tests" {
     
     BeforeAll {
         . $PSScriptRoot/Invoke-SyntaxAnalyzer.ps1
+        . $PSScriptRoot/Invoke-AiExplanation.ps1
         . $PSScriptRoot/Start-FunctionApp.ps1
         . $PSScriptRoot/Test-IsAzuriteUp.ps1
         
@@ -70,9 +71,7 @@ Describe "AI Explanation Integration Tests" {
 
         It "Should accept valid analysis result" {
             # Arrange
-            $requestBody = @{
-                PowershellCode = "Get-Process"
-                AnalysisResult = @{
+            $analysisResult = @{
                     ExpandedCode = "Get-Process"
                     ParseErrorMessage = ""
                     Explanations = @(
@@ -91,16 +90,10 @@ Describe "AI Explanation Integration Tests" {
                     DetectedModules = @(
                         @{ ModuleName = "Microsoft.PowerShell.Management" }
                     )
-                }
-            } | ConvertTo-Json -Depth 10
+            }
 
             # Act & Assert - Should not throw
-            $response = Invoke-WebRequest `
-                -Uri "http://localhost:7071/api/aiexplanation" `
-                -Method Post `
-                -Body $requestBody `
-                -ContentType "application/json" `
-                -ErrorAction Stop
+            $response = Invoke-AiExplanation -PowershellCode "Get-Process" -AnalysisResult $analysisResult
 
             $response.StatusCode | Should -Be 200
             $content = $response.Content | ConvertFrom-Json
@@ -131,22 +124,14 @@ Describe "AI Explanation Integration Tests" {
 
         It "Should handle empty explanations list" {
             # Arrange
-            $requestBody = @{
-                PowershellCode = "Get-Process"
-                AnalysisResult = @{
+            $analysisResult = @{
                     ExpandedCode = "Get-Process"
                     Explanations = @()
                     DetectedModules = @()
-                }
-            } | ConvertTo-Json -Depth 10
+            }
 
             # Act
-            $response = Invoke-WebRequest `
-                -Uri "http://localhost:7071/api/aiexplanation" `
-                -Method Post `
-                -Body $requestBody `
-                -ContentType "application/json" `
-                -ErrorAction Stop
+            $response = Invoke-AiExplanation -PowershellCode "Get-Process" -AnalysisResult $analysisResult
 
             # Assert
             $response.StatusCode | Should -Be 200
@@ -169,26 +154,24 @@ Describe "AI Explanation Integration Tests" {
                 }
             }
 
+            $code = "Get-Process | Where-Object Name -Like 'chrome*'"
+            $analysisResult = @{
+                ExpandedCode = $code
+                Explanations = $explanations
+                DetectedModules = @(
+                    @{ ModuleName = "Microsoft.PowerShell.Management" }
+                )
+            }
+
             $requestBody = @{
-                PowershellCode = "Get-Process | Where-Object Name -Like 'chrome*'"
-                AnalysisResult = @{
-                    ExpandedCode = "Get-Process | Where-Object Name -Like 'chrome*'"
-                    Explanations = $explanations
-                    DetectedModules = @(
-                        @{ ModuleName = "Microsoft.PowerShell.Management" }
-                    )
-                }
+                PowershellCode = $code
+                AnalysisResult  = $analysisResult
             } | ConvertTo-Json -Depth 10
 
             Write-Host "Payload size: $($requestBody.Length) bytes"
 
             # Act - Should handle payload reduction gracefully
-            $response = Invoke-WebRequest `
-                -Uri "http://localhost:7071/api/aiexplanation" `
-                -Method Post `
-                -Body $requestBody `
-                -ContentType "application/json" `
-                -ErrorAction Stop
+            $response = Invoke-AiExplanation -PowershellCode $code -AnalysisResult $analysisResult
 
             # Assert
             $response.StatusCode | Should -Be 200
@@ -198,9 +181,7 @@ Describe "AI Explanation Integration Tests" {
 
         It "Should return model name in response" {
             # Arrange
-            $requestBody = @{
-                PowershellCode = "gps"
-                AnalysisResult = @{
+            $analysisResult = @{
                     ExpandedCode = "Get-Process"
                     Explanations = @(
                         @{
@@ -209,16 +190,10 @@ Describe "AI Explanation Integration Tests" {
                             Description = "Gets processes"
                         }
                     )
-                }
-            } | ConvertTo-Json -Depth 10
+            }
 
             # Act
-            $response = Invoke-WebRequest `
-                -Uri "http://localhost:7071/api/aiexplanation" `
-                -Method Post `
-                -Body $requestBody `
-                -ContentType "application/json" `
-                -ErrorAction Stop
+            $response = Invoke-AiExplanation -PowershellCode "gps" -AnalysisResult $analysisResult
 
             # Assert
             $content = $response.Content | ConvertFrom-Json
@@ -302,17 +277,7 @@ Describe "AI Explanation Integration Tests" {
             $analysisResult = $analysisResponse.Content | ConvertFrom-Json
 
             # Act - Then request AI explanation
-            $aiRequestBody = @{
-                PowershellCode = $code
-                AnalysisResult = $analysisResult
-            } | ConvertTo-Json -Depth 10
-
-            $aiResponse = Invoke-WebRequest `
-                -Uri "http://localhost:7071/api/aiexplanation" `
-                -Method Post `
-                -Body $aiRequestBody `
-                -ContentType "application/json" `
-                -ErrorAction Stop
+            $aiResponse = Invoke-AiExplanation -PowershellCode $code -AnalysisResult $analysisResult
 
             # Assert
             $aiResponse.StatusCode | Should -Be 200
