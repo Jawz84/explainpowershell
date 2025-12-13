@@ -24,12 +24,38 @@ namespace ExplainPowershell.SyntaxAnalyzer
         private readonly IHelpRepository helpRepository;
         private readonly ILogger log;
         private readonly Token[]? tokens;
+        private readonly Dictionary<string, int> unhandledAstTypeCounts = new(StringComparer.OrdinalIgnoreCase);
 
         public AnalysisResult GetAnalysisResult()
         {
             var modules = new List<Module>();
 
             ExplainSemiColons();
+
+            if (unhandledAstTypeCounts.Count > 0)
+            {
+                var totalUnhandled = unhandledAstTypeCounts.Values.Sum();
+                var ordered = unhandledAstTypeCounts
+                    .OrderByDescending(kvp => kvp.Value)
+                    .ThenBy(kvp => kvp.Key)
+                    .ToList();
+
+                const int maxTypesToLog = 10;
+                var topTypes = string.Join(", ",
+                    ordered
+                        .Take(maxTypesToLog)
+                        .Select(kvp => $"{kvp.Key}({kvp.Value})"));
+
+                var extraTypes = ordered.Count > maxTypesToLog
+                    ? $" (+{ordered.Count - maxTypesToLog} more types)"
+                    : string.Empty;
+
+                log.LogInformation(
+                    "Unhandled AST nodes encountered: {UnhandledCount}. Types: {UnhandledTypes}{ExtraTypes}",
+                    totalUnhandled,
+                    topTypes,
+                    extraTypes);
+            }
 
             foreach (var exp in explanations)
             {
@@ -146,7 +172,8 @@ namespace ExplainPowershell.SyntaxAnalyzer
                     CommandName = splitAstType
                 }.AddDefaults(ast, explanations));
 
-            log.LogWarning($"Unhandled ast: {splitAstType}");
+            unhandledAstTypeCounts.TryGetValue(splitAstType, out var current);
+            unhandledAstTypeCounts[splitAstType] = current + 1;
         }
 
         public static List<string> GetApprovedVerbs()
