@@ -60,13 +60,13 @@ End-to-end integration tests covering:
 ### All Tests
 ```powershell
 cd explainpowershell.analysisservice.tests
-.\Start-AllBackendTests.ps1 -Output Detailed
+.\Start-AllTests.ps1 -Output Detailed
 ```
 
 ### Unit Tests Only (C#)
 ```powershell
 cd explainpowershell.analysisservice.tests
-.\Start-AllBackendTests.ps1 -SkipIntegrationTests -Output Detailed
+.\Start-AllTests.ps1 -SkipIntegrationTests -Output Detailed
 ```
 
 Or using dotnet CLI:
@@ -77,7 +77,7 @@ dotnet test --verbosity normal
 ### Integration Tests Only (Pester)
 ```powershell
 cd explainpowershell.analysisservice.tests
-.\Start-AllBackendTests.ps1 -SkipUnitTests -Output Detailed
+.\Start-AllTests.ps1 -SkipUnitTests -Output Detailed
 ```
 
 Or using Pester directly:

@@ -27,16 +27,16 @@ $script:originalAiDeploymentName = $env:AiExplanation__DeploymentName
 
 try {
     if (-not $EnableAiCalls) {
-        $env:AiExplanation__Enabled = 'false'
+        $env:AiExplanation__Enabled = $false
         $env:AiExplanation__Endpoint = ''
         $env:AiExplanation__ApiKey = ''
         $env:AiExplanation__DeploymentName = ''
     }
 
-# Run all code generators
-Get-ChildItem -Path $PSScriptRoot/../explainpowershell.analysisservice/ -Recurse -Filter *_code_generator.ps1 | ForEach-Object { & $_.FullName }
+    # Run all code generators
+    Get-ChildItem -Path $PSScriptRoot/../explainpowershell.analysisservice/ -Recurse -Filter *_code_generator.ps1 | ForEach-Object { & $_.FullName }
 
-Push-Location -Path $PSScriptRoot/
+    Push-Location -Path $PSScriptRoot/
     if (-not $SkipIntegrationTests) {
         # Integration Tests
         Write-Host -ForegroundColor Cyan "`n####`n#### Starting Integration tests`n"
@@ -51,13 +51,14 @@ Push-Location -Path $PSScriptRoot/
         # Unit Tests
         Write-Host -ForegroundColor Cyan "`n####`n#### Starting Unit tests`n"
         Write-Host -ForegroundColor Green "Building tests.."
+        Set-Location $PSScriptRoot/..
         # we want the verbosity for the build step to be quiet
         dotnet build --verbosity quiet --nologo 
         Write-Host -ForegroundColor Green "Running tests.."
         # for the test step we want to be able to adjust the verbosity
         dotnet test --no-build --nologo --verbosity $Output 
     }
-Pop-Location
+    Pop-Location
 
 }
 finally {

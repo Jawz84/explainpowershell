@@ -100,8 +100,7 @@
 		{
 			"label": "startstorageemulator",
 			"command": "${command:azurite.start}",
-			"isBackground": true,
-			"problemMatcher": []
+			"isBackground": true
 		}
 	]	
 }

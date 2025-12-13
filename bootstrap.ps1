@@ -154,6 +154,6 @@ foreach ($module in $modulesToProcess) {
 }
 
 Write-Host -ForegroundColor Green 'Running tests to see if everything works'
-& $PSScriptRoot/explainpowershell.analysisservice.tests/Start-AllBackendTests.ps1 -Output Detailed
+& $PSScriptRoot/explainpowershell.analysisservice.tests/Start-AllTests.ps1 -Output Detailed
 
 Write-Host -ForegroundColor Green "Done. You now have the functions 'Get-HelpDatabaseData', 'Invoke-SyntaxAnalyzer' and 'Get-MetaData' available for ease of testing."
