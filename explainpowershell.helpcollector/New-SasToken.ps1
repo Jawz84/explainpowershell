@@ -9,7 +9,7 @@ function New-SasToken {
     $sasSplat = @{
         Service = 'Table'
         ResourceType = 'Service', 'Container', 'Object'
-        Permission = 'racwdlup' # https://docs.microsoft.com/en-us/powershell/module/az.storage/new-azstorageaccountsastoken
+        Permission = 'racwdlup' # https://learn.microsoft.com/en-us/powershell/module/az.storage/new-azstorageaccountsastoken#-permission
         StartTime  = (Get-Date)
         ExpiryTime = (Get-Date).AddMinutes(30)
         Context    = $context

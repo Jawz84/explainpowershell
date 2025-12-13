@@ -198,16 +198,16 @@ namespace ExplainPowershell.SyntaxAnalyzer
             var helpResult = HelpTableQuery("about_Return")
                 ?? new HelpEntity
                 {
-                    DocumentationLink = "https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Return"
+                    DocumentationLink = "https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Return"
                 };
 
             if (string.IsNullOrEmpty(helpResult.DocumentationLink))
             {
-                helpResult.DocumentationLink = "https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Return";
+                helpResult.DocumentationLink = "https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Return";
             }
 
             var languageKeywordsLink = (HelpTableQuery("about_language_keywords")?.DocumentationLink
-                ?? "https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_language_keywords") + "#return";
+                ?? "https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_language_keywords") + "#return";
 
             if (string.IsNullOrEmpty(helpResult.RelatedLinks))
             {
@@ -246,16 +246,16 @@ namespace ExplainPowershell.SyntaxAnalyzer
             var helpResult = HelpTableQuery("about_Throw")
                 ?? new HelpEntity
                 {
-                    DocumentationLink = "https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Throw"
+                    DocumentationLink = "https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Throw"
                 };
 
             if (string.IsNullOrEmpty(helpResult.DocumentationLink))
             {
-                helpResult.DocumentationLink = "https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Throw";
+                helpResult.DocumentationLink = "https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Throw";
             }
 
             var languageKeywordsLink = (HelpTableQuery("about_language_keywords")?.DocumentationLink
-                ?? "https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_language_keywords") + "#throw";
+                ?? "https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_language_keywords") + "#throw";
 
             if (string.IsNullOrEmpty(helpResult.RelatedLinks))
             {
@@ -287,12 +287,12 @@ namespace ExplainPowershell.SyntaxAnalyzer
             var helpResult = HelpTableQuery("about_trap")
                 ?? new HelpEntity
                 {
-                    DocumentationLink = "https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Trap"
+                    DocumentationLink = "https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Trap"
                 };
 
             if (string.IsNullOrEmpty(helpResult.DocumentationLink))
             {
-                helpResult.DocumentationLink = "https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Trap";
+                helpResult.DocumentationLink = "https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Trap";
             }
 
             explanations.Add(new Explanation()

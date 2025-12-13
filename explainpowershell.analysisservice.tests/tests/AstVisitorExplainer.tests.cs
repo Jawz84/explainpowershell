@@ -62,7 +62,7 @@ namespace ExplainPowershell.SyntaxAnalyzer.Tests
                 "A variable named 'var', with the 'using' scope modifier: a local variable used in a remote scope.",
                 res.Explanations[1].Description);
             Assert.AreEqual(
-                "https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Remote_Variables",
+                "https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Remote_Variables",
                 res.Explanations[1].HelpResult?.DocumentationLink);
             Assert.AreEqual(
                 "Scoped variable",
@@ -83,7 +83,7 @@ namespace ExplainPowershell.SyntaxAnalyzer.Tests
                 res.Explanations[0].Description);
 
             Assert.AreEqual(
-                "https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Foreach",
+                "https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Foreach",
                 res.Explanations[0].HelpResult?.DocumentationLink);
         }
 
@@ -98,7 +98,7 @@ namespace ExplainPowershell.SyntaxAnalyzer.Tests
                 res.Explanations[0].Description);
 
             Assert.AreEqual(
-                "https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_For",
+                "https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_For",
                 res.Explanations[0].HelpResult?.DocumentationLink);
         }
 

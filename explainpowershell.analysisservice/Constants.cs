@@ -36,7 +36,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
         /// </summary>
         public static class Documentation
         {
-            public const string MicrosoftDocsBase = "https://docs.microsoft.com/en-us/powershell/scripting/lang-spec";
+            public const string MicrosoftDocsBase = "https://learn.microsoft.com/en-us/powershell/scripting/lang-spec";
             public const string Chapter04TypeSystem = MicrosoftDocsBase + "/chapter-04";
             public const string Chapter04GenericTypes = Chapter04TypeSystem + "#44-generic-types";
             public const string Chapter08PipelineStatements = MicrosoftDocsBase + "/chapter-08#82-pipeline-statements";

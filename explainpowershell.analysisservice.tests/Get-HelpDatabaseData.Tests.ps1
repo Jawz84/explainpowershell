@@ -8,7 +8,7 @@ Describe 'Get-HelpDatabaseData' {
         $data = Get-HelpDatabaseData -RowKey 'about_pwsh'
 
         $data.Properties.CommandName | Should -BeExactly 'about_Pwsh'
-        $data.Properties.DocumentationLink | Should -Match 'https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Pwsh'
+        $data.Properties.DocumentationLink | Should -Match 'https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Pwsh'
         $data.Properties.ModuleName | Should -BeNullOrEmpty
         $data.Properties.Synopsis | Should -BeExactly 'Explains how to use the pwsh command-line interface. Displays the command-line parameters and describes the syntax.'
     }
