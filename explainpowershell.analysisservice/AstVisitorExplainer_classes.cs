@@ -94,12 +94,12 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
                 var howManyParameters = functionMemberAst.Parameters.Count == 0 ? string.Empty : $"has {functionMemberAst.Parameters.Count} parameters and ";
 
-                description = $"A constructor, a special method, used to set things up within the object. Constructors have the same name as the class. This constructor {howManyParameters}is called when [{(functionMemberAst.Parent as TypeDefinitionAst).Name}]::new({parameterSignature}) is used.";
-                helpResult.DocumentationLink += "#constructor";
+                description = $"A constructor, a special method, used to set things up within the object. Constructors have the same name as the class. This constructor {howManyParameters}is called when [{(functionMemberAst.Parent as TypeDefinitionAst)?.Name ?? "Unknown"}]::new({parameterSignature}) is used.";
+                helpResult?.DocumentationLink += "#constructor";
             }
             else
             {
-                helpResult.DocumentationLink += "#class-methods";
+                helpResult?.DocumentationLink += "#class-methods";
                 var modifier = "M";
                 modifier = functionMemberAst.IsHidden ? "A hidden m" : modifier;
                 modifier = functionMemberAst.IsStatic ? "A static m" : modifier;
@@ -119,23 +119,27 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitPropertyMember(PropertyMemberAst propertyMemberAst)
         {
-            HelpEntity helpResult = null;
+            HelpEntity? helpResult = null;
             var description = "";
 
-            if ((propertyMemberAst.Parent as TypeDefinitionAst).IsClass)
+            var parentType = propertyMemberAst.Parent as TypeDefinitionAst;
+            if (parentType?.IsClass == true)
             {
                 var attributes = propertyMemberAst.Attributes.Count >= 0 ?
                     $", with attributes '{string.Join(", ", propertyMemberAst.Attributes.Select(p => p.TypeName.Name))}'." :
                     ".";
                 description = $"Property '{propertyMemberAst.Name}' of type '{propertyMemberAst.PropertyType.TypeName.FullName}'{attributes}";
-                helpResult = HelpTableQuery("about_classes");
-                helpResult.DocumentationLink += "#class-properties";
+                helpResult = HelpTableQuery(Constants.AboutTopics.AboutClasses);
+                if (helpResult != null)
+                {
+                    helpResult.DocumentationLink += "#class-properties";
+                }
             }
 
-            if ((propertyMemberAst.Parent as TypeDefinitionAst).IsEnum)
+            if (parentType?.IsEnum == true)
             {
                 description = $"Enum label '{propertyMemberAst.Name}', with value '{propertyMemberAst.InitialValue}'.";
-                helpResult = HelpTableQuery("about_enum");
+                helpResult = HelpTableQuery(Constants.AboutTopics.AboutEnum);
             }
 
             explanations.Add(new Explanation()

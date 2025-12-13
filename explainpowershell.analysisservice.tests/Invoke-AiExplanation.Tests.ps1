@@ -3,15 +3,25 @@ using namespace Microsoft.PowerShell.Commands
 Describe "AI Explanation Integration Tests" {
     
     BeforeAll {
-        . $PSScriptRoot/Invoke-SyntaxAnalyzer.ps1
-        . $PSScriptRoot/Start-FunctionApp.ps1
-        . $PSScriptRoot/Test-IsAzuriteUp.ps1
-        
         # Save original AI config to restore later
         $script:originalAiEnabled = $env:AiExplanation__Enabled
         $script:originalAiEndpoint = $env:AiExplanation__Endpoint
         $script:originalAiApiKey = $env:AiExplanation__ApiKey
         $script:originalAiDeploymentName = $env:AiExplanation__DeploymentName
+
+        # IMPORTANT: AI enabled/configured state is read at Functions host startup.
+        # Keep tests deterministic and fast by disabling outbound AI calls.
+        $env:AiExplanation__Enabled = 'false'
+        $env:AiExplanation__Endpoint = ''
+        $env:AiExplanation__ApiKey = ''
+        $env:AiExplanation__DeploymentName = ''
+
+        . $PSScriptRoot/Invoke-SyntaxAnalyzer.ps1
+        . $PSScriptRoot/Invoke-AiExplanation.ps1
+        . $PSScriptRoot/Start-FunctionApp.ps1
+        . $PSScriptRoot/Test-IsAzuriteUp.ps1
+
+        $script:baseUri = 'http://127.0.0.1:7071/api'
     }
 
     AfterAll {
@@ -32,14 +42,12 @@ Describe "AI Explanation Integration Tests" {
 
     Context "AiExplanation Function Endpoint" {
         
-        It "Should return 200 OK when AI is disabled" -Skip {
-            # Note: Skipped because AI enabled state is determined at function app startup.
+        It "Should return 200 OK when AI is disabled" -Skip:($env:AiExplanation__Enabled -ne 'false') {
+            # Note: you should skip this test if AI is not disabled, because AI enabled state is determined at function app startup.
             # Changing environment variables at runtime doesn't reload the DI container.
             # To test AI disabled behavior, restart function app with AiExplanation__Enabled=false
             
             # Arrange
-            $env:AiExplanation__Enabled = "false"
-            Start-Sleep -Milliseconds 500 # Give function app time to reload config
             
             $requestBody = @{
                 PowershellCode = "Get-Process"
@@ -56,7 +64,7 @@ Describe "AI Explanation Integration Tests" {
 
             # Act
             $response = Invoke-WebRequest `
-                -Uri "http://localhost:7071/api/aiexplanation" `
+                -Uri "$script:baseUri/aiexplanation" `
                 -Method Post `
                 -Body $requestBody `
                 -ContentType "application/json" `
@@ -70,9 +78,7 @@ Describe "AI Explanation Integration Tests" {
 
         It "Should accept valid analysis result" {
             # Arrange
-            $requestBody = @{
-                PowershellCode = "Get-Process"
-                AnalysisResult = @{
+            $analysisResult = @{
                     ExpandedCode = "Get-Process"
                     ParseErrorMessage = ""
                     Explanations = @(
@@ -91,16 +97,10 @@ Describe "AI Explanation Integration Tests" {
                     DetectedModules = @(
                         @{ ModuleName = "Microsoft.PowerShell.Management" }
                     )
-                }
-            } | ConvertTo-Json -Depth 10
+            }
 
             # Act & Assert - Should not throw
-            $response = Invoke-WebRequest `
-                -Uri "http://localhost:7071/api/aiexplanation" `
-                -Method Post `
-                -Body $requestBody `
-                -ContentType "application/json" `
-                -ErrorAction Stop
+            $response = Invoke-AiExplanation -PowershellCode "Get-Process" -AnalysisResult $analysisResult -BaseUri $script:baseUri
 
             $response.StatusCode | Should -Be 200
             $content = $response.Content | ConvertFrom-Json
@@ -121,7 +121,7 @@ Describe "AI Explanation Integration Tests" {
             # Act & Assert - Should return 400 BadRequest for validation error
             {
                 Invoke-WebRequest `
-                    -Uri "http://localhost:7071/api/aiexplanation" `
+                    -Uri "$script:baseUri/aiexplanation" `
                     -Method Post `
                     -Body $requestBody `
                     -ContentType "application/json" `
@@ -131,22 +131,14 @@ Describe "AI Explanation Integration Tests" {
 
         It "Should handle empty explanations list" {
             # Arrange
-            $requestBody = @{
-                PowershellCode = "Get-Process"
-                AnalysisResult = @{
+            $analysisResult = @{
                     ExpandedCode = "Get-Process"
                     Explanations = @()
                     DetectedModules = @()
-                }
-            } | ConvertTo-Json -Depth 10
+            }
 
             # Act
-            $response = Invoke-WebRequest `
-                -Uri "http://localhost:7071/api/aiexplanation" `
-                -Method Post `
-                -Body $requestBody `
-                -ContentType "application/json" `
-                -ErrorAction Stop
+            $response = Invoke-AiExplanation -PowershellCode "Get-Process" -AnalysisResult $analysisResult -BaseUri $script:baseUri
 
             # Assert
             $response.StatusCode | Should -Be 200
@@ -169,26 +161,24 @@ Describe "AI Explanation Integration Tests" {
                 }
             }
 
+            $code = "Get-Process | Where-Object Name -Like 'chrome*'"
+            $analysisResult = @{
+                ExpandedCode = $code
+                Explanations = $explanations
+                DetectedModules = @(
+                    @{ ModuleName = "Microsoft.PowerShell.Management" }
+                )
+            }
+
             $requestBody = @{
-                PowershellCode = "Get-Process | Where-Object Name -Like 'chrome*'"
-                AnalysisResult = @{
-                    ExpandedCode = "Get-Process | Where-Object Name -Like 'chrome*'"
-                    Explanations = $explanations
-                    DetectedModules = @(
-                        @{ ModuleName = "Microsoft.PowerShell.Management" }
-                    )
-                }
+                PowershellCode = $code
+                AnalysisResult  = $analysisResult
             } | ConvertTo-Json -Depth 10
 
             Write-Host "Payload size: $($requestBody.Length) bytes"
 
             # Act - Should handle payload reduction gracefully
-            $response = Invoke-WebRequest `
-                -Uri "http://localhost:7071/api/aiexplanation" `
-                -Method Post `
-                -Body $requestBody `
-                -ContentType "application/json" `
-                -ErrorAction Stop
+            $response = Invoke-AiExplanation -PowershellCode $code -AnalysisResult $analysisResult -BaseUri $script:baseUri
 
             # Assert
             $response.StatusCode | Should -Be 200
@@ -198,9 +188,7 @@ Describe "AI Explanation Integration Tests" {
 
         It "Should return model name in response" {
             # Arrange
-            $requestBody = @{
-                PowershellCode = "gps"
-                AnalysisResult = @{
+            $analysisResult = @{
                     ExpandedCode = "Get-Process"
                     Explanations = @(
                         @{
@@ -209,51 +197,16 @@ Describe "AI Explanation Integration Tests" {
                             Description = "Gets processes"
                         }
                     )
-                }
-            } | ConvertTo-Json -Depth 10
+            }
 
             # Act
-            $response = Invoke-WebRequest `
-                -Uri "http://localhost:7071/api/aiexplanation" `
-                -Method Post `
-                -Body $requestBody `
-                -ContentType "application/json" `
-                -ErrorAction Stop
+            $response = Invoke-AiExplanation -PowershellCode "gps" -AnalysisResult $analysisResult -BaseUri $script:baseUri
 
             # Assert
             $content = $response.Content | ConvertFrom-Json
             
             # ModelName should be present (may be empty if AI disabled, but property should exist)
             $content.PSObject.Properties.Name | Should -Contain 'ModelName'
-        }
-    }
-
-    Context "Configuration Validation" {
-        
-        It "Should respect MaxPayloadCharacters configuration" {
-            # This is implicitly tested by the large payload test
-            # The service should reduce payload size when it exceeds configured limit
-            $true | Should -Be $true
-        }
-
-        It "Should use configured system prompt" {
-            # Arrange - Set custom system prompt
-            $customPrompt = "You are a test assistant for PowerShell."
-            $env:AiExplanation__SystemPrompt = $customPrompt
-            Start-Sleep -Milliseconds 500
-
-            # Note: We can't directly verify the prompt is used without AI credentials
-            # This test validates the configuration is accepted
-            $env:AiExplanation__SystemPrompt | Should -Be $customPrompt
-        }
-
-        It "Should use configured timeout" {
-            # Arrange
-            $env:AiExplanation__RequestTimeoutSeconds = "5"
-            Start-Sleep -Milliseconds 500
-
-            # Verify configuration is set
-            $env:AiExplanation__RequestTimeoutSeconds | Should -Be "5"
         }
     }
 
@@ -266,7 +219,7 @@ Describe "AI Explanation Integration Tests" {
             # Act & Assert
             {
                 Invoke-WebRequest `
-                    -Uri "http://localhost:7071/api/aiexplanation" `
+                    -Uri "$script:baseUri/aiexplanation" `
                     -Method Post `
                     -Body $badJson `
                     -ContentType "application/json" `
@@ -284,7 +237,7 @@ Describe "AI Explanation Integration Tests" {
             # Act & Assert - Should return 400 BadRequest for validation error
             {
                 Invoke-WebRequest `
-                    -Uri "http://localhost:7071/api/aiexplanation" `
+                    -Uri "$script:baseUri/aiexplanation" `
                     -Method Post `
                     -Body $requestBody `
                     -ContentType "application/json" `
@@ -298,21 +251,11 @@ Describe "AI Explanation Integration Tests" {
         It "Should work in complete analysis workflow" {
             # Arrange - First get regular analysis
             $code = 'Get-Process | Where-Object CPU -gt 100'
-            [BasicHtmlWebResponseObject]$analysisResponse = Invoke-SyntaxAnalyzer -PowerShellCode $code
+            [BasicHtmlWebResponseObject]$analysisResponse = Invoke-SyntaxAnalyzer -PowerShellCode $code -BaseUri $script:baseUri
             $analysisResult = $analysisResponse.Content | ConvertFrom-Json
 
             # Act - Then request AI explanation
-            $aiRequestBody = @{
-                PowershellCode = $code
-                AnalysisResult = $analysisResult
-            } | ConvertTo-Json -Depth 10
-
-            $aiResponse = Invoke-WebRequest `
-                -Uri "http://localhost:7071/api/aiexplanation" `
-                -Method Post `
-                -Body $aiRequestBody `
-                -ContentType "application/json" `
-                -ErrorAction Stop
+            $aiResponse = Invoke-AiExplanation -PowershellCode $code -AnalysisResult $analysisResult -BaseUri $script:baseUri
 
             # Assert
             $aiResponse.StatusCode | Should -Be 200

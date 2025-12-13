@@ -3,11 +3,11 @@ function Get-MetaData {
         [switch] $Refresh
     )
 
-    $uri = 'http://localhost:7071/api/MetaData'
+    $uri = 'http://127.0.0.1:7071/api/MetaData'
 
     if ( $Refresh ) {
         $uri += '?refresh=true'
     }
-
+    
     Invoke-RestMethod -Uri $uri
 }

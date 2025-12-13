@@ -8,7 +8,7 @@
 				"isDefault": true
 			},
 			"type": "shell",
-			"command": "Invoke-Pester -Configuration (New-PesterConfiguration -Hashtable @{ Run = @{ Path = './explainpowershell.analysisservice.tests' }; Output = @{ Verbosity = 'Detailed' } })",
+			"command": "$env:AiExplanation__Enabled='false'; $env:AiExplanation__Endpoint=''; $env:AiExplanation__ApiKey=''; $env:AiExplanation__DeploymentName=''; Invoke-Pester -Configuration (New-PesterConfiguration -Hashtable @{ Run = @{ Path = './explainpowershell.analysisservice.tests' }; Output = @{ Verbosity = 'Detailed' } })",
 			"presentation": {
 				"echo": true,
 				"reveal": "always",
@@ -58,6 +58,7 @@
 			"problemMatcher": "$msCompile"
 		},
 		{
+			"label": "func: host start",
 			"type": "func",
 			"options": {
 				"cwd": "${workspaceFolder}/explainpowershell.analysisservice/"
@@ -100,8 +101,7 @@
 		{
 			"label": "startstorageemulator",
 			"command": "${command:azurite.start}",
-			"isBackground": true,
-			"problemMatcher": []
+			"isBackground": true
 		}
 	]	
 }

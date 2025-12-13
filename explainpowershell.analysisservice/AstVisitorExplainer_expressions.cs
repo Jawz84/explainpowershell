@@ -12,7 +12,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
          public override AstVisitAction VisitArrayExpression(ArrayExpressionAst arrayExpressionAst)
         {
             var helpResult = HelpTableQuery("about_arrays");
-            helpResult.DocumentationLink += "#the-array-sub-expression-operator";
+            helpResult?.DocumentationLink += "#the-array-sub-expression-operator";
 
             explanations.Add(
                 new Explanation()
@@ -209,21 +209,21 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 typeExpressionAst.Parent is CommandExpressionAst ||
                 typeExpressionAst.Parent is AssignmentStatementAst)
             {
-                HelpEntity help = null;
+                HelpEntity? help = null;
                 var description = string.Empty;
 
                 if (typeExpressionAst.TypeName.IsArray)
                 {
                     description = $"Array of '{typeExpressionAst.TypeName.Name}'";
                     help = new HelpEntity() {
-                        DocumentationLink = "https://docs.microsoft.com/en-us/powershell/scripting/lang-spec/chapter-04"
+                        DocumentationLink = Constants.Documentation.Chapter04TypeSystem
                     };
                 }
                 else if (typeExpressionAst.TypeName.IsGeneric)
                 {
                     description = $"Generic type";
                     help = new HelpEntity() {
-                        DocumentationLink = "https://docs.microsoft.com/en-us/powershell/scripting/lang-spec/chapter-04#44-generic-types"
+                        DocumentationLink = Constants.Documentation.Chapter04GenericTypes
                     };
                 }
 
@@ -302,7 +302,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 }
             }
 
-            if (varName == "_" | string.Equals(varName, "PSItem", StringComparison.OrdinalIgnoreCase))
+            if (varName == "_" || string.Equals(varName, "PSItem", StringComparison.OrdinalIgnoreCase))
             {
                 suffix = ", a built-in variable that holds the current element from the objects being passed in from the pipeline.";
                 explanation.CommandName = "Pipeline iterator variable";
@@ -330,7 +330,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 varName = split.LastOrDefault();
                 standard = $"named '{varName}'";
 
-                if (variableExpressionAst.VariablePath.IsGlobal | variableExpressionAst.VariablePath.IsScript)
+                if (variableExpressionAst.VariablePath.IsGlobal || variableExpressionAst.VariablePath.IsScript)
                 {
                     suffix = $" in '{identifier}' scope ";
                     explanation.CommandName = "Scoped variable";
@@ -361,7 +361,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 suffix = ", with the 'using' scope modifier: a local variable used in a remote scope.";
                 explanation.HelpResult = HelpTableQuery("about_Remote_Variables");
                 explanation.CommandName = "Scoped variable";
-                explanation.HelpResult.RelatedLinks += HelpTableQuery("about_Scopes")?.DocumentationLink;
+                explanation.HelpResult?.RelatedLinks += HelpTableQuery("about_Scopes")?.DocumentationLink;
             }
 
             explanation.Description = $"A{prefix}variable {standard}{suffix}";
@@ -374,7 +374,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
         public override AstVisitAction VisitTernaryExpression(TernaryExpressionAst ternaryExpressionAst)
         {
             var helpResult = HelpTableQuery("about_if");
-            helpResult.DocumentationLink += "#using-the-ternary-operator-syntax";
+            helpResult?.DocumentationLink += "#using-the-ternary-operator-syntax";
 
             explanations.Add(new Explanation()
             {

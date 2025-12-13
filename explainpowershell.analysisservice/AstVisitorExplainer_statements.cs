@@ -136,7 +136,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 $", with an exit code of '{exitStatementAst.Pipeline.Extent.Text}'.";
 
             var helpResult = HelpTableQuery("about_language_keywords");
-            helpResult.DocumentationLink += "#exit";
+            helpResult?.DocumentationLink += "#exit";
 
             explanations.Add(
                 new Explanation()
@@ -191,29 +191,158 @@ namespace ExplainPowershell.SyntaxAnalyzer
 
         public override AstVisitAction VisitReturnStatement(ReturnStatementAst returnStatementAst)
         {
-            // TODO: add return statement explanation
-            AstExplainer(returnStatementAst);
+            var returnedValue = string.IsNullOrEmpty(returnStatementAst.Pipeline?.Extent?.Text)
+                ? string.Empty
+                : $" returning '{returnStatementAst.Pipeline.Extent.Text}'.";
+
+            var helpResult = HelpTableQuery("about_Return")
+                ?? new HelpEntity
+                {
+                    DocumentationLink = "https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Return"
+                };
+
+            if (string.IsNullOrEmpty(helpResult.DocumentationLink))
+            {
+                helpResult.DocumentationLink = "https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Return";
+            }
+
+            var languageKeywordsLink = (HelpTableQuery("about_language_keywords")?.DocumentationLink
+                ?? "https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_language_keywords") + "#return";
+
+            if (string.IsNullOrEmpty(helpResult.RelatedLinks))
+            {
+                helpResult.RelatedLinks = languageKeywordsLink;
+            }
+            else if (!helpResult.RelatedLinks.Contains(languageKeywordsLink, StringComparison.OrdinalIgnoreCase))
+            {
+                helpResult.RelatedLinks += ", " + languageKeywordsLink;
+            }
+
+            explanations.Add(
+                new Explanation()
+                {
+                    CommandName = "return statement",
+                    HelpResult = helpResult,
+                    Description = $"Returns from the current scope{returnedValue}",
+                    TextToHighlight = "return"
+                }.AddDefaults(returnStatementAst, explanations));
+
             return base.VisitReturnStatement(returnStatementAst);
         }
 
         public override AstVisitAction VisitSwitchStatement(SwitchStatementAst switchStatementAst)
         {
-            // TODO: add switch statement explanation
-            AstExplainer(switchStatementAst);
+            var flags = switchStatementAst.Flags;
+
+            var flagText = flags == SwitchFlags.None
+                ? string.Empty
+                : $" using flags: {flags}.";
+
+            var inputText = string.IsNullOrEmpty(switchStatementAst.Condition?.Extent?.Text)
+                ? ""
+                : $" over '{switchStatementAst.Condition.Extent.Text}'";
+
+            var helpResult = HelpTableQuery("about_Switch")
+                ?? new HelpEntity
+                {
+                    DocumentationLink = "https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Switch"
+                };
+
+            if (string.IsNullOrEmpty(helpResult.DocumentationLink))
+            {
+                helpResult.DocumentationLink = "https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Switch";
+            }
+
+            var languageKeywordsLink = (HelpTableQuery("about_language_keywords")?.DocumentationLink
+                ?? "https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_language_keywords") + "#switch";
+
+            if (string.IsNullOrEmpty(helpResult.RelatedLinks))
+            {
+                helpResult.RelatedLinks = languageKeywordsLink;
+            }
+            else if (!helpResult.RelatedLinks.Contains(languageKeywordsLink, StringComparison.OrdinalIgnoreCase))
+            {
+                helpResult.RelatedLinks += ", " + languageKeywordsLink;
+            }
+
+            explanations.Add(
+                new Explanation()
+                {
+                    CommandName = "switch statement",
+                    HelpResult = helpResult,
+                    Description = $"Evaluates input{inputText} and runs the first matching clause.{flagText}",
+                    TextToHighlight = "switch"
+                }.AddDefaults(switchStatementAst, explanations));
+
             return base.VisitSwitchStatement(switchStatementAst);
         }
 
         public override AstVisitAction VisitThrowStatement(ThrowStatementAst throwStatementAst)
         {
-            // TODO: add throw statement explanation
-            AstExplainer(throwStatementAst);
+            var thrownValue = string.IsNullOrEmpty(throwStatementAst.Pipeline?.Extent?.Text)
+                ? string.Empty
+                : $" with value '{throwStatementAst.Pipeline.Extent.Text}'.";
+
+            var helpResult = HelpTableQuery("about_Throw")
+                ?? new HelpEntity
+                {
+                    DocumentationLink = "https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Throw"
+                };
+
+            if (string.IsNullOrEmpty(helpResult.DocumentationLink))
+            {
+                helpResult.DocumentationLink = "https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Throw";
+            }
+
+            var languageKeywordsLink = (HelpTableQuery("about_language_keywords")?.DocumentationLink
+                ?? "https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_language_keywords") + "#throw";
+
+            if (string.IsNullOrEmpty(helpResult.RelatedLinks))
+            {
+                helpResult.RelatedLinks = languageKeywordsLink;
+            }
+            else if (!helpResult.RelatedLinks.Contains(languageKeywordsLink, StringComparison.OrdinalIgnoreCase))
+            {
+                helpResult.RelatedLinks += ", " + languageKeywordsLink;
+            }
+
+            explanations.Add(
+                new Explanation()
+                {
+                    CommandName = "throw statement",
+                    HelpResult = helpResult,
+                    Description = $"Throws a terminating error (exception){thrownValue}",
+                    TextToHighlight = "throw"
+                }.AddDefaults(throwStatementAst, explanations));
+
             return base.VisitThrowStatement(throwStatementAst);
         }
 
         public override AstVisitAction VisitTrap(TrapStatementAst trapStatementAst)
         {
-            // TODO: add trap explanation
-            AstExplainer(trapStatementAst);
+            var trapTypeText = trapStatementAst.TrapType == null
+                ? "any error"
+                : $"errors of type '{trapStatementAst.TrapType.TypeName.Name}'";
+
+            var helpResult = HelpTableQuery("about_trap")
+                ?? new HelpEntity
+                {
+                    DocumentationLink = "https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Trap"
+                };
+
+            if (string.IsNullOrEmpty(helpResult.DocumentationLink))
+            {
+                helpResult.DocumentationLink = "https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Trap";
+            }
+
+            explanations.Add(new Explanation()
+            {
+                CommandName = "trap statement",
+                HelpResult = helpResult,
+                Description = $"Defines a trap handler that runs when {trapTypeText} occurs in the current scope.",
+                TextToHighlight = "trap"
+            }.AddDefaults(trapStatementAst, explanations));
+
             return base.VisitTrap(trapStatementAst);
         }
 

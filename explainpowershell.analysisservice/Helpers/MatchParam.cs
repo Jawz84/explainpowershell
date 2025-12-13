@@ -10,9 +10,9 @@ namespace ExplainPowershell.SyntaxAnalyzer
 {
     public static partial class Helpers
     {
-        public static ParameterData MatchParam(string foundParameter, string json)
+        public static ParameterData? MatchParam(string foundParameter, string json)
         {
-            List<ParameterData> doc;
+            List<ParameterData>? doc;
             List<ParameterData> matchedParam = new();
 
             try {
@@ -31,11 +31,11 @@ namespace ExplainPowershell.SyntaxAnalyzer
             if (!string.Equals(foundParameter, "none", StringComparison.OrdinalIgnoreCase))
             {
                 matchedParam = doc.Where(
-                    p => p.Aliases.Split(", ")
+                    p => (p.Aliases?.Split(", ")
                         .All(
                             q => q.StartsWith(
                                 foundParameter,
-                                StringComparison.InvariantCultureIgnoreCase))).ToList();
+                                StringComparison.InvariantCultureIgnoreCase))) ?? false).ToList();
             }
 
             if (matchedParam.Count == 0)
@@ -43,14 +43,14 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 // If no aliases match, then try partial parameter names for static params (aliases and static params take precedence)
                 matchedParam = doc.Where(
                     p => ! (p.IsDynamic ?? false) && 
-                        p.Name.StartsWith(foundParameter, StringComparison.OrdinalIgnoreCase)).ToList();
+                        (p.Name?.StartsWith(foundParameter, StringComparison.OrdinalIgnoreCase) ?? false)).ToList();
             }
 
             if (matchedParam.Count == 0)
             {
                 // If no aliases or static params match, then try partial parameter names for dynamic params too.
                 matchedParam = doc.Where(
-                    p => p.Name.StartsWith(foundParameter, StringComparison.OrdinalIgnoreCase)).ToList();
+                    p => p.Name?.StartsWith(foundParameter, StringComparison.OrdinalIgnoreCase) ?? false).ToList();
             }
 
             if (matchedParam.Count == 0)

@@ -1,14 +1,11 @@
 {
   "recommendations": [
+    "azurite.azurite",
     "ms-azuretools.vscode-azurefunctions",
-    "ms-dotnettools.csharp",
-    "ms-vscode.powershell",
-    "ms-dotnettools.vscode-dotnet-runtime",
     "ms-dotnettools.blazorwasm-companion",
-    "vsls-contrib.codetour",
-    "derivitec-ltd.vscode-dotnet-adapter",
-    "ms-vscode.test-adapter-converter",
-    "hbenl.vscode-test-explorer",
-    "azurite.azurite"
+    "ms-dotnettools.csharp",
+    "ms-dotnettools.vscode-dotnet-runtime",
+    "ms-vscode.powershell",
+    "vsls-contrib.codetour"
   ]
 }

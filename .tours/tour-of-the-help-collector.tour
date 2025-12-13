@@ -9,13 +9,18 @@
     },
     {
       "file": ".github/workflows/add_module_help.yml",
-      "description": "A little bit above here, the requested module is installed on the GitHub action runner and here, the `helpcollector.ps1` script is run. This script will get all the relevant help information from the module.  \n\nThe output is saved to json, and a check is done to see if there actually is any data in the file. ",
-      "line": 46
+      "description": "If the module is not installed on the machine running this pipeline, try to install it.",
+      "line": 25
+    },
+    {
+      "file": ".github/workflows/add_module_help.yml",
+      "description": "After the module is installed, the `helpcollector.ps1` script is run. This script will get all the relevant help information from the module.  \n\nThe output is saved to json, and a check is done to see if there actually is any data in the file. ",
+      "line": 39
     },
     {
       "file": ".github/workflows/add_module_help.yml",
       "description": "Here the `helpwriter.ps1` script is started, and is given the path to the cached json output from the previous step. This basically writes the information to an Azure Storage Table.\n\nThe steps below are just to notify the requester of the module if everything succeeded or not. We will have a look over at the scripts now, to see what they do.",
-      "line": 68
+      "line": 74
     },
     {
       "file": "explainpowershell.helpcollector/helpcollector.ps1",
@@ -24,8 +29,8 @@
     },
     {
       "file": "explainpowershell.helpcollector/helpwriter.ps1",
-      "description": "We store the help data in an Azure Storage Table. These are tables with two very important columns: `PartitionKey` and `RowKey`. Data from a Table like this, is retrieved based on these two columns. If a want a certain row, I ask for `(PartitionKey='x' RowKey='y')`, if my data is at x, y so to speak. So if we store data, the string that is in the PartitionKey and the RowKey, needs to be unique and easily searchable. That's why we convert the name of the command to lower case. When we search for a command later, we can convert that commandname to lower too, and be sure we always find the right command, even when the user MIsTyped-ThecOmmand. ",
-      "line": 48
+      "description": "We store the help data in an Azure Storage Table. These are tables with two very important columns: `PartitionKey` and `RowKey`. Data from a Table like this, is retrieved based on these two columns. If we want a certain row, we ask for `(PartitionKey='x' RowKey='y')`, if our data is at x, y so to speak. So if we store data, the string that is in the PartitionKey and the RowKey, needs to be unique and easily searchable. That's why we convert the name of the command to lower case. When we search for a command later, we can convert that commandname to lower too, and be sure we always find the right command, even when the user MIsTyped-ThecOmmand. ",
+      "line": 117
     },
     {
       "file": "explainpowershell.helpcollector/BulkHelpCollector.ps1",

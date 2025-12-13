@@ -6,8 +6,6 @@ using System.Management.Automation;
 using System.Management.Automation.Language;
 using System.Text.Json;
 using System.Threading.Tasks;
-
-using Azure.Data.Tables;
 using explainpowershell.models;
 using NUnit.Framework;
 
@@ -21,13 +19,15 @@ namespace ExplainPowershell.SyntaxAnalyzer.Tests
         public void Setup()
         {
             var mockILogger = new LoggerDouble<LogEntry>();
-            var tableClient = new TableClient(
-                "AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;DefaultEndpointsProtocol=http;BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;QueueEndpoint=http://127.0.0.1:10001/devstoreaccount1;TableEndpoint=http://127.0.0.1:10002/devstoreaccount1;", 
-                "HelpData");
+
+            // Unit tests should not depend on Azurite/Table Storage. Seed only the help topics
+            // required by these assertions.
+            var helpRepository = new InMemoryHelpRepository();
+            TestHelpData.SeedAboutTopics(helpRepository);
 
             explainer = new(
                 extentText: string.Empty,
-                client: tableClient,
+                helpRepository: helpRepository,
                 log: mockILogger,
                 tokens: null);
         }
@@ -62,7 +62,7 @@ namespace ExplainPowershell.SyntaxAnalyzer.Tests
                 "A variable named 'var', with the 'using' scope modifier: a local variable used in a remote scope.",
                 res.Explanations[1].Description);
             Assert.AreEqual(
-                "https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Remote_Variables",
+                "https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Remote_Variables",
                 res.Explanations[1].HelpResult?.DocumentationLink);
             Assert.AreEqual(
                 "Scoped variable",
@@ -83,7 +83,7 @@ namespace ExplainPowershell.SyntaxAnalyzer.Tests
                 res.Explanations[0].Description);
 
             Assert.AreEqual(
-                "https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Foreach",
+                "https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_Foreach",
                 res.Explanations[0].HelpResult?.DocumentationLink);
         }
 
@@ -98,8 +98,74 @@ namespace ExplainPowershell.SyntaxAnalyzer.Tests
                 res.Explanations[0].Description);
 
             Assert.AreEqual(
-                "https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_For",
+                "https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_For",
                 res.Explanations[0].HelpResult?.DocumentationLink);
+        }
+
+        [Test]
+        public void ShouldGenerateHelpForReturnStatement()
+        {
+            ScriptBlock.Create("return 42").Ast.Visit(explainer);
+            AnalysisResult res = explainer.GetAnalysisResult();
+
+            var explanation = res.Explanations.SingleOrDefault(e => e.TextToHighlight == "return");
+
+            Assert.That(explanation, Is.Not.Null);
+            Assert.That(explanation.CommandName, Is.EqualTo("return statement"));
+            Assert.That(explanation.HelpResult?.DocumentationLink, Does.Contain("about_Return"));
+            Assert.That(explanation.HelpResult?.RelatedLinks, Does.Contain("about_language_keywords").And.Contain("#return"));
+        }
+
+        [Test]
+        public void ShouldGenerateHelpForThrowStatement()
+        {
+            ScriptBlock.Create("throw 'boom'").Ast.Visit(explainer);
+            AnalysisResult res = explainer.GetAnalysisResult();
+
+            var explanation = res.Explanations.SingleOrDefault(e => e.TextToHighlight == "throw");
+
+            Assert.That(explanation, Is.Not.Null);
+            Assert.That(explanation.CommandName, Is.EqualTo("throw statement"));
+            Assert.That(explanation.HelpResult?.DocumentationLink, Does.Contain("about_Throw"));
+            Assert.That(explanation.HelpResult?.RelatedLinks, Does.Contain("about_language_keywords").And.Contain("#throw"));
+        }
+
+        [Test]
+        public void ShouldGenerateHelpForTrapStatement()
+        {
+            ScriptBlock.Create("trap { continue }").Ast.Visit(explainer);
+            AnalysisResult res = explainer.GetAnalysisResult();
+
+            var explanation = res.Explanations.SingleOrDefault(e => e.TextToHighlight == "trap");
+
+            Assert.That(explanation, Is.Not.Null);
+            Assert.That(explanation.CommandName, Is.EqualTo("trap statement"));
+            Assert.That(explanation.HelpResult?.DocumentationLink, Does.Contain("about_Trap"));
+            Assert.That(explanation.Description, Does.Contain("trap handler"));
+        }
+
+        [Test]
+        public void ShouldGenerateHelpForSwitchStatement()
+        {
+            ScriptBlock.Create("switch ($x) { 1 { 'one' } default { 'other' } }").Ast.Visit(explainer);
+            AnalysisResult res = explainer.GetAnalysisResult();
+
+            var explanation = res.Explanations.SingleOrDefault(e => e.TextToHighlight == "switch");
+
+            Assert.That(explanation, Is.Not.Null);
+            Assert.That(explanation.CommandName, Is.EqualTo("switch statement"));
+            Assert.That(explanation.HelpResult?.DocumentationLink, Does.Contain("about_Switch"));
+            Assert.That(explanation.HelpResult?.RelatedLinks, Does.Contain("about_language_keywords").And.Contain("#switch"));
+        }
+
+        [Test]
+        public void AnalysisResult_HasRootExplanation_WithNullParentId()
+        {
+            ScriptBlock.Create("Get-Process").Ast.Visit(explainer);
+            AnalysisResult res = explainer.GetAnalysisResult();
+
+            Assert.That(res.Explanations, Is.Not.Empty);
+            Assert.That(res.Explanations.Any(e => e.ParentId == null), Is.True);
         }
     }
 }

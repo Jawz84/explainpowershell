@@ -21,9 +21,9 @@ namespace ExplainPowershell.SyntaxAnalyzer
                     new ParameterSetData()
                     {
                         ParameterSetName = paramSet,
-                        HelpMessage = foundParamSet.GetProperty("HelpMessage").GetString(),
-                        HelpMessageBaseName = foundParamSet.GetProperty("HelpMessageBaseName").GetString(),
-                        HelpMessageResourceId = foundParamSet.GetProperty("HelpMessageResourceId").GetString(),
+                        HelpMessage = foundParamSet.GetProperty("HelpMessage").GetString() ?? string.Empty,
+                        HelpMessageBaseName = foundParamSet.GetProperty("HelpMessageBaseName").GetString() ?? string.Empty,
+                        HelpMessageResourceId = foundParamSet.GetProperty("HelpMessageResourceId").GetString() ?? string.Empty,
                         IsMandatory = foundParamSet.GetProperty("IsMandatory").GetBoolean(),
                         Position = foundParamSet.GetProperty("Position").GetInt32(),
                         ValueFromPipeline = foundParamSet.GetProperty("ValueFromPipeline").GetBoolean(),

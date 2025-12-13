@@ -1,4 +1,8 @@
+using Azure.Data.Tables;
+using explainpowershell.analysisservice;
 using explainpowershell.analysisservice.Services;
+using ExplainPowershell.SyntaxAnalyzer;
+using ExplainPowershell.SyntaxAnalyzer.Repositories;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -24,9 +28,12 @@ var host = new HostBuilder()
     {
         services.AddLogging();
         services.Configure<AiExplanationOptions>(context.Configuration.GetSection(AiExplanationOptions.SectionName));
+
+        services.AddSingleton(sp => TableClientFactory.Create(Constants.TableStorage.HelpDataTableName));
+        services.AddSingleton<IHelpRepository>(sp => new TableStorageHelpRepository(sp.GetRequiredService<TableClient>()));
         
         // Register ChatClient factory
-        services.AddSingleton<ChatClient?>(sp =>
+        services.AddSingleton<ChatClient>(sp =>
         {
             var options = sp.GetRequiredService<IOptions<AiExplanationOptions>>().Value;
             var logger = sp.GetRequiredService<ILogger<Program>>();
@@ -39,7 +46,7 @@ var host = new HostBuilder()
             if (!isConfigured)
             {
                 logger.LogWarning("AI explanation ChatClient not configured. AI features will be disabled.");
-                return null;
+                return null!;
             }
 
             logger.LogInformation(

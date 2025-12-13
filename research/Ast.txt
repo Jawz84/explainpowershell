@@ -211,4 +211,4 @@ Ast
 
 StringConstantType [BareWord, DoubleQuoted, DoubleQuotedHereString, SingleQuoted, SingleQuotedHereString]
 
-TokenKind (https://docs.microsoft.com/en-us/dotnet/api/system.management.automation.language.tokenkind)
+TokenKind (https://learn.microsoft.com/en-us/dotnet/api/system.management.automation.language.tokenkind)

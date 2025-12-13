@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using explainpowershell.frontend.Clients;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -21,6 +22,8 @@ namespace explainpowershell.frontend
             builder.Services.AddScoped(sp => new HttpClient {
                 BaseAddress = new Uri(
                     builder.Configuration.GetValue<string>("BaseAddress"))});
+
+            builder.Services.AddScoped<ISyntaxAnalyzerClient, SyntaxAnalyzerClient>();
 
             builder.Services.AddMudServices();
 

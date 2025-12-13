@@ -1,6 +1,7 @@
 [CmdletBinding()]
 param(
-    [Switch]$Force
+    [Switch]$Force,
+    [Switch]$UpdateProfile
 )
 
 $minPwsh = [Version]'7.4'
@@ -84,17 +85,41 @@ $commandsToAddToProfile = @(
     ". $PSScriptRoot/explainpowershell.analysisservice.tests/Invoke-SyntaxAnalyzer.ps1"
     ". $PSScriptRoot/explainpowershell.analysisservice.tests/Get-HelpDatabaseData.ps1"
     ". $PSScriptRoot/explainpowershell.analysisservice.tests/Get-MetaData.ps1"
+    ". $PSScriptRoot/explainpowershell.analysisservice.tests/Invoke-AiExplanation.ps1"
 )
 
-if ( !(Test-Path -Path $profile.CurrentUserAllHosts) ) {
-    New-Item -Path $profile.CurrentUserAllHosts -Force -ItemType file | Out-Null
+$isInteractive = $null -ne $Host.UI -and $null -ne $Host.UI.RawUI -and -not $env:CI -and -not $env:GITHUB_ACTIONS
+
+$profileNeedsUpdate = $false
+if (Test-Path -Path $profile.CurrentUserAllHosts) {
+    $profileContents = Get-Content -Path $profile.CurrentUserAllHosts
+    if ($null -eq $profileContents -or $profileContents.split("`n") -notcontains $commandsToAddToProfile[0]) {
+        $profileNeedsUpdate = $true
+    }
+}
+else {
+    $profileNeedsUpdate = $true
 }
 
-$profileContents = Get-Content -Path $profile.CurrentUserAllHosts
-if ($null -eq $profileContents -or
-    $profileContents.split("`n") -notcontains $commandsToAddToProfile[0]) {
+$shouldUpdateProfile = $UpdateProfile
+if (-not $shouldUpdateProfile -and $profileNeedsUpdate) {
+    if ($isInteractive) {
+        $answer = Read-Host "Update PowerShell profile '$($profile.CurrentUserAllHosts)' with helper imports? (y/N)"
+        $shouldUpdateProfile = $answer -match '^(y|yes)$'
+    }
+    else {
+        Write-Host "Skipping profile update (non-interactive). Re-run with -UpdateProfile to enable." 
+    }
+}
+
+if ($shouldUpdateProfile -and $profileNeedsUpdate) {
+    if ( !(Test-Path -Path $profile.CurrentUserAllHosts) ) {
+        New-Item -Path $profile.CurrentUserAllHosts -Force -ItemType file | Out-Null
+    }
+
     Write-Host -ForegroundColor Green 'Add settings to PowerShell profile'
     Add-Content -Path $profile.CurrentUserAllHosts -Value $commandsToAddToProfile
+
     # Copy profile contents to VSCode profile too: Microsoft.VSCode_profile.ps1
     Get-Content -Path $profile.CurrentUserAllHosts
     | Set-Content -Path ($profile.CurrentUserAllHosts
@@ -154,6 +179,6 @@ foreach ($module in $modulesToProcess) {
 }
 
 Write-Host -ForegroundColor Green 'Running tests to see if everything works'
-& $PSScriptRoot/explainpowershell.analysisservice.tests/Start-AllBackendTests.ps1 -Output Detailed
+& $PSScriptRoot/explainpowershell.analysisservice.tests/Start-AllTests.ps1 -Output Detailed
 
 Write-Host -ForegroundColor Green "Done. You now have the functions 'Get-HelpDatabaseData', 'Invoke-SyntaxAnalyzer' and 'Get-MetaData' available for ease of testing."

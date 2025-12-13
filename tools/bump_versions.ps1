@@ -1,10 +1,10 @@
-$ErrorActionPreference = 'stop'
-
 [CmdletBinding()]
 param(
     [string]$TargetDotnetVersion
 )
 
+$ErrorActionPreference = 'stop'
+    
 $currentGitBranch = git branch --show-current
 if ($currentGitBranch -eq 'main') {
     throw "You are on 'main' branch, create a new branch first"
@@ -52,6 +52,7 @@ Get-ChildItem -Path "$PSScriptRoot/.." -Filter *.csproj -Recurse -Depth 2 | ForE
     $xml.Save($_.FullName)
 }
 
+Write-Host "Updating Azure Functions settings to runtime ~$($functionsToolsVersion.Major)"
 $vsCodeSettingsFile = "$PSScriptRoot/../.vscode/settings.json"
 if (Test-Path $vsCodeSettingsFile) {
     $settings = Get-Content -Path $vsCodeSettingsFile | ConvertFrom-Json
@@ -60,39 +61,18 @@ if (Test-Path $vsCodeSettingsFile) {
     $settings | ConvertTo-Json -Depth 5 | Out-File -Path $vsCodeSettingsFile -Force
 }
 
+Write-Host "Updating GitHub Actions workflows"
 $deployAppWorkflow = "$PSScriptRoot/../.github/workflows/deploy_app.yml"
 if (Test-Path $deployAppWorkflow) {
-    $ghDeployAction = Get-Content -Path $deployAppWorkflow | ConvertFrom-Yaml
-    foreach ($jobName in 'buildFrontend','buildBackend') {
-        $job = $ghDeployAction.jobs.$jobName
-        if ($null -eq $job) { continue }
-        foreach ($step in $job.steps) {
-            if ($step.with.'dotnet-version') {
-                $step.with.'dotnet-version' = $dotNetShortVersion
-            }
-            if ($step.with.path) {
-                $step.with.path = $step.with.path -replace 'net\d+\.\d+', "net$dotNetShortVersion"
-            }
-        }
-    }
-    $ghDeployAction
-    | ConvertTo-Yaml
+    $ghFlow = Get-Content -Path $deployAppWorkflow 
+    $ghFlow | ForEach-Object { $_ -replace 'dotnet-version: "\d+.0"', "dotnet-version: `"$($dotNetVersion.Major).0`"" }
     | Set-Content -Path $deployAppWorkflow -Force
 }
-
-$deployInfraWorkflow = "$PSScriptRoot/../.github/workflows/deploy_azure_infra.yml"
-if (Test-Path $deployInfraWorkflow) {
-    $ghDeployInfra = Get-Content -Path $deployInfraWorkflow | ConvertFrom-Yaml
-    foreach ($step in $ghDeployInfra.jobs.deploy.steps) {
-        if ($step.run) {
-            $step.run = $step.run -replace 'FUNCTIONS_EXTENSION_VERSION=~\d+', "FUNCTIONS_EXTENSION_VERSION=~$($functionsToolsVersion.Major)"
-        }
-    }
-    $ghDeployInfra
-    | ConvertTo-Yaml
-    | Set-Content -Path $deployInfraWorkflow -Force
+else {
+    Write-Host "No deploy_app.yml workflow found, skipping update."
 }
 
+Write-Host "Updating NuGet package versions to latest stable"
 ## Update packages (mirrors Pester checks: dotnet list package --outdated)
 $outdated = dotnet list "$PSScriptRoot/../explainpowershell.sln" package --outdated
 $outdated += dotnet list "$PSScriptRoot/../explainpowershell.analysisservice.tests/explainpowershell.analysisservice.tests.csproj" package --outdated
@@ -103,7 +83,9 @@ $targetVersions = $outdated | Select-String '^   >' | ForEach-Object {
         PackageName   = $parts[0].Trim('>',' ')
         LatestVersion = [version]$parts[-1]
     }
-}
+} | Sort-Object PackageName -Unique
+
+Write-Host "Found $($targetVersions.Count) packages to update: $($targetVersions.PackageName -join ', ')"
 
 Get-ChildItem -Path "$PSScriptRoot/.." -Filter *.csproj -Recurse -Depth 2 | ForEach-Object {
     $xml = [xml](Get-Content $_.FullName)
@@ -111,6 +93,7 @@ Get-ChildItem -Path "$PSScriptRoot/.." -Filter *.csproj -Recurse -Depth 2 | ForE
         foreach ($package in @($itemGroup.PackageReference)) {
             if ($package.Include -in $targetVersions.PackageName) {
                 $latest = ($targetVersions | Where-Object PackageName -EQ $package.Include).LatestVersion
+                Write-Debug "Updating '$($package.Include)' to version '$latest' in '$($_.FullName)'"
                 if ($latest) {
                     $package.Version = $latest.ToString()
                 }
@@ -120,6 +103,7 @@ Get-ChildItem -Path "$PSScriptRoot/.." -Filter *.csproj -Recurse -Depth 2 | ForE
     $xml.Save($_.FullName)
 }
 
+Write-Host "Restoring and cleaning solution"
 Push-Location $PSScriptRoot/..
 dotnet restore
 dotnet clean --verbosity minimal

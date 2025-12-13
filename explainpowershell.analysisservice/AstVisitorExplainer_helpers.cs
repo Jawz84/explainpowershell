@@ -7,29 +7,55 @@ using System.Text.RegularExpressions;
 
 using explainpowershell.models;
 using explainpowershell.SyntaxAnalyzer.ExtensionMethods;
-using Azure.Data.Tables;
+using ExplainPowershell.SyntaxAnalyzer.Repositories;
 using Microsoft.Extensions.Logging;
 
 namespace ExplainPowershell.SyntaxAnalyzer
 {
     public partial class AstVisitorExplainer : AstVisitor2
     {
-        private const char filterChar = '!';
-        private const char separatorChar = ' ';
-        private const string PartitionKey = "CommandHelp";
+        private const char filterChar = Constants.TableStorage.RangeFilterChar;
+        private const char separatorChar = Constants.TableStorage.CommandModuleSeparator;
+        private const string PartitionKey = Constants.TableStorage.CommandHelpPartitionKey;
         private readonly List<Explanation> explanations = new();
-        private string errorMessage;
+        private string errorMessage = string.Empty;
         private string extent;
         private int offSet = 0;
-        private readonly TableClient tableClient;
+        private readonly IHelpRepository helpRepository;
         private readonly ILogger log;
-        private readonly Token[] tokens;
+        private readonly Token[]? tokens;
+        private readonly Dictionary<string, int> unhandledAstTypeCounts = new(StringComparer.OrdinalIgnoreCase);
 
         public AnalysisResult GetAnalysisResult()
         {
             var modules = new List<Module>();
 
             ExplainSemiColons();
+
+            if (unhandledAstTypeCounts.Count > 0)
+            {
+                var totalUnhandled = unhandledAstTypeCounts.Values.Sum();
+                var ordered = unhandledAstTypeCounts
+                    .OrderByDescending(kvp => kvp.Value)
+                    .ThenBy(kvp => kvp.Key)
+                    .ToList();
+
+                const int maxTypesToLog = 10;
+                var topTypes = string.Join(", ",
+                    ordered
+                        .Take(maxTypesToLog)
+                        .Select(kvp => $"{kvp.Key}({kvp.Value})"));
+
+                var extraTypes = ordered.Count > maxTypesToLog
+                    ? $" (+{ordered.Count - maxTypesToLog} more types)"
+                    : string.Empty;
+
+                log.LogInformation(
+                    "Unhandled AST nodes encountered: {UnhandledCount}. Types: {UnhandledTypes}{ExtraTypes}",
+                    totalUnhandled,
+                    topTypes,
+                    extraTypes);
+            }
 
             foreach (var exp in explanations)
             {
@@ -70,7 +96,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 var (description, _) = Helpers.TokenExplainer(TokenKind.Semi);
                 var help = new HelpEntity
                 {
-                    DocumentationLink = "https://docs.microsoft.com/en-us/powershell/scripting/lang-spec/chapter-08#82-pipeline-statements"
+                    DocumentationLink = Constants.Documentation.Chapter08PipelineStatements
                 };
 
                 explanations.Add(
@@ -84,9 +110,9 @@ namespace ExplainPowershell.SyntaxAnalyzer
             }
         }
 
-        public AstVisitorExplainer(string extentText, TableClient client, ILogger log, Token[] tokens)
+        public AstVisitorExplainer(string extentText, IHelpRepository helpRepository, ILogger log, Token[]? tokens)
         {
-            tableClient = client;
+            this.helpRepository = helpRepository ?? throw new ArgumentNullException(nameof(helpRepository));
             this.log = log;
             extent = extentText;
             this.tokens = tokens;
@@ -100,36 +126,19 @@ namespace ExplainPowershell.SyntaxAnalyzer
             return false;
         }
 
-        private HelpEntity HelpTableQuery(string resolvedCmd)
+        private HelpEntity? HelpTableQuery(string resolvedCmd)
         {
-            string filter = TableServiceClient.CreateQueryFilter($"PartitionKey eq {PartitionKey} and RowKey eq {resolvedCmd.ToLower()}");
-            var entities = tableClient.Query<HelpEntity>(filter: filter);
-            var helpResult = entities.FirstOrDefault();
-            return helpResult;
+            return helpRepository.GetHelpForCommand(resolvedCmd);
         }
 
-        private HelpEntity HelpTableQuery(string resolvedCmd, string moduleName)
+        private HelpEntity? HelpTableQuery(string resolvedCmd, string moduleName)
         {
-            var rowKey = $"{resolvedCmd.ToLower()}{separatorChar}{moduleName.ToLower()}";
-            return HelpTableQuery(rowKey);
+            return helpRepository.GetHelpForCommand(resolvedCmd, moduleName);
         }
 
         private List<HelpEntity> HelpTableQueryRange(string resolvedCmd)
         {
-            if (string.IsNullOrEmpty(resolvedCmd))
-            {
-                return new List<HelpEntity> { new HelpEntity() };
-            }
-
-            // Getting a range from Azure Table storage works based on ascii char filtering. You can match prefixes. I use a space ' ' (char)32 as a divider 
-            // between the name of a command and the name of its module for commands that appear in more than one module. Filtering this way makes sure I 
-            // only match entries with '<myCommandName> <myModuleName>'.
-            // filterChar = (char)33 = '!'.
-            string rowKeyFilter = $"{resolvedCmd.ToLower()}{filterChar}";
-            string filter = TableServiceClient.CreateQueryFilter(
-                $"PartitionKey eq {PartitionKey} and RowKey ge {resolvedCmd.ToLower()} and RowKey lt {rowKeyFilter}");
-            var entities = tableClient.Query<HelpEntity>(filter: filter);
-            return entities.ToList();
+            return helpRepository.GetHelpForCommandRange(resolvedCmd);
         }
 
         private void ExpandAliasesInExtent(CommandAst cmd, string resolvedCmd)
@@ -163,7 +172,8 @@ namespace ExplainPowershell.SyntaxAnalyzer
                     CommandName = splitAstType
                 }.AddDefaults(ast, explanations));
 
-            log.LogWarning($"Unhandled ast: {splitAstType}");
+            unhandledAstTypeCounts.TryGetValue(splitAstType, out var current);
+            unhandledAstTypeCounts[splitAstType] = current + 1;
         }
 
         public static List<string> GetApprovedVerbs()

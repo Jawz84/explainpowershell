@@ -7,7 +7,7 @@ $aboutArticles = Get-Help About_*
 $abouts = $aboutArticles | Where-Object {-not $_.synopsis} 
 
 foreach ($about in $abouts) {
-    $baseUrl = 'https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/'
+    $baseUrl = 'https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/'
     [BasicHtmlWebResponseObject]$result = $null
     try {
         $result = Invoke-WebRequest -Uri ($baseUrl + $about.name) -ErrorAction SilentlyContinue

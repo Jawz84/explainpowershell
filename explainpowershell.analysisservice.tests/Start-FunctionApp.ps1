@@ -32,8 +32,7 @@ if (-not (Test-IsPrerequisitesRunning -ports 7071)) {
         } until ((IsTimedOut -Start $start -TimeOut $timeOut) -or (Test-IsPrerequisitesRunning -ports 7071))
     }
     catch {
-        throw $_
-        Write-Warning "Error: $($_.Message)"
+        throw
     }
 }
 

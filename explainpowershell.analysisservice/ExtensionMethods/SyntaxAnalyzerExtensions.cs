@@ -32,40 +32,42 @@ namespace explainpowershell.SyntaxAnalyzer.ExtensionMethods
             return $"{token.Extent.StartLineNumber}.{token.Extent.StartOffset}.{token.Extent.EndOffset}.{token.Kind}";
         }
 
-        public static string TryFindParentExplanation(Ast ast, List<Explanation> explanations, int level = 0)
+        public static string? TryFindParentExplanation(Ast ast, List<Explanation> explanations, int level = 0)
         {
-            if (explanations.Count == 0 | ast.Parent == null)
+            if (explanations.Count == 0 || ast.Parent == null)
                 return null;
 
             var parentId = ast.Parent.GenerateId();
 
-            if ((!explanations.Any(e => e.Id == parentId)) & level < 100)
+            if ((!explanations.Any(e => e.Id == parentId)) && level < 100)
             {
                 return TryFindParentExplanation(ast.Parent, explanations, ++level);
             }
 
             if (level >= 99)
-                return string.Empty;
+                return null;
 
             return parentId;
         }
 
-        public static string TryFindParentExplanation(Token token, List<Explanation> explanations)
+        public static string? TryFindParentExplanation(Token token, List<Explanation> explanations)
         {
             var start = token.Extent.StartOffset;
             var explanationsBeforeToken = explanations.Where(e => GetEndOffSet(e) <= start);
 
             if (!explanationsBeforeToken.Any())
             {
-                return string.Empty;
+                return null;
             }
 
             var closestNeigbour = explanationsBeforeToken.Max(e => GetEndOffSet(e));
-            return explanationsBeforeToken.FirstOrDefault(t => GetEndOffSet(t) == closestNeigbour).Id;
+            return explanationsBeforeToken.FirstOrDefault(t => GetEndOffSet(t) == closestNeigbour)?.Id;
         }
 
         private static int GetEndOffSet(Explanation e)
         {
+            if (e.Id == null)
+                return -1;
             return int.Parse(e.Id.Split('.')[2]);
         }
     }

@@ -2,32 +2,30 @@ using System.Management.Automation.Language;
 using System.Net;
 using System.Text;
 using explainpowershell.analysisservice;
-using explainpowershell.analysisservice.Services;
 using explainpowershell.models;
+using ExplainPowershell.SyntaxAnalyzer.Repositories;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
+using System.Text.Json;
 
 namespace ExplainPowershell.SyntaxAnalyzer
 {
     public sealed class SyntaxAnalyzerFunction
     {
-        private const string HelpTableName = "HelpData";
         private readonly ILogger<SyntaxAnalyzerFunction> logger;
-        private readonly IAiExplanationService aiExplanationService;
+        private readonly IHelpRepository helpRepository;
 
-        public SyntaxAnalyzerFunction(ILogger<SyntaxAnalyzerFunction> logger, IAiExplanationService aiExplanationService)
+        public SyntaxAnalyzerFunction(ILogger<SyntaxAnalyzerFunction> logger, IHelpRepository helpRepository)
         {
             this.logger = logger;
-            this.aiExplanationService = aiExplanationService;
+            this.helpRepository = helpRepository;
         }
 
         [Function("SyntaxAnalyzer")]
         public async Task<HttpResponseData> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
         {
-            var tableClient = TableClientFactory.Create(HelpTableName);
             string requestBody;
             using (var reader = new StreamReader(req.Body))
             {
@@ -39,9 +37,21 @@ namespace ExplainPowershell.SyntaxAnalyzer
                 return CreateResponse(req, HttpStatusCode.BadRequest, "Empty request. Pass powershell code in the request body for an AST analysis.");
             }
 
-            var code = JsonConvert
-                .DeserializeObject<Code>(requestBody)
-                ?.PowershellCode ?? string.Empty;
+            Code? request;
+            try
+            {
+                request = JsonSerializer.Deserialize<Code>(requestBody, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, "Failed to deserialize SyntaxAnalyzer request");
+                return CreateResponse(req, HttpStatusCode.BadRequest, "Invalid request format. Pass powershell code in the request body for an AST analysis.");
+            }
+
+            var code = request?.PowershellCode ?? string.Empty;
 
             logger.LogInformation("PowerShell code sent: {Code}", code);
 
@@ -55,7 +65,7 @@ namespace ExplainPowershell.SyntaxAnalyzer
             AnalysisResult analysisResult;
             try
             {
-                var visitor = new AstVisitorExplainer(ast.Extent.Text, tableClient, logger, tokens);
+                var visitor = new AstVisitorExplainer(ast.Extent.Text, helpRepository: helpRepository, logger, tokens);
                 ast.Visit(visitor);
                 analysisResult = visitor.GetAnalysisResult();
             }
