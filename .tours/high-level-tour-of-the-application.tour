@@ -10,12 +10,12 @@
     {
       "file": "explainpowershell.analysisservice/SyntaxAnalyzer.cs",
       "description": "This is where the PowerShell oneliner is sent to, the SyntaxAnalyzer endpoint, an Azure FunctionApp. \n\nWe use PowerShell's own parsing engine to parse the oneliner that was sent, the parser creates a so called Abstract Syntax Tree (AST), a logical representation of the oneliner in a convenient tree format that we can then 'walk' in an automated fashion. ",
-      "line": 28
+      "line": 25
     },
     {
       "file": "explainpowershell.analysisservice/SyntaxAnalyzer.cs",
       "description": "The AST is analyzed here, via the AstVisitorExplainer. It basically looks at all the logical elements of the oneliner and generates an explanation for each of them.\n\nWe will have a brief look there as well, to get the basic idea.",
-      "line": 59
+      "line": 68
     },
     {
       "file": "explainpowershell.analysisservice/AstVisitorExplainer_statements.cs",
@@ -35,22 +35,22 @@
     {
       "file": "explainpowershell.analysisservice/AstVisitorExplainer_helpers.cs",
       "description": "Once we are done going through all the elements in the AST, this method gets called, and we return all explanations and a little metadata.",
-      "line": 28
+      "line": 29
     },
     {
       "file": "explainpowershell.analysisservice/SyntaxAnalyzer.cs",
       "description": "if there were any parse errors, we get the message for that here.",
-      "line": 65
+      "line": 79
     },
     {
       "file": "explainpowershell.analysisservice/SyntaxAnalyzer.cs",
       "description": "We send our list of explanations, and any parse error messages back to the frontend.",
-      "line": 69
+      "line": 88
     },
     {
       "file": "explainpowershell.frontend/Pages/Index.razor.cs",
       "description": "This is where we re-create the AST tree a little bit, and generate our own tree, to display everything in a nice tree view, ordered logically. ",
-      "line": 137
+      "line": 152
     },
     {
       "file": "explainpowershell.frontend/Pages/Index.razor",

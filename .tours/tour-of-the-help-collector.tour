@@ -15,7 +15,7 @@
     {
       "file": ".github/workflows/add_module_help.yml",
       "description": "After the module is installed, the `helpcollector.ps1` script is run. This script will get all the relevant help information from the module.  \n\nThe output is saved to json, and a check is done to see if there actually is any data in the file. ",
-      "line": 47
+      "line": 39
     },
     {
       "file": ".github/workflows/add_module_help.yml",

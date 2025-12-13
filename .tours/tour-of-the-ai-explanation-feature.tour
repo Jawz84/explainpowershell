@@ -5,37 +5,37 @@
     {
       "file": "explainpowershell.analysisservice/SyntaxAnalyzer.cs",
       "description": "The AI explanation is intentionally *not* generated during the main AST analysis call.\n\nThis endpoint parses the PowerShell input into an AST and walks it with `AstVisitorExplainer` to produce the structured explanation nodes (the data that becomes the tree you see in the UI).\n\nThat AST-based result is returned quickly so the UI can render immediately.",
-      "line": 59
+      "line": 25
     },
     {
       "file": "explainpowershell.analysisservice/SyntaxAnalyzer.cs",
       "description": "Key design choice: the AST endpoint always sets `AiExplanation` to an empty string.\n\nThe AI summary is fetched via a separate endpoint *after* the AST explanation tree is available. This keeps the main analysis deterministic and avoids coupling UI responsiveness to an external AI call.",
-      "line": 73
+      "line": 82
     },
     {
       "file": "explainpowershell.frontend/Pages/Index.razor.cs",
       "description": "Frontend starts by calling the AST analysis endpoint (`SyntaxAnalyzer`).\n\nThis request returns the expanded code plus a flat list of explanation nodes (each has an `Id` and optional `ParentId`).",
-      "line": 97
+      "line": 120
     },
     {
       "file": "explainpowershell.frontend/Pages/Index.razor.cs",
       "description": "Once the AST analysis result comes back, the frontend builds the explanation tree (based on `Id` / `ParentId`) for display in the `MudTreeView`.\n\nAt this point, the user already has a useful explanation from the AST visitor.",
-      "line": 137
+      "line": 152
     },
     {
       "file": "explainpowershell.frontend/Pages/Index.razor.cs",
       "description": "Immediately after the tree is available, the AI request is kicked off *in the background*.\n\nNotice the fire-and-forget pattern (`_ = ...`) so the AST UI is not blocked while the AI endpoint runs.",
-      "line": 142
+      "line": 157
     },
     {
       "file": "explainpowershell.frontend/Pages/Index.razor.cs",
       "description": "`LoadAiExplanationAsync` constructs a payload containing:\n- the original PowerShell code\n- the full AST analysis result\n\nThen it POSTs to the backend `AiExplanation` endpoint.\n\nIf the call fails, the UI silently continues without the AI summary (AI is treated as optional).",
-      "line": 145
+      "line": 160
     },
     {
-      "file": "explainpowershell.frontend/Pages/Index.razor.cs",
+      "file": "explainpowershell.frontend/Clients/SyntaxAnalyzerClient.cs",
       "description": "This is the actual HTTP call that requests the AI explanation.\n\nIt sends both the code and the AST result so the backend can build a prompt that is grounded in the already-produced explanation nodes and help metadata.",
-      "line": 158
+      "line": 69
     },
     {
       "file": "explainpowershell.frontend/Pages/Index.razor",
@@ -55,7 +55,7 @@
     {
       "file": "explainpowershell.analysisservice/Program.cs",
       "description": "The AI feature is wired up through DI.\n\nA `ChatClient` is registered only when configuration is present (`Endpoint`, `ApiKey`, `DeploymentName`) and `Enabled` is true. If not configured, the factory returns `null` and AI remains disabled.",
-      "line": 29
+      "line": 36
     },
     {
       "file": "explainpowershell.analysisservice/Services/AiExplanationOptions.cs",
@@ -70,17 +70,17 @@
     {
       "file": "explainpowershell.analysisservice/Services/AiExplanationService.cs",
       "description": "Prompt grounding & size safety: the service builds a ‘slim’ version of the analysis result and serializes it to JSON for the prompt.\n\nIf the JSON is too large, it progressively reduces details (e.g., trims help fields, limits explanation count) so the request stays under `MaxPayloadCharacters`.",
-      "line": 49
+      "line": 57
     },
     {
       "file": "explainpowershell.analysisservice/Services/AiExplanationService.cs",
       "description": "Finally, the service builds a chat message list and calls `CompleteChatAsync`.\n\nThe response is reduced to a best-effort single sentence (per the prompt), and the model name is returned too so the UI can display what model produced the summary.",
-      "line": 82
+      "line": 92
     },
     {
       "file": "explainpowershell.analysisservice.tests/Invoke-AiExplanation.Tests.ps1",
       "description": "The AI endpoint has Pester integration tests.\n\nNotably, there’s coverage for:\n- accepting a valid `AnalysisResult` payload\n- handling very large payloads (50KB+) gracefully (exercise the payload reduction path)\n- an end-to-end workflow: call SyntaxAnalyzer first, then call AiExplanation with that output.",
-      "line": 33
+      "line": 3
     }
   ]
 }
