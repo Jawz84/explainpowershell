@@ -3,7 +3,7 @@
     "compounds": [
         {
             "name": "Debug solution",
-            "configurations": ["Debug functionApp", "Debug wasm"],
+            "configurations": ["Debug Function App", "Debug Blazor wasm"],
             "outFiles": [
                 "./explainpowershell.analysisservice/SyntaxAnalyzer.cs",
                 "./explainpowershell.frontend/Pages/Index.razor"
@@ -12,7 +12,7 @@
     ],
     "configurations": [
         {
-            "name": "Debug functionApp",
+            "name": "Debug Function App",
             "type": "coreclr",
             "request": "attach",
             "processId": "${command:azureFunctions.pickProcess}",
@@ -20,7 +20,7 @@
             "preLaunchTask": "func: host start"
         },
         {
-            "name": "Debug wasm",
+            "name": "Debug Blazor wasm",
             "type": "blazorwasm",
             "request": "launch",
             "cwd": "${workspaceFolder}/explainpowershell.frontend/",
@@ -34,7 +34,7 @@
             "cwd": "${file}"
         },
         {
-            "name": "Test solution",
+            "name": "Run test suite",
             "type": "PowerShell",
             "request": "launch",
             "script": "${workspaceFolder}/explainpowershell.analysisservice.tests/Start-AllTests.ps1",

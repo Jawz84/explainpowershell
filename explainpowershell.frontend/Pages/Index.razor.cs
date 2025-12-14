@@ -12,7 +12,7 @@ using explainpowershell.frontend.Clients;
 
 namespace explainpowershell.frontend.Pages
 {
-    public partial class Index : ComponentBase {
+    public partial class Index : ComponentBase, IDisposable {
         [Inject]
         private ISyntaxAnalyzerClient SyntaxAnalyzerClient { get; set; }
         private string TitleMargin { get; set; }= "mt-16";
