@@ -9,6 +9,7 @@ These instructions are for GitHub Copilot Chat/Edits when working in this reposi
 - Shared models: `explainpowershell.models/`.
 - Tests: Pester tests in `explainpowershell.analysisservice.tests/`.
 - Infra: Bicep in `explainpowershell.azureinfra/`.
+- dotnet sdk 10.x
 
 ## Architecture & flow
 - The primary explanation is AST-based:
@@ -51,10 +52,10 @@ These instructions are for GitHub Copilot Chat/Edits when working in this reposi
 - For general debuging, running `.\bootstrap.ps1` once is also recommended. If Azurite is present and has helpldata, it is not necessary to run it again.
 - You can load helper methods to test the functionapp locally by importing the following scripts in your PowerShell session:
 ```powershell
-. C:\Users\JosKoelewijn\GitNoOneDrive\explainpowershell/explainpowershell.analysisservice.tests/Invoke-SyntaxAnalyzer.ps1
-. C:\Users\JosKoelewijn\GitNoOneDrive\explainpowershell/explainpowershell.analysisservice.tests/Invoke-AiExplanation.ps1
-. C:\Users\JosKoelewijn\GitNoOneDrive\explainpowershell/explainpowershell.analysisservice.tests/Get-HelpDatabaseData.ps1
-. C:\Users\JosKoelewijn\GitNoOneDrive\explainpowershell/explainpowershell.analysisservice.tests/Get-MetaData.ps1
+. $repoRoot\explainpowershell/explainpowershell.analysisservice.tests/Invoke-SyntaxAnalyzer.ps1
+. $repoRoot\explainpowershell/explainpowershell.analysisservice.tests/Invoke-AiExplanation.ps1
+. $repoRoot\explainpowershell/explainpowershell.analysisservice.tests/Get-HelpDatabaseData.ps1
+. $repoRoot\explainpowershell/explainpowershell.analysisservice.tests/Get-MetaData.ps1
 ```
 
 ## How to validate changes

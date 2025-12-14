@@ -17,10 +17,7 @@ If you'd like a tour of this repo, open the repo in VS Code (from here with the 
 
 ## Goal
 
-I want to make it easy for anyone to find out what a certain line of PowerShell code does.
-I envision something like this:
-
-![mock](./img/Mockup.png)
+I wanted to make it easy for anyone to find out what a certain line of PowerShell code does, without having to actually run it. I wanted the codebase to be easy to do development on.
 
 ## Azure Resources overview
 
@@ -35,13 +32,27 @@ I envision something like this:
 The repo now runs directly on your host machine; no devcontainers are required. A typical setup looks like this:
 
 1. Install prerequisites: the latest .NET SDK (currently 10.x), Azure Functions Core Tools v4, PowerShell 7.4+, and the VS Code extensions recommended in `.vscode/extensions.json` (notably the Azurite extension `azurite.azurite`).
-2. Clone the repository and open it in VS Code. Run `./bootstrap.ps1` from the repo root once to install PowerShell modules, restore dependencies, seed the Azurite table storage, and run the backend tests. The Azure Function backend now runs as a .NET 10 isolated worker, so make sure the `FUNCTIONS_WORKER_RUNTIME` remains `dotnet-isolated` in `local.settings.json`.
-3. Start the Azurite Table service via the VS Code Azurite extension (`Az: Start Table Service` from the Command Palette). The tests expect the table endpoint to be available on `http://127.0.0.1:10002`.
-4. Use the provided launch configurations and `Watch run ...` tasks to iterate quickly; they continue to rely on `dotnet watch` under the hood.
+2. Clone the repository and open it in VS Code. Run `./bootstrap.ps1` from the repo root once to install PowerShell modules, restore dependencies, seed the Azurite table storage, and run the test suite. The Azure Function backend now runs as a .NET 10 isolated worker, so make sure the `FUNCTIONS_WORKER_RUNTIME` remains `dotnet-isolated` in `local.settings.json`.
+3. Start the Azurite Table service via the VS Code Azurite extension (`Azurite: Start` from the Command Palette). The tests expect the table endpoint to be available on `http://127.0.0.1:10002`.
+4. Use the provided launch configurations to run and debug the solution, or the frontend or backend separately. 
+5. Use the `Run test suite` configuration to run all available tests, both dotnet unit tests and Pester integration tests.
+
+### Available custom PowerShell commands
+
+If you load 
+```powershell
+. .\explainpowershell.analysisservice.tests\Get-HelpDatabaseData.ps1
+. .\explainpowershell.analysisservice.tests\Get-MetaData.ps1
+. .\explainpowershell.analysisservice.tests\Invoke-SyntaxAnalyzer.ps1
+. .\explainpowershell.analysisservice.tests\Invoke-AiExplanation.ps1
+```
+into your powershell session, you can use these commands to play with the solution. 
+If you run into errors, make sure you have Azurite running and the function app backend too. 
+You can run `.\bootstrap.ps1 -UpdateProfile` to automatically have these commands added to your powershell profile. 
 
 ### Access to local emulated db
 
-With the Azurite extension running, the local table endpoint is still `http://localhost:10002/devstoreaccount1/HelpData`. Connect with [Azure Storage Explorer](https://azure.microsoft.com/en-us/features/storage-explorer/) using the default development keys if you want to inspect the generated metadata.
+With the Azurite extension running, the local table endpoint is still `http://localhost:10002/devstoreaccount1/HelpData`. Connect with [Azure Storage Explorer](https://azure.microsoft.com/en-us/features/storage-explorer/) using the default development keys if you want to inspect the generated metadata. Or use the PowerShell command `Get-HelpDatabaseData` as explained above.
 
 ### AI generated explanations
 

@@ -1,5 +1,58 @@
 using namespace Microsoft.Azure.Cosmos.Table
 
+<#
+.SYNOPSIS
+Gets help data from the HelpData Azure Table (local Azurite or production).
+
+.DESCRIPTION
+Retrieves entities from the HelpData table in the CommandHelp partition.
+
+By default, the function uses a local Azurite Table endpoint via a connection string.
+When -IsProduction is specified, it creates a Storage context using a SAS token and queries
+the production Storage Account.
+
+If -ReturnTable is specified, the underlying CloudTable object is returned instead of data.
+
+.PARAMETER RowKey
+Optional RowKey to filter for a single entity. When omitted, all entities in the CommandHelp
+partition are returned.
+
+.PARAMETER ReturnTable
+Returns the underlying CloudTable object for the HelpData table.
+
+.PARAMETER IsProduction
+Uses the production Storage Account instead of the local Azurite Table endpoint.
+
+.PARAMETER StorageAccountName
+Production-only. The Azure Storage Account name.
+
+.PARAMETER ResourceGroupName
+Production-only. The Azure Resource Group name containing the Storage Account.
+
+.EXAMPLE
+Get-HelpDatabaseData
+
+Returns all entities in the CommandHelp partition from the local Azurite table.
+
+.EXAMPLE
+Get-HelpDatabaseData -RowKey 'Get-Process'
+
+Returns the entity with RowKey 'Get-Process' from the local Azurite table.
+
+.EXAMPLE
+Get-HelpDatabaseData -IsProduction -RowKey 'Get-Process' -ResourceGroupName 'powershellexplainer' -StorageAccountName 'explainpowershell'
+
+Returns the entity with RowKey 'Get-Process' from the production table.
+
+.EXAMPLE
+$table = Get-HelpDatabaseData -ReturnTable
+
+Returns the CloudTable object.
+
+.OUTPUTS
+Microsoft.Azure.Cosmos.Table.DynamicTableEntity[]
+Microsoft.Azure.Cosmos.Table.CloudTable
+#>
 function Get-HelpDatabaseData {
     [CmdletBinding(DefaultParameterSetName = 'local')]
     param(
