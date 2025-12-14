@@ -2,23 +2,6 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"label": "run tests",
-			"group": {
-				"kind": "test",
-				"isDefault": true
-			},
-			"type": "shell",
-			"command": "$env:AiExplanation__Enabled='false'; $env:AiExplanation__Endpoint=''; $env:AiExplanation__ApiKey=''; $env:AiExplanation__DeploymentName=''; Invoke-Pester -Configuration (New-PesterConfiguration -Hashtable @{ Run = @{ Path = './explainpowershell.analysisservice.tests' }; Output = @{ Verbosity = 'Detailed' } })",
-			"presentation": {
-				"echo": true,
-				"reveal": "always",
-				"focus": true,
-				"panel": "shared",
-				"showReuseMessage": true,
-				"clear": false
-			}
-		},
-		{
 			"label": "clean",
 			"command": "dotnet",
 			"args": [
@@ -45,19 +28,6 @@
 			"problemMatcher": "$msCompile"
 		},
 		{
-			"label": "clean release",
-			"command": "dotnet",
-			"args": [
-				"clean",
-				"--configuration",
-				"Release",
-				"/property:GenerateFullPaths=true",
-				"/consoleloggerparameters:NoSummary"
-			],
-			"type": "process",
-			"problemMatcher": "$msCompile"
-		},
-		{
 			"label": "func: host start",
 			"type": "func",
 			"options": {
@@ -73,35 +43,43 @@
 			"command": "dotnet",
 			"args": [
 				"watch",
-				"run",
-				"-p",
-				"${workspaceFolder}/explainpowershell.frontend/explainpowershell.frontend.csproj"
+				"run"
 			],
 			"type": "process",
-			"problemMatcher": "$msCompile"
+			"problemMatcher": "$msCompile",
+			"options": {
+				"cwd": "${workspaceFolder}/explainpowershell.frontend/"
+			},
+			"dependsOn": "Open browser frontend"
 		},
 		{
 			"label": "watch run backend",
 			"command": "dotnet",
 			"args": [
 				"watch",
-				"-p",
-				"${workspaceFolder}/explainpowershell.analysisservice/explainpowershell.csproj",
-				"msbuild",
-				"/t:RunFunctions",
+				"run",
+				"--no-hot-reload"
 			],
 			"type": "process",
 			"problemMatcher": "$msCompile",
 			"options": {
+				"cwd": "${workspaceFolder}/explainpowershell.analysisservice/",
 				"env": {
 					"DOTNET_USE_POLLING_FILE_WATCHER": "false"
 				}
-			}
+			},
+			"dependsOn": "startstorageemulator"
 		},
 		{
 			"label": "startstorageemulator",
 			"command": "${command:azurite.start}",
 			"isBackground": true
+		},
+		{
+			"label": "Open browser frontend",
+			"type": "shell",
+			"command": "Start-Process https://localhost:5001",
+			"problemMatcher": []
 		}
 	]	
 }
