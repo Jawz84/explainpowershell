@@ -1,4 +1,45 @@
 [CmdletBinding()]
+<#
+.SYNOPSIS
+Bootstraps the explainpowershell repository for local development.
+
+.DESCRIPTION
+Validates required tooling (PowerShell, .NET SDK, Azure Functions Core Tools),
+runs code generators, restores/cleans .NET projects, ensures required
+PowerShell modules are installed, optionally updates your PowerShell profile
+with helper imports, refreshes local PowerShell help, populates local Azurite
+tables with collected help data, and finally runs the test suite.
+
+Run this script from the repository root for correct relative paths.
+
+.PARAMETER Force
+Forces updates and refreshes (for example: reinstalling modules, updating help,
+and rebuilding cache files) even when existing installations/cache files are
+detected.
+
+.PARAMETER UpdateProfile
+Updates $profile.CurrentUserAllHosts with helper imports used by the test and
+analysis scripts. In interactive sessions, the script will prompt before
+updating the profile unless this switch is provided.
+
+.EXAMPLE
+PS> ./bootstrap.ps1
+Runs the bootstrap process and prompts before updating your profile (when
+interactive).
+
+.EXAMPLE
+PS> ./bootstrap.ps1 -Force
+Forces module/help/cache refresh and re-runs the bootstrap process.
+
+.EXAMPLE
+PS> ./bootstrap.ps1 -UpdateProfile
+Runs bootstrap and updates your PowerShell profile with helper imports without
+prompting.
+
+.NOTES
+Requires PowerShell 7.4+ and .NET 10 SDK.
+On Windows, dev-certs are trusted; on Linux, dev-certs are generated.
+#>
 param(
     [Switch]$Force,
     [Switch]$UpdateProfile
@@ -105,7 +146,7 @@ $shouldUpdateProfile = $UpdateProfile
 if (-not $shouldUpdateProfile -and $profileNeedsUpdate) {
     if ($isInteractive) {
         $answer = Read-Host "Update PowerShell profile '$($profile.CurrentUserAllHosts)' with helper imports? (y/N)"
-        $shouldUpdateProfile = $answer -match '^(y|yes)$'
+        $shouldUpdateProfile = $answer -imatch '^(y|yes)$'
     }
     else {
         Write-Host "Skipping profile update (non-interactive). Re-run with -UpdateProfile to enable." 

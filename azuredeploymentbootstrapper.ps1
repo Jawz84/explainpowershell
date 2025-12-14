@@ -1,5 +1,63 @@
-# Use this script to set up your Azure environment and GitHub Actions, so you can deploy explain powershell to Azure with GitHub Actions.
-# You can also use this 
+<#
+.SYNOPSIS
+Bootstraps Azure infrastructure and GitHub Actions secrets for the explainpowershell deployment.
+
+.DESCRIPTION
+This script helps you set up an Azure resource group and related resources and configures GitHub
+repository secrets used by the GitHub Actions workflows for this project.
+
+It can also create and remove isolated test environments. Test environments are tracked in a local
+metadata file: explainpowershell.azureinfra/test-environments.json.
+
+.PARAMETER SubscriptionId
+Azure subscription id to use.
+
+.PARAMETER ResourceGroupName
+Name of the (production) resource group to create/use.
+
+.PARAMETER AzureLocation
+Azure region for deployments (for valid values, see 'az account list-locations').
+
+.PARAMETER FunctionAppName
+Optional. Overrides the generated Function App name.
+
+.PARAMETER StorageAccountName
+Optional. Overrides the generated Storage Account name.
+
+.PARAMETER TestEnv
+Creates a test environment (separate resource group and related resources).
+
+.PARAMETER RemoveTestEnv
+Removes a previously created test environment.
+
+.PARAMETER TestEnvName
+Optional name/suffix for the test environment.
+When used with -TestEnv, it controls the generated names.
+When used with -RemoveTestEnv, it identifies which test environment to delete.
+
+.EXAMPLE
+./azuredeploymentbootstrapper.ps1 -SubscriptionId <subId> -ResourceGroupName explainpowershell -AzureLocation westeurope
+
+Creates/uses the production resource group, generates names (if needed), stores GitHub secrets, and
+creates/refreshes the Azure service principal secret.
+
+.EXAMPLE
+./azuredeploymentbootstrapper.ps1 -SubscriptionId <subId> -ResourceGroupName explainpowershell -AzureLocation westeurope -TestEnv -TestEnvName pr-123
+
+Creates a test environment tracked as 'pr-123'.
+
+.EXAMPLE
+./azuredeploymentbootstrapper.ps1 -SubscriptionId <subId> -ResourceGroupName explainpowershell -AzureLocation westeurope -RemoveTestEnv -TestEnvName pr-123
+
+Removes the test environment 'pr-123' (deletes its resource group) and updates local metadata.
+
+.NOTES
+Prerequisites:
+- Azure CLI (`az`) authenticated and able to create resources.
+- GitHub CLI (`gh`) authenticated with access to the target repository.
+The script sets GitHub repository secrets such as:
+RESOURCE_GROUP_NAME, FUNCTION_APP_NAME, STORAGE_ACCOUNT_NAME, AZURE_SERVICE_PRINCIPAL.
+#>
 [cmdletbinding()]
 param(
     [parameter(mandatory)]

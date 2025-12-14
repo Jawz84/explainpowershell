@@ -6,6 +6,52 @@ if (Test-Path -LiteralPath $invokeSyntaxAnalyzerPath) {
 }
 
 function Invoke-AiExplanation {
+    <#
+    .SYNOPSIS
+    Invokes the Analysis Service "AiExplanation" endpoint for a given PowerShell snippet.
+
+    .DESCRIPTION
+    Sends PowerShell code (and optionally an existing analysis result) to the local Analysis Service.
+    If -AnalysisResult is not provided, this function first obtains one by calling Invoke-SyntaxAnalyzer
+    when available, otherwise it calls the SyntaxAnalyzer HTTP endpoint directly.
+
+    By default, the function returns the raw web response. Use -AsObject to return the deserialized JSON
+    payload, or -AiExplanation to return only the AiExplanation string.
+
+    .PARAMETER PowershellCode
+    The PowerShell code to analyze/explain.
+
+    .PARAMETER AnalysisResult
+    An existing analysis result object (typically the deserialized output of the SyntaxAnalyzer endpoint).
+    When provided, the syntax analysis step is skipped.
+
+    .PARAMETER BaseUri
+    The base URI of the Analysis Service Functions host.
+
+    .PARAMETER TimeoutSec
+    The request timeout in seconds.
+
+    .PARAMETER AsObject
+    Return the response content as a PowerShell object (ConvertFrom-Json).
+
+    .PARAMETER AiExplanation
+    Return only the AiExplanation property from the response.
+
+    .OUTPUTS
+    When neither -AsObject nor -AiExplanation is specified, returns the Invoke-WebRequest response object.
+    When -AsObject is specified, returns the deserialized JSON object.
+    When -AiExplanation is specified, returns a string.
+
+    .EXAMPLE
+    Invoke-AiExplanation -PowershellCode 'Get-Process | Select-Object -First 1'
+
+    .EXAMPLE
+    Invoke-AiExplanation -PowershellCode 'Get-Date' -AiExplanation
+
+    .EXAMPLE
+    $analysis = (Invoke-SyntaxAnalyzer -PowershellCode 'Get-ChildItem').Content | ConvertFrom-Json
+    Invoke-AiExplanation -PowershellCode 'Get-ChildItem' -AnalysisResult $analysis -AsObject
+    #>
     param(
         [Parameter(Mandatory)]
         [string]$PowershellCode,
