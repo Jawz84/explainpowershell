@@ -52,7 +52,7 @@ You can run `.\bootstrap.ps1 -UpdateProfile` to automatically have these command
 
 ### Access to local emulated db
 
-With the Azurite extension running, the local table endpoint is still `http://localhost:10002/devstoreaccount1/HelpData`. Connect with [Azure Storage Explorer](https://azure.microsoft.com/en-us/features/storage-explorer/) using the default development keys if you want to inspect the generated metadata. Or use the PowerShell command 
+With the Azurite extension running, the local table endpoint is still `http://localhost:10002/devstoreaccount1/HelpData`. Connect with [Azure Storage Explorer](https://azure.microsoft.com/en-us/features/storage-explorer/) using the default development keys if you want to inspect the generated metadata. Or use the PowerShell command `Get-HelpDatabaseData` as explained above.
 
 ### AI generated explanations
 
